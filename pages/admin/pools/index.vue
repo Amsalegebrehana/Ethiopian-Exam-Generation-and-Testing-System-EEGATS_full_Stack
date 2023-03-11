@@ -61,7 +61,6 @@ const EditModal = async (poolId : string, poolName : string) => {
    
 }
 const handleEditPool = async () => {
-    //TODO : form validation 
     isLoading.value = true;
     await $client.pool.updatePool.mutate(poolInfo.value);
     isReloading.value = true;
@@ -87,7 +86,7 @@ const DeleteModal = async (poolId: string, poolName: string) => {
 
 }
 const handleDeletePool = async () => {
-    //TODO : form validation 
+
     isLoading.value = true;
     await $client.pool.deletePool.mutate({id :poolInfo.value.id});
     isReloading.value = true;
