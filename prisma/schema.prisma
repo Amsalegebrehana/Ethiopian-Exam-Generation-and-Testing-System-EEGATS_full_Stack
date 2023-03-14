@@ -110,9 +110,10 @@ model Questions{
   image     String?
   status    String @default("waiting")
   poolId    String
+  category  String
   pool      Pool @relation(fields: [poolId], references: [id])
-  examId    String
-  exam      Exam @relation(fields: [examId], references: [id])
+  examId    String?
+  exam      Exam? @relation(fields: [examId], references: [id])
   contributorId String
   Contributors Contributors @relation(fields: [contributorId], references: [id])
   choices Choice []
