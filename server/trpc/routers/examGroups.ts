@@ -14,6 +14,13 @@ export const examGroupRouter = router({
       )
       .query(async ({ ctx, input }) => {
         return await ctx.prisma.examGroup.findMany({
+          include:{
+            _count:{
+                select:{
+                    Exam:true
+                }
+            }
+          },
           skip: input.skip,
           take: 6,
           orderBy: {
