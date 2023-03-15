@@ -5,6 +5,7 @@ import { Pool } from '.prisma/client';
 import { Field, Form, ErrorMessage } from 'vee-validate';
 import { toFieldValidator } from '@vee-validate/zod';
 import * as zod from 'zod';
+import { type } from 'os';
 definePageMeta({ middleware: 'is-admin' })
 const { $client } = useNuxtApp()
 const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').min(2, 'Minimum of 2 characters required'));
@@ -88,7 +89,10 @@ const DeleteModal = async (poolId: string, poolName: string) => {
 const handleDeletePool = async () => {
 
     isLoading.value = true;
-    await $client.pool.deletePool.mutate({id :poolInfo.value.id});
+    const res = await $client.pool.deletePool.mutate({id :poolInfo.value.id});
+    if(res === 'Can\'t delete pool.'){
+        alert('Cannot delete pool with active users');
+    }
     isReloading.value = true;
     isLoading.value = false;
     showDeleteModal.value = false;
@@ -158,15 +162,15 @@ const handleDeletePool = async () => {
                                             }}</NuxtLink>
                                        
                                         </td>
-                                        <td class="text-center">{{ pool.numberOfQuestions }}</td>
+                                        <td class="text-center">{{ pool._count.Questions }}</td>
                                  
                                         <td class="table-report__action w-56">
                                             <div class="flex justify-center items-center">
-                                                <a class="flex items-center mr-3" href="javascript:;" @click="EditModal(pool.id, pool.name)">
-                                                    <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon> Edit
+                                                <a class="flex items-center mr-6" href="javascript:;" @click="EditModal(pool.id, pool.name)">
+                                                    <Icon name="eva:checkmark-square-outline" class="w-4 h-4 mr-1"></Icon> Edit
                                                 </a>
                                                 <a class="flex items-center text-danger" href="javascript:;" @click="DeleteModal(pool.id, pool.name)">
-                                                    <Icon name="fa6-regular:trash-can" class="w-4 h-4"></Icon> Delete
+                                                    <Icon name="fa6-regular:trash-can" class="w-4 h-4 mr-1"></Icon> Delete
                                                 </a>
                                             </div>
                                         </td>
