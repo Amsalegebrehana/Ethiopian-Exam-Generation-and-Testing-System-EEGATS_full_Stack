@@ -2,30 +2,81 @@ import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 
 export const poolRouter = router({
-  getPoolsCount: publicProcedure.query(async ({ ctx }) => {
-    return await ctx.prisma.pool.count();
+  getPoolContributorsCount: publicProcedure
+  .input(
+    z.object({
+     poolId: z.string(),
+    })
+  )
+  .query(async ({ ctx , input}) => {
+    return await ctx.prisma.contributors.count({
+      where: {
+        poolId: { equals: input.poolId },
+      }
+    });
   }),
-  getPools: publicProcedure
+  getPoolContributors: publicProcedure
     .input(
       z.object({
         skip: z.number(),
         search: z.string().optional(),
+        poolId: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
-      return await ctx.prisma.pool.findMany({
+      return await ctx.prisma.contributors.findMany({
         skip: input.skip,
         take: 6,
         orderBy: {
           createdAt: "desc",
         },
         where: {
+          poolId: { equals: input.poolId },
+          isActive : { equals: true },
           name: {
             contains: input.search,
           },
         },
       });
     }),
+    getPoolsCount: publicProcedure.query(async ({ ctx }) => {
+      return await ctx.prisma.pool.count();
+    }),
+    getPools: publicProcedure
+      .input(
+        z.object({
+          skip: z.number(),
+          search: z.string().optional(),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        return await ctx.prisma.pool.findMany({
+          skip: input.skip,
+          take: 6,
+          orderBy: {
+            createdAt: "desc",
+          },
+          where: {
+            name: {
+              contains: input.search,
+            },
+          },
+          include :{
+            _count: {
+              select: {
+                Questions: {
+                  where :{
+                    status : { equals: 'aprooved' }
+                  }
+                },
+              
+              } ,
+                
+              },
+
+            },
+        });
+      }),
 
 
   addPool: publicProcedure
@@ -84,11 +135,17 @@ export const poolRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const data = await ctx.prisma.pool.delete({
-        where: {
-          id: input.id,
-        },
-      });
-      return data;
+      try{
+
+        const data = await ctx.prisma.pool.delete({
+          where: {
+            id: input.id,
+          },
+        });
+        return data;
+      }
+      catch(e){
+        return  'Can\'t delete pool.';
+      }
     }),
 });

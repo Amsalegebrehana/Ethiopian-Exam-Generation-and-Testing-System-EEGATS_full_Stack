@@ -4,6 +4,101 @@ import { publicProcedure, router } from "../trpc";
 const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
 export const contributorRouter = router({
+
+  getReviewsReamining: publicProcedure
+  .input(
+    z.object({
+      id: z.string(),
+     
+    })
+  )
+  .query(async ({ ctx, input }) => {
+    const data = await ctx.prisma.contributors.findUnique({
+      where: {
+        id: input.id,
+      }
+    }).then((data) => {
+      return data?.reviewsRemaining;
+    }
+  )}),
+  getQuestionsRemaining: publicProcedure
+  .input(
+    z.object({
+      id: z.string(),
+     
+    })
+  )
+  .query(async ({ ctx, input }) => {
+    const data = await ctx.prisma.contributors.findUnique({
+      where: {
+        id: input.id,
+      }
+    }).then((data) => {
+      return data?.questionsRemaining;
+    }
+  )}),
+  assignReviews: publicProcedure
+  .input(
+    z.object({
+      id: z.string(),
+    })
+  )
+  .mutation(async ({ ctx, input }) => {
+    const data = await ctx.prisma.contributors.findUnique({
+      where: {
+        id: input.id,
+      }
+    }).then(async (data) => {
+      if(data){
+
+        await ctx.prisma.contributors.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            reviewsRemaining: data?.reviewsRemaining - 1,
+          },
+        });
+        return data;
+      }
+    }
+  )
+  }),
+  assignQuestion: publicProcedure
+  .input(
+    z.object({
+      id: z.string(),
+      numberofQuestions: z.number(),
+    })
+  )
+  .mutation(async ({ ctx, input }) => {
+    const data = await ctx.prisma.contributors.update({
+      where: {
+        id: input.id,
+      },
+      data: {
+        questionsRemaining: input.numberofQuestions,
+      },
+    });
+    return data;
+  }),
+  disableContributor: publicProcedure
+  .input(
+    z.object({
+      id: z.string(),
+    })
+  )
+  .mutation(async ({ ctx, input }) => {
+    const data = await ctx.prisma.contributors.update({
+      where: {
+        id: input.id,
+      },
+      data: {
+        isActive: false,
+      },
+    });
+    return data;
+  }),
   inviteContributor: publicProcedure
     .input(
       z.object({
