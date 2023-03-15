@@ -131,7 +131,7 @@ const handleDeleteExamGroup = async () => {
           
                 <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
                       <div v-if="examGroup?.length == 0" class="w-full text-center text-lg mt-10 h-full">
-                                    <p>No pools found</p>
+                                    <p>No exam groups found</p>
                                 </div>
                             <div v-if="examGroup?.length !== 0">
                         
@@ -150,12 +150,12 @@ const handleDeleteExamGroup = async () => {
                             <tbody>
                                     <tr v-for="exgrp in examGroup" :key="exgrp.id" class="intro-x">
                                         <td class="w-10">
-                                              <NuxtLink :to="`/admin/pools/${exgrp.id}`">
+                                              <NuxtLink :to="`/admin/exams/${exgrp.id}`">
                                             <Icon name="ri:pie-chart-2-fill" class="w-6 h-6"></Icon>
                                             </NuxtLink>
                                         </td>
                                         <td>
-                                            <NuxtLink :to="`/admin/pools/${exgrp.id}`" class="font-medium whitespace-nowrap">{{
+                                            <NuxtLink :to="`/admin/exams/${exgrp.id}`" class="font-medium whitespace-nowrap">{{
                                                 exgrp.name
                                             }}</NuxtLink>
                                        
