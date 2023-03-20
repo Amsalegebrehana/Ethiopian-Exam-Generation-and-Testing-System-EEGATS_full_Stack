@@ -24,6 +24,7 @@ model Pool {
   Contributors Contributors []
   Exam Exam []
   Questions Questions []
+  Category  Category[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 }
@@ -48,6 +49,7 @@ model Contributors{
   reviewsRemaining    Int @default(0) 
   Questions Questions []
   Reviews Review []
+  contributorAssignments  ContributorAssignment[]
   isActive Boolean @default(true)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
@@ -162,4 +164,22 @@ model Review {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 
+}
+
+model Category {
+  id              String        @id @default(uuid())
+  name            String
+  poolId          String
+  pool            Pool @relation(fields: [poolId], references: [id])
+  numOfQuestions  Int
+  contributorAssignments ContributorAssignment[]
+}
+
+model ContributorAssignment {
+  id                  String        @id @default(uuid())
+  catId               String
+  contId              String
+  category            Category @relation(fields:[catId], references: [id])
+  contributor         Contributors @relation(fields: [contId], references: [id])
+  questionsRemaining  Int
 }
