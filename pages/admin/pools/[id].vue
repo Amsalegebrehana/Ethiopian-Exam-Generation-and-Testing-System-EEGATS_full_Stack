@@ -73,18 +73,19 @@ const AssignModal = async (contrId : string, noOfQuestions : number) => {
     showAssignModal.value = !showAssignModal.value;
    
 }
-const handleAssignQuestions = async () => {
-    isLoading.value = true;
-    await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, numberofQuestions : contrInfo.value.questionNumber});
-    isReloading.value = true;
-    isLoading.value = false;
-    showAssignModal.value = false;
-    contrInfo.value.id = '';
-    contrInfo.value.questionNumber = 0;
-    await fetchContributors();
-    await fetchCount();
-    isReloading.value = false;
-}
+//TODO: Fix this
+// const handleAssignQuestions = async () => {
+//     isLoading.value = true;
+//     await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, numberofQuestions : contrInfo.value.questionNumber});
+//     isReloading.value = true;
+//     isLoading.value = false;
+//     showAssignModal.value = false;
+//     contrInfo.value.id = '';
+//     contrInfo.value.questionNumber = 0;
+//     await fetchContributors();
+//     await fetchCount();
+//     isReloading.value = false;
+// }
 const toggleDeleteModal = () => {
     contrInfo.value.id = '';
     contrInfo.value.name = '';
@@ -345,8 +346,8 @@ const handleDisableContributor = async () => {
                                 </div>
                                 <!--footer-->
                                 <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
-
-                                    <button @click="handleAssignQuestions()"
+                                    
+                                    <!-- <button @click="handleAssignQuestions()"
                                         class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading ">
                                         <div v-if="isLoading || pending">
                                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
@@ -354,7 +355,7 @@ const handleDisableContributor = async () => {
                                             <div v-else>
                                                 Assign
                                             </div>
-                                    </button>
+                                    </button> -->
 
                                 </div>
                             </div>
