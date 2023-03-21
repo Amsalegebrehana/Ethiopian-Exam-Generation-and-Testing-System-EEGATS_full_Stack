@@ -45,8 +45,7 @@ model Contributors{
   password  String
   poolId    String
   pool      Pool @relation(fields: [poolId], references: [id])
-  questionsRemaining  Int @default(0) 
-  reviewsRemaining    Int @default(0) 
+  reviewsMade    Int @default(0) 
   Questions Questions []
   Reviews Review []
   contributorAssignments  ContributorAssignment[]

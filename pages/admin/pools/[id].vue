@@ -30,6 +30,7 @@ const paginate = async (newPage: number) => {
 const isReloading = ref(false);
 const isLoading = ref(false);
 const isInviteSuccess = ref(false);
+const isInviteDup = ref(false);
 const showInv = ref(true);
 const showInviteModal = ref(false);
 const showAssignModal = ref(false);
@@ -49,6 +50,10 @@ const handleInviteContributor = async () => {
     const res = await $client.contributor.inviteContributor.mutate({ email: contributorEmail.value, poolId: poolId! });
     isLoading.value = false;
     showInv.value = false;
+    if(res == 'Already a member of this pool'){
+        isInviteDup.value = true;
+        contributorEmail.value = '';
+    }
     if (res === true) {
         isInviteSuccess.value = true;
         contributorEmail.value = '';
@@ -68,18 +73,19 @@ const AssignModal = async (contrId : string, noOfQuestions : number) => {
     showAssignModal.value = !showAssignModal.value;
    
 }
-const handleAssignQuestions = async () => {
-    isLoading.value = true;
-    await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, numberofQuestions : contrInfo.value.questionNumber});
-    isReloading.value = true;
-    isLoading.value = false;
-    showAssignModal.value = false;
-    contrInfo.value.id = '';
-    contrInfo.value.questionNumber = 0;
-    await fetchContributors();
-    await fetchCount();
-    isReloading.value = false;
-}
+//TODO: Fix this
+// const handleAssignQuestions = async () => {
+//     isLoading.value = true;
+//     await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, numberofQuestions : contrInfo.value.questionNumber});
+//     isReloading.value = true;
+//     isLoading.value = false;
+//     showAssignModal.value = false;
+//     contrInfo.value.id = '';
+//     contrInfo.value.questionNumber = 0;
+//     await fetchContributors();
+//     await fetchCount();
+//     isReloading.value = false;
+// }
 const toggleDeleteModal = () => {
     contrInfo.value.id = '';
     contrInfo.value.name = '';
@@ -255,6 +261,12 @@ const handleDisableContributor = async () => {
                             <p class=" font-bold text-lg text-center">Invite successfully sent!</p>
                         </div>
                     </div>
+                    <div v-if="isInviteDup && !showInv">
+                    <div class="flex flex-row items-center space-x-4 mx-auto">
+                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                        <p class=" font-bold text-lg text-center">Already a member of this pool!</p>
+                    </div>
+                    </div>
                     <div v-if="!isInviteSuccess && !showInv">
                         <div class="flex flex-row items-center space-x-4 mx-auto">
                             <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
@@ -334,8 +346,8 @@ const handleDisableContributor = async () => {
                                 </div>
                                 <!--footer-->
                                 <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
-
-                                    <button @click="handleAssignQuestions()"
+                                    
+                                    <!-- <button @click="handleAssignQuestions()"
                                         class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading ">
                                         <div v-if="isLoading || pending">
                                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
@@ -343,7 +355,7 @@ const handleDisableContributor = async () => {
                                             <div v-else>
                                                 Assign
                                             </div>
-                                    </button>
+                                    </button> -->
 
                                 </div>
                             </div>
