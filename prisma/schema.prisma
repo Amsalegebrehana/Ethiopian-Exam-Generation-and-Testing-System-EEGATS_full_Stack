@@ -61,14 +61,14 @@ model Exam {
   numberOfQuestions Int  @default(0)
   duration          Float @default(0)
   testingDate       DateTime
-  status            String @default("inActive")
+  status            ExamStatus
   poolId            String
   pool              Pool @relation(fields: [poolId], references: [id])
   examGroupId       String
   examGroup         ExamGroup @relation(fields: [examGroupId], references: [id])
   Questions         Questions []
   TestTakerResponse TestTakerResponse[]
-  Grades            Grades []
+  TestSession            TestSession []
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 }
@@ -81,7 +81,7 @@ model TestTakers{
   examGroupId  String
   examGroup  ExamGroup @relation(fields: [examGroupId], references: [id])
   TestTakerResponse TestTakerResponse [] 
-  Grades Grades []
+  TestSession TestSession []
   createdAt        DateTime           @default(now())
  
 }
@@ -112,9 +112,10 @@ model Questions{
   id        String            @id @default(uuid())
   title     String
   image     String?
-  status    String @default("waiting")
+  status    QuestionStatus @default(waiting)
   poolId    String
-  category  String
+  catId     String
+  category  Category @relation(fields: [catId], references: [id])
   pool      Pool @relation(fields: [poolId], references: [id])
   examId    String?
   exam      Exam? @relation(fields: [examId], references: [id])
@@ -132,6 +133,7 @@ model TestTakerResponse {
   id        String            @id @default(uuid())
   testTakerId String
   testTakers TestTakers? @relation(fields: [testTakerId], references: [id])
+  isCorrect   Boolean 
   questionId String 
   questions  Questions @relation(fields: [questionId], references: [id])
   examId    String
@@ -142,9 +144,10 @@ model TestTakerResponse {
   updatedAt        DateTime           @updatedAt
 }
 
-model Grades {
+model TestSession {
   id        String            @id @default(uuid())
   grade     Int
+  isSubmitted Boolean  @default(false)
   testTakerId String
   testTakers TestTakers @relation(fields: [testTakerId], references: [id])
   examId String 
@@ -160,7 +163,7 @@ model Review {
   reviewerId String
   Reviewers Contributors @relation(fields: [reviewerId], references: [id])
   feedback String
-  status String @default("pending")
+  isReviewed  Boolean   @default(false)   
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 
@@ -173,13 +176,27 @@ model Category {
   pool            Pool @relation(fields: [poolId], references: [id])
   numOfQuestions  Int
   contributorAssignments ContributorAssignment[]
+  questions       Questions[]
 }
 
 model ContributorAssignment {
   id                  String        @id @default(uuid())
   catId               String
-  contId              String
+  contrId              String
   category            Category @relation(fields:[catId], references: [id])
-  contributor         Contributors @relation(fields: [contId], references: [id])
+  contributor         Contributors @relation(fields: [contrId], references: [id])
   questionsRemaining  Int
+}
+
+enum QuestionStatus {
+  waiting
+  approved
+  rejected
+  selected
+}
+
+enum ExamStatus {
+  generated
+  published
+  gradeReleased
 }
