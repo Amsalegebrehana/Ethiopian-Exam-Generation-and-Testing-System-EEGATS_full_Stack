@@ -1,15 +1,5 @@
 import nodemailer from "nodemailer";
-
-export async function sendInviteEmail({
-  email,
-  url,
-  
-}: {
-  email: string;
-  url: string;
-  
-}) {
-  const testAccount = await nodemailer.createTestAccount();
+const testAccount = await nodemailer.createTestAccount();
 
   const transporter = nodemailer.createTransport({
 
@@ -20,11 +10,42 @@ export async function sendInviteEmail({
     },
   });
 
+export async function sendNewInvite({
+  email,
+  url,
+  pool,
+  
+}: {
+  email: string;
+  url: string;
+  pool: string;
+  
+}) {
+
   const info = await transporter.sendMail({
     from: ' <no-reply@eegts.com>',
     to: email,
     subject: "Contribute at EEGTS",
-    html: `<p>Greetings,<br></p> <p>You have been invited to contribute and review questions for the Ethiopian Exam Generation and Testing System.<br></p><p> Create your contributor account by clicking <a href="${url}">HERE</a></p>`,
+    html: `<p>Greetings,<br></p> <p>You have been invited to contribute and review questions for the Ethiopian Exam Generation and Testing System's ${pool} pool.<br></p><p> Create your contributor account by clicking <a href="${url}">HERE</a></p>`,
+  });
+
+  console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+}
+export async function sendReturnEmail({
+  email,
+  url,
+  pool
+}: {
+  email: string;
+  url: string;
+  pool :string;
+}) {
+  
+  const info = await transporter.sendMail({
+    from: ' <no-reply@eegts.com>',
+    to: email,
+    subject: "Contribute at EEGTS",
+    html: `<p>Greetings,<br></p> <p>You have been invited to contribute and review questions for the Ethiopian Exam Generation and Testing System's ${pool} pool.<br></p><p>Log into your account by clicking <a href="${url}">HERE</a></p>`,
   });
 
   console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);

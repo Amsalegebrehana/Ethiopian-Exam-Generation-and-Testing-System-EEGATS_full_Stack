@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sendInviteEmail } from "~~/utils/mailer";
+import {  sendNewInvite, sendReturnEmail } from "~~/utils/mailer";
 import { publicProcedure, router } from "../trpc";
 const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
@@ -107,10 +107,47 @@ export const contributorRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      sendInviteEmail({
-        url: `${auth.origin}/contributor/register?poolId=${input.poolId}`,
-        email: input.email,
+      const pool = await ctx.prisma.pool.findUnique({
+        where: {
+          id: input.poolId,
+        }
+      })
+      const user = await ctx.prisma.contributors.findUnique({
+        where: {
+          email: input.email,
+        }
       });
+      if(user?.poolId === input.poolId){
+        return 'Already a member of this pool'
+      }
+      if(user){
+        await ctx.prisma.contributors.update({
+          where: {
+            email: input.email,
+          },
+          data: {
+            poolId: input.poolId,
+            isActive: true,
+          }
+        }).then((data) => {
+          if(pool){
+            sendReturnEmail({
+              url: `${auth.origin}`,
+              email: input.email,
+              pool : pool?.name,
+            });
+          }
+        });
+      }else{
+        if(pool){
+          sendNewInvite({
+            url: `${auth.origin}/contributor/register?poolId=${input.poolId}`,
+            email: input.email,
+            pool : pool?.name,
+          });
+        }
+      }
+   
 
       return true;
     }),

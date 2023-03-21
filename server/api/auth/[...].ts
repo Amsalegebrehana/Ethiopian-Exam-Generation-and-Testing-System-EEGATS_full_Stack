@@ -108,7 +108,7 @@ export default NuxtAuthHandler({
                   email: credentials.email,
                 },
               });
-              if (contributorUser !== null) {
+              if (contributorUser !== null && contributorUser?.isActive) {
                 const res = await confirmPasswordHash(
                   credentials.password,
                   contributorUser.password

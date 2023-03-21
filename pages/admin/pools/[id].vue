@@ -30,6 +30,7 @@ const paginate = async (newPage: number) => {
 const isReloading = ref(false);
 const isLoading = ref(false);
 const isInviteSuccess = ref(false);
+const isInviteDup = ref(false);
 const showInv = ref(true);
 const showInviteModal = ref(false);
 const showAssignModal = ref(false);
@@ -49,6 +50,10 @@ const handleInviteContributor = async () => {
     const res = await $client.contributor.inviteContributor.mutate({ email: contributorEmail.value, poolId: poolId! });
     isLoading.value = false;
     showInv.value = false;
+    if(res == 'Already a member of this pool'){
+        isInviteDup.value = true;
+        contributorEmail.value = '';
+    }
     if (res === true) {
         isInviteSuccess.value = true;
         contributorEmail.value = '';
@@ -254,6 +259,12 @@ const handleDisableContributor = async () => {
                             <Icon name="clarity:success-standard-line" class="w-20 h-20 text-green-600"></Icon>
                             <p class=" font-bold text-lg text-center">Invite successfully sent!</p>
                         </div>
+                    </div>
+                    <div v-if="isInviteDup && !showInv">
+                    <div class="flex flex-row items-center space-x-4 mx-auto">
+                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                        <p class=" font-bold text-lg text-center">Already a member of this pool!</p>
+                    </div>
                     </div>
                     <div v-if="!isInviteSuccess && !showInv">
                         <div class="flex flex-row items-center space-x-4 mx-auto">
