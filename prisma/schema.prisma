@@ -161,7 +161,7 @@ model Review {
   questions  Questions @relation(fields: [questionId], references: [id])
   reviewerId String
   Reviewers Contributors @relation(fields: [reviewerId], references: [id])
-  feedback String
+  feedback String?
   isReviewed  Boolean   @default(false)   
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt

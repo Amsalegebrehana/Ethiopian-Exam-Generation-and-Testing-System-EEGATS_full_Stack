@@ -1,14 +1,5 @@
 import nodemailer from "nodemailer";
-const testAccount = await nodemailer.createTestAccount();
 
-  const transporter = nodemailer.createTransport({
-
-    service: "gmail",
-    auth: {
-      user: "invite.eegts@gmail.com",
-      pass: process.env.MAILER_PASSWORD,
-    },
-  });
 
 export async function sendNewInvite({
   email,
@@ -21,6 +12,16 @@ export async function sendNewInvite({
   pool: string;
   
 }) {
+  const testAccount = await nodemailer.createTestAccount();
+
+  const transporter = nodemailer.createTransport({
+
+    service: "gmail",
+    auth: {
+      user: "invite.eegts@gmail.com",
+      pass: process.env.MAILER_PASSWORD,
+    },
+  });
 
   const info = await transporter.sendMail({
     from: ' <no-reply@eegts.com>',
@@ -40,6 +41,16 @@ export async function sendReturnEmail({
   url: string;
   pool :string;
 }) {
+  const testAccount = await nodemailer.createTestAccount();
+
+  const transporter = nodemailer.createTransport({
+
+    service: "gmail",
+    auth: {
+      user: "invite.eegts@gmail.com",
+      pass: process.env.MAILER_PASSWORD,
+    },
+  });
   
   const info = await transporter.sendMail({
     from: ' <no-reply@eegts.com>',

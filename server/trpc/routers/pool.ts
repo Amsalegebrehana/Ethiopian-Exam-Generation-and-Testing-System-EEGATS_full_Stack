@@ -66,7 +66,7 @@ export const poolRouter = router({
               select: {
                 Questions: {
                   where :{
-                    status : { equals: 'aprooved' }
+                    status : { equals: 'approved'}
                   }
                 },
               
