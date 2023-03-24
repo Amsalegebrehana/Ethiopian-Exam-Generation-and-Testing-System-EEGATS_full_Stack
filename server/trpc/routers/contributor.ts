@@ -19,8 +19,94 @@ export const contributorRouter = router({
       }
     }).then((data) => {
       return data?.reviewsMade;
+    })
+    return data;
+
+}),
+
+  checkifAssigned : publicProcedure
+  .input(
+   z.object({
+     contrId: z.string(),
+    
+   })
+ )
+ .query(async ({ ctx, input }) => {
+
+   const contributor  =  await ctx.prisma.contributors. findUnique({
+     where : {
+       id : input.contrId
+     }
+   })
+
+   const data = await ctx.prisma.contributors.findMany({
+    select: {
+      _count: {
+        select: {
+          contributorAssignments: { where: {
+                   contrId : input.contrId,
+                   category : {
+                     poolId : contributor?.poolId
+                   },
+                   questionsRemaining : {
+                     gt :0 
+                   }
+                 },},
+        },
+      },
+    },
+       }
+     
+    
+   )
+   .then(
+     (data)=> {
+      var count = 0;
+      data.forEach(element => {
+        count += element._count.contributorAssignments
+      });
+
+      return count > 0
     }
-  )}),
+    
+    )
+    return data;
+
+ }),
+  getAssignedCategories: publicProcedure
+   .input(
+    z.object({
+      contrId: z.string(),
+    })
+  )
+  .query(async ({ ctx, input }) => {
+    const contributor  =  await ctx.prisma.contributors. findUnique({
+      where : {
+        id : input.contrId
+      }
+    })
+    const data = await ctx.prisma.category.findMany({
+      where: {
+        contributorAssignments :{
+          
+          some : {
+            contrId : input.contrId,
+            category : {
+              poolId : contributor?.poolId
+            },
+            questionsRemaining : {
+              gt :0 
+            }
+          }
+       
+        }
+      },
+      
+     
+    });
+   return data;
+  }),
+ 
   // getQuestionsRemaining: publicProcedure
   // .input(
   //   z.object({
@@ -73,6 +159,18 @@ export const contributorRouter = router({
       },
     });
     return data;
+  }),
+  getContributorId : publicProcedure
+  .input(z.object({
+    email : z.string()
+  })).query(async ({ ctx, input }) => {
+    const data = await ctx.prisma.contributors.findUnique({
+      where: {
+        email: input.email,
+      }
+    });
+    return data?.id;
+
   }),
   inviteContributor: publicProcedure
     .input(

@@ -31,15 +31,17 @@ const uploadAvatar = async (evt) => {
 
     const file = files.value[0]
     const fileExt = file.name.split('.').pop()
-    const fileName = `${Math.random()}.${fileExt}`
-    const filePath = `${fileName}`
-
-    let { error: uploadError } = await supabase.storage.from('eegts-images').upload(filePath, file)
-
-    if (uploadError) throw uploadError
-
-    emit('update:path', filePath)
-    emit('upload')
+    if(fileExt== "png" || fileExt == "jpeg"){
+      const fileName = `${Math.random()}.${fileExt}`
+      const filePath = `${fileName}`
+  
+      let { error: uploadError } = await supabase.storage.from('eegts-images').upload(filePath, file)
+  
+      if (uploadError) throw uploadError
+  
+      emit('update:path', filePath)
+      emit('upload')
+    }
   } catch (error) {
     alert(error.message)
   } finally {
@@ -65,11 +67,22 @@ watch(path, () => {
       class="avatar image"
       style="width: 10em; height: 10em;"
     />
-    <div v-else class="avatar no-image" :style="{ height: size, width: size }" />
+    <div v-else>
 
     <div style="width: 10em; position: relative;">
+      
+      
       <label class="button primary block" for="single">
-        {{ uploading ? 'Uploading ...' : 'Upload' }}
+        <div v-if="uploading">
+        <span>Uploading ...</span>
+      </div>
+      <div v-else>
+        <div class="flex flex-row">
+          <span class="font-medium text-base"> Add Image</span>
+          <Icon name="material-symbols:add-photo-alternate-outline-rounded" class="w-6 h-6"></Icon>
+        </div>
+
+      </div>
       </label>
       <input
         style="position: absolute; visibility: hidden;"
@@ -79,6 +92,7 @@ watch(path, () => {
         @change="uploadAvatar"
         :disabled="uploading"
       />
+    </div>
     </div>
   </div>
 </template>

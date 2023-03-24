@@ -27,6 +27,8 @@ export default NuxtAuthHandler({
         token.jwt = user ? (user as any).access_token || "" : "";
         token.id = user ? user.id || "" : "";
         token.role = user ? (user as any).role || "" : "";
+        typeof window !== 'undefined' ? localStorage.setItem("userId", token.id as string ) : null;
+        
       }
       return Promise.resolve(token);
     },

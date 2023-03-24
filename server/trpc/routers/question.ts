@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
-
+const {supabaseUrl} = useRuntimeConfig();
 export const questionRouter = router({
     addQuestion: publicProcedure.input(
         z.object({
@@ -45,41 +45,43 @@ export const questionRouter = router({
         if(contributor?.poolId == category?.poolId ){
         const poolId= category?.poolId;
         if(poolId){
+            const urlPrefix = supabaseUrl + '/storage/v1/object/public/eegts-images/'
             const question = await ctx.prisma.questions.create({
                 data:{
                     title: input.questionTitle,
-                    image: input.questionImage,
+                    image:  urlPrefix+  input.questionImage,
                     catId: input.catId,
                     poolId: poolId,
                     contributorId : input.contrId,
                 }
             }).then(
                 async (data) => {
+                    //    https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-images/0.08247799274854795.png
                     const choiceOne =  await ctx.prisma.choice.create({
                         data:{
                             title: input.choiceOneTitle,
-                            image: input.choiceOneImage,
+                            image: urlPrefix+  input.choiceOneImage,
                             questionId: data.id,
                         }
                     });
                     const choiceTwo =  await ctx.prisma.choice.create({
                         data:{
                             title: input.choiceTwoTitle,
-                            image: input.choiceTwoImage,
+                            image:  urlPrefix+  input.choiceTwoImage,
                             questionId: data.id,
                         }
                     });
                     const choiceThree =  await ctx.prisma.choice.create({
                         data:{
                             title: input.choiceThreeTitle,
-                            image: input.choiceThreeImage,
+                            image:  urlPrefix+  input.choiceThreeImage,
                             questionId: data.id,
                         }
                     });
                     const choiceFour =  await ctx.prisma.choice.create({
                         data:{
                             title: input.choiceFourTitle,
-                            image: input.choiceFourImage,
+                            image:  urlPrefix+  input.choiceFourImage,
                             questionId: data.id,
                         }
                     });
