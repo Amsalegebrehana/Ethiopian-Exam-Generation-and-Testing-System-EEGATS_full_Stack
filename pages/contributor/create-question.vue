@@ -1,6 +1,27 @@
+<script setup>
+definePageMeta({ middleware: 'is-contributor' })
+const questionInfo = ref({
+  title: '',
+  choiceOne: '',
+  choiceTwo: '',
+  choiceThree: '',
+  choiceFour: '',
+})
+const question_title_path = ref('');
+const correctAnswer = ref('');
+const step = ref(1);
+const nextStep = () => {
+  step.value++;
+}
+const prevStep = () => {
+  step.value--;
+}
+
+</script>
+
 <template>
     <div>
-        <AdminTopBar role="contributor" />
+        <TopBar role="contributor" />
         <div class="flex">
     
             <ContributorSideBar pageName="questions" />
@@ -57,18 +78,14 @@
 <div class="mt-10 py-5 px-5">
     <div v-if="step === 1" class="w-10/12">
         <div class="font-medium text-base">Enter the question below</div>
-    
+    {{ question_title_path }}
+    https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-images/0.08247799274854795.png
         <div class="py-3">
             <client-only>
                 <Tiptap v-model="questionInfo.title" class="w-screen" />
             </client-only>
         </div>
-       <form data-single="true" action="/file-upload">
-        <div class="fallback">
-            <input name="file" type="file"  />
-        </div>
-     
-    </form>
+      <Uploadwidget v-model:path="question_title_path" />
        <div v-if="questionInfo.title.length>10" class="py-2 ml-auto w-1/12">
 
            <div @click="nextStep" class="btn btn-primary">Next</div>
@@ -171,51 +188,3 @@
        
 </template>
 
-<script>
-definePageMeta({ middleware: 'is-contributor' })
-import AdminTopBar from '~~/components/TopBar.vue'
-import ContributorSideBar from '~~/components/contributor/ContributorSideBar.vue';
-import DropDownSelect from '~~/components/DropDownSelect.vue';
-import Tiptap from '~~/components/Tiptap.vue';
-
-export default {
-    components: { ContributorSideBar, AdminTopBar, DropDownSelect, Tiptap },
-    name: 'CreateQuestion',
-
-    data() {
-        return {
-            questionInfo: {
-                title: '',
-                choiceOne: '', 
-                choiceTwo: '', 
-                choiceThree: '', 
-                choiceFour: '', 
-            },
-            correctAnswer :'',
-            data:'1',
-            step: 1,
-      
-        }
-
-    },
-    computed: {
-        
-    },
- 
-    methods: {
-        submit() {
-            //TODO : form validation 
-            console.log(this.questionInfo);
-            console.log(this.correctAnswer);
-        },
-        nextStep() {
-            this.step++;
-        },
-        prevStep() {
-            this.step--;
-        },
-      
-        
-    }
-}
-</script>
