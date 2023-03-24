@@ -5,13 +5,15 @@ import { examGroupRouter } from './examGroups';
 import { contributorRouter } from './contributor'
 import { poolRouter } from './pool';
 import {questionRouter} from './question'
+import {testTakerRouter} from './testtaker'
 
 export const appRouter = router({
 
     pool: poolRouter,
     examGroup: examGroupRouter,
     contributor: contributorRouter,
-    question :questionRouter
+    question :questionRouter,
+    testtaker : testTakerRouter,
     
 });
 

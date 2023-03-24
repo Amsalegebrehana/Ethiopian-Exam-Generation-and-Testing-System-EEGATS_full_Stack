@@ -9,10 +9,10 @@
     "lint": "eslint --max-warnings 0 .",
     "typecheck": "nuxt typecheck",
     "start": "NODE_ENV=production node .output/server/index.mjs"
-    
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^12.0.0",
+    "@nuxtjs/supabase": "^0.3.1",
     "@nuxtjs/tailwindcss": "^6.4.0",
     "@sidebase/nuxt-auth": "^0.4.3",
     "@tiptap/extension-image": "^2.0.0-beta.209",
@@ -51,6 +51,8 @@
     "superjson": "^1.12.2",
     "trpc-nuxt": "^0.7.0",
     "vee-validate": "^4.7.4",
+    "vue2-dropzone-vue3": "^1.1.0",
+    "vuex": "^4.0.2",
     "zod": "^3.21.2"
   }
 }
