@@ -149,15 +149,17 @@ const handleDeleteExamGroup = async () => {
                           
                             <tbody>
                                     <tr v-for="exgrp in examGroup" :key="exgrp.id" class="intro-x">
-                                        <td class="w-10">
-                                              <NuxtLink :to="`/admin/exams/${exgrp.id}`">
-                                            <Icon name="ri:pie-chart-2-fill" class="w-6 h-6"></Icon>
+                                        <td class="w-10" >
+                                            <NuxtLink :to="`/admin/examgroups/${exgrp.id}`">
+                                                <Icon name="ri:pie-chart-2-fill" class="w-6 h-6"></Icon>
                                             </NuxtLink>
                                         </td>
-                                        <td>
-                                            <NuxtLink :to="`/admin/exams/${exgrp.id}`" class="font-medium whitespace-nowrap">{{
+                                        <td  > 
+                                            <NuxtLink :to="`/admin/examgroups/${exgrp.id}`" class="font-medium whitespace-nowrap">
+                                            {{
                                                 exgrp.name
-                                            }}</NuxtLink>
+                                            }}
+                                            </NuxtLink>
                                        
                                         </td>
                                         <td class="text-center">{{ exgrp._count['Exam'] }}</td>
