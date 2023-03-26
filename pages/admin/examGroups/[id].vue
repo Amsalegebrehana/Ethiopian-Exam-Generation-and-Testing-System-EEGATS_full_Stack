@@ -36,7 +36,7 @@
                                         </button>
                           
                                         <div class="hidden md:block mx-auto text-slate-500">
-                                            Showing 1 to 10 of {{ students.length }} entries
+                                            Showing 1 to 10 of {{ testTakers.length }} entries
                                         </div>
                                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                                             <div class="w-56 relative text-slate-500">
@@ -47,19 +47,23 @@
                                         </div>
                                          
                                     </div>
-                                    <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                                    <div v-if="isReloading" class="flex justify-center items-center">
+                                            <Icon name="eos-icons:bubble-loading" class="w-6 h-6 "></Icon>
+                                        </div>
+                                    <div v-else class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                                        
                                         <table class="table table-report -mt-2">
                                             <thead>
                                                 <tr>
                                                     <th class="whitespace-nowrap"></th>
                                                     <th class="whitespace-nowrap">Name</th>
                                                     <th class="text-center whitespace-nowrap">Admission number</th>
-                                                    <th class="whitespace-nowrap">Password</th>
+                                                    
                                                 
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="student in students" :key="student.id" class="intro-x">
+                                                <tr v-for="student in testTakers" :key="student.id" class="intro-x">
                                                     <td class="w-10">
                                                         <NuxtLink :to="`/admin/exams/${student.id}`">
                                                         <Icon name="iconoir:page" class="w-6 h-6"></Icon>
@@ -71,8 +75,8 @@
                                                         }}</NuxtLink>
                             
                                                     </td>
-                                                    <td class="text-center">{{ student.admissionNumber}}</td>
-                                                    <td class="text-center">{{ student.Password}}</td>
+                                                    <td class="text-center">{{ student.username}}</td>
+                             
                                                 
                                                 </tr>
                                             </tbody>
@@ -217,9 +221,7 @@
                                 class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                                 <!--header-->
                                 <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
-                                    <!-- <h3 class="text-3xl font-semibold">
-                                        Modal Title
-                                    </h3> -->
+                                  
                                     <button
                                         class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
                                         type="button" v-on:click="toggleAddModal()">
@@ -261,6 +263,7 @@
 
 <script setup lang="ts">
 
+import { TestTakers } from '.prisma/client';
 import AdminTopBar from '~~/components/TopBar.vue'
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 
@@ -279,29 +282,44 @@ const toggleAddModal = () => {
    
     showAddModal.value = !showAddModal.value;
 }
+let testTakers: string | any[] = [];
 
-const handleAddPool = async () => {
-    isLoading.value = true;
-  
-    const inputPath = 'https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-files/' + `${filepath.value}`
-    const response = await  $client.examGroup.generateCredentials.mutate({examGroupId:examGroupId, inputPath:inputPath});
-    isReloading.value = true;
-    isLoading.value =false;
-    showAddModal.value = false;
-   
-    isReloading.value = false;
+const getTestTakers = async () => {
+  testTakers = await $client.examGroup.getExamGroupTestTakers.query({ id: examGroupId });
+
 }
 
+const handleAddPool = async () => {
+  isLoading.value = true;
+
+  const inputPath = 'https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-files/' + `${filepath.value}`
+  await $client.examGroup.generateCredentials.mutate({ examGroupId: examGroupId, inputPath: inputPath });
+
+  isLoading.value = false;
+  showAddModal.value = false;
+  isReloading.value = true;
+
+  // Refresh testTakers list after adding pool
+  testTakers = await $client.examGroup.getExamGroupTestTakers.query({ id: examGroupId });
+
+  isReloading.value = false;
+};
+
+getTestTakers();
+
+const handleDelete = async (id: string) => {
+    const response = await $client.examGroup.deleteExamGroup.mutate({ id: id });
+    if (response) {
+        isReloading.value = true;
+    }
+}
 const exams =  [
                 { "id": "1", "name": "Physics 1990 Ethiopian National Exam", "numberOfQuestions": 45, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990" }, 
                 { "id": "2", "name": "Chemistry 2000 Ethiopian National Exam", "numberOfQuestions": 80, "status": "INACTIVE", "testingDate": "01:00 PM Dec 12, 1990" }, 
                 { "id": "3", "name": "Biology 2001 Ethiopian National Exam", "numberOfQuestions": 120, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990" },
                 { "id": "2", "name": "Chemistry 2010 Ethiopian National Exam", "numberOfQuestions": 80, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990" }
             ]
-const students = [
-            { "id": "1", "name": "Amsale Gebrehana", "admissionNumber": 453455, "Password" :56677}, 
 
-            ]
  
 
 </script>

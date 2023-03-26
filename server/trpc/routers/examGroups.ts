@@ -110,6 +110,7 @@ export const examGroupRouter = router({
             })
         )
         .mutation( async ({ ctx, input }) => {
+            let finished = false;
             const inputfilename = input.inputPath.split('/');
       
             const outputFilePath ="./" + inputfilename[inputfilename.length-1].slice(0,inputfilename[inputfilename.length-1].length - 4)  +"new.csv";
@@ -143,12 +144,32 @@ export const examGroupRouter = router({
                     console.log('finished');
                     // close the writable stream when done
                     writableStream.end();
+                    finished = true;
+                   
                 });
             }).on('error', (error) => {
                 console.log(error.message);
             });
-    
+            while (!finished) {
+                await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+            return finished;
            
                 }), 
+        getExamGroupTestTakers: publicProcedure
+            .input(
+                z.object({
+                    id: z.string(),
+                })
+            )
+            .query(async ({ ctx, input }) => {
+                return await ctx.prisma.testTakers.findMany({
+                    where: {
+                        examGroup: {
+                            id: input.id,
+                        },
+                    },
+                });
+            }),
             });
         
