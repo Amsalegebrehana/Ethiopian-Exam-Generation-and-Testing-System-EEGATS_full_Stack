@@ -96,7 +96,8 @@ const { signIn } = useSession()
 const mySignInHandler = async ({ email, password, role }) => {
 
     const {data: contrId} = await useAsyncData( ()=> $client.contributor.getContributorId.query({email}));
-    const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: `http://localhost:3000/contributor/${contrId}/questions` })
+
+    const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: `http://localhost:3000/contributor/${contrId._rawValue}/questions` })
     if (error) {
          formError.value = "Incorrect credentials! Please try again";
         } else {

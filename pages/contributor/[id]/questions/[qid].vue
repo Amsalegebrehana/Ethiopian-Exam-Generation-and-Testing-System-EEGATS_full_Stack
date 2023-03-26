@@ -9,8 +9,13 @@ const contrId = route.params.id as string;
         <div class="flex">
 
             <ContributorSideBar pageName="questions" :contrId="contrId"/>
-          <h1>Reviews </h1>
+            <div class="w-full mx-6">
+            <h1>{{$route}}</h1>
+                <h1>QuestionId: {{ $route.params.qid }}</h1>
+                <h2>Question detail page</h2>
+            </div>
+           
         </div>
-  </div>
+    </div>
 </template>
 

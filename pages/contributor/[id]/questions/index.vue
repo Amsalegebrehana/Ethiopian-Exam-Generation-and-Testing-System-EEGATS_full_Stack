@@ -16,10 +16,10 @@ const questions =  [
 </script>
 <template>
     <div>
-        <TopBar role="contributor" />
+        <TopBar role="contributor" :id="contrId" />
         <div class="flex">
 
-            <ContributorSideBar pageName="questions" />
+            <ContributorSideBar pageName="questions" :contrId="contrId"/>
             <div class="w-full mx-6">
     
                 <h2 class="intro-y text-lg font-medium mt-10">List of Questions</h2>

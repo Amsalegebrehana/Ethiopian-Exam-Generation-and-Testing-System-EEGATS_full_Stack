@@ -59,7 +59,7 @@
 
     </div>
 </template>
-<script setup lang="ts">
+<script setup>
 import { useField, useForm } from 'vee-validate';
 import { toFormValidator } from '@vee-validate/zod';
 import * as zod from 'zod';
@@ -92,9 +92,9 @@ const onSubmit = handleSubmit(values => {
     mySignInHandler({ username: values.admissionID, password: values.password, role: 'testtaker' })
 });
 const { signIn } = useSession()
-const mySignInHandler = async ({ username, password, role }: { username: string, password: string, role: string }) => {
+const mySignInHandler = async ({ username, password, role }) => {
     const {data: tesTakerId} = await useAsyncData( ()=> $client.testtaker.getTestTakerId.query({username}));
-    const { error, url } = await signIn('credentials', { username, password, role, redirect: false, callbackUrl: `http://localhost:3000/testtaker/${tesTakerId}/exams/` })
+    const { error, url } = await signIn('credentials', { username, password, role, redirect: false, callbackUrl: `http://localhost:3000/testtaker/${tesTakerId._rawValue}/exams/` })
     if (error) {
         formError.value = "Incorrect credentials! Please try again";
     } else {
