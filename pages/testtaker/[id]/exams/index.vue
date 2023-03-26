@@ -1,6 +1,20 @@
+<script setup lang="ts">
+definePageMeta({ middleware: 'is-testtaker' })
+const route = useRoute ();
+const testtakerId = route.params.id as string;
+const exams = [
+                { "id": "1", "name": "Physics 1990 Ethiopian National Exam", "numberOfQuestions": 45, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990", "gradeResult":"UNAVAILABLE" },
+                { "id": "2", "name": "Chemistry 2000 Ethiopian National Exam", "numberOfQuestions": 80, "status": "INACTIVE", "testingDate": "01:00 PM Dec 12, 1990", "gradeResult": "80%" },
+                { "id": "3", "name": "Biology 2001 Ethiopian National Exam", "numberOfQuestions": 120, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990", "gradeResult": "UNAVAILABLE" },
+                { "id": "2", "name": "Chemistry 2010 Ethiopian National Exam", "numberOfQuestions": 80, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990", "gradeResult": "90%" }];
+
+     
+
+
+</script>
 <template>
     <div>
-        <AdminTopBar role="testtaker" />
+        <TopBar role="testtaker" :id="testtakerId" />
         <div class="flex">
 
             <div class="w-full mx-20">
@@ -38,12 +52,12 @@
                             <tbody>
                                 <tr v-for="exam in exams" :key="exam.id" class="intro-x">
                                     <td class="w-10">
-                                        <NuxtLink :to="`/testtaker/exams/${exam.id}`">
+                                        <NuxtLink :to="`/testtaker/${testtakerId}/exams/${exam.id}`">
                                             <Icon name="iconoir:page" class="w-6 h-6"></Icon>
                                         </NuxtLink>
                                     </td>
                                     <td>
-                                        <NuxtLink :to="`/testtaker/exams/${exam.id}`" class="font-medium whitespace-nowrap">
+                                        <NuxtLink :to="`/testtaker/${testtakerId}/exams/${exam.id}`" class="font-medium whitespace-nowrap">
                                             {{
                                                 exam.name.length > 40 ? exam.name.slice(0, 39) + "..." : exam.name
                                             }}</NuxtLink>
@@ -156,22 +170,3 @@
         </div>
     </div>
 </template>
-<script>
-definePageMeta({ middleware: 'is-testtaker' })
-import AdminTopBar from '~~/components/TopBar.vue'
-
-export default {
-    components: {  AdminTopBar },
-    name: 'TestTakerDashboard',
-    data() {
-        return {
-            exams: [
-                { "id": "1", "name": "Physics 1990 Ethiopian National Exam", "numberOfQuestions": 45, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990", "gradeResult":"UNAVAILABLE" },
-                { "id": "2", "name": "Chemistry 2000 Ethiopian National Exam", "numberOfQuestions": 80, "status": "INACTIVE", "testingDate": "01:00 PM Dec 12, 1990", "gradeResult": "80%" },
-                { "id": "3", "name": "Biology 2001 Ethiopian National Exam", "numberOfQuestions": 120, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990", "gradeResult": "UNAVAILABLE" },
-                { "id": "2", "name": "Chemistry 2010 Ethiopian National Exam", "numberOfQuestions": 80, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990", "gradeResult": "90%" }]
-        }
-
-    },
-}
-</script>

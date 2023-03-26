@@ -60,13 +60,31 @@ watch(path, () => {
 
 <template>
   <div>
-    <img
-      v-if="src"
-      :src="src"
-      alt="Avatar"
-      class="avatar image"
-      style="width: 10em; height: 10em;"
-    />
+    <div  v-if="src">
+
+      <img
+       
+        :src="src"
+        alt="Avatar"
+        class="avatar image"
+        style="width: 10em; height: 10em;"
+      />
+      <button class="flex flex-row" @click="async()=>{
+
+      const { data, error } = await supabase
+        .storage
+        .from('eegts-images')
+        .remove(filePath)
+
+        src = '';
+        emit('update:path', '')
+        emit('upload')
+      }">
+          <span class=" text-base text-red-500"> Delete Image</span>
+          <Icon name="icon-park-outline:error-picture" class="w-6 h-6 text-red-500"></Icon>
+      </button>
+
+    </div>
     <div v-else>
 
     <div style="width: 10em; position: relative;">
@@ -79,7 +97,7 @@ watch(path, () => {
       <div v-else>
         <div class="flex flex-row">
           <span class="font-medium text-base"> Add Image</span>
-          <Icon name="material-symbols:add-photo-alternate-outline-rounded" class="w-6 h-6"></Icon>
+          <Icon name="icon-park-outline:add-picture" class="w-6 h-6"></Icon>
         </div>
 
       </div>
