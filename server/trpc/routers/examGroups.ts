@@ -141,7 +141,7 @@ export const examGroupRouter = router({
                     console.log(error.message);
                 })
                 .on('end', () => {
-                    console.log('finished');
+                
                     // close the writable stream when done
                     writableStream.end();
                     finished = true;
@@ -155,7 +155,7 @@ export const examGroupRouter = router({
             }
             return finished;
            
-                }), 
+        }), 
         getExamGroupTestTakers: publicProcedure
             .input(
                 z.object({
