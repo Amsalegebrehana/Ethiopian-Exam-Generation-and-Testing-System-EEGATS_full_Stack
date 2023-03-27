@@ -7,7 +7,7 @@ export const contributorRouter = router({
 
   getReviewsReamining: publicProcedure
   .input(
-    z.object({
+    z.object({ 
       id: z.string(),
      
     })
