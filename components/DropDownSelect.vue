@@ -5,8 +5,8 @@
         <select
             class=" tom-select w-full rounded-r-lg border-0 text-slate-600"  :value="modelValue" @input="$emit('update:modelValue', $event.target.value)">
             <option  disabled selected class="text-gray-700">{{title}}</option>
-            <option  v-for="opt in optionslist" :key="opt.id" :value="opt.id" >{{ opt.name?.length > 18
-            ? opt.name?.substring(0, 18) + "..."
+            <option  v-for="opt in optionslist" :key="opt.id" :value="opt.id" >{{ opt.name?.length > 40
+            ? opt.name?.substring(0, 40) + "..."
             : opt.name }}</option>
         
         </select>

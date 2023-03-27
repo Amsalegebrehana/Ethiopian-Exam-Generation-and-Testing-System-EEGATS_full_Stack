@@ -59,11 +59,13 @@
 
     </div>
 </template>
-<script setup lang="ts">
+<script setup>
 import { useField, useForm } from 'vee-validate';
 import { toFormValidator } from '@vee-validate/zod';
 import * as zod from 'zod';
 definePageMeta({ auth: false })
+
+const { $client } = useNuxtApp()
 
 const showPassword = ref(false);
 const togglePassword = () => {
@@ -91,11 +93,14 @@ const onSubmit = handleSubmit(values => {
     mySignInHandler({ email: values.email, password: values.password, role: 'contributor' })
 });
 const { signIn } = useSession()
-const mySignInHandler = async ({ email, password, role }: { email: string, password: string, role: string }) => {
-    const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: 'http://localhost:3000/contributor/questions' })
+const mySignInHandler = async ({ email, password, role }) => {
+
+    const {data: contrId} = await useAsyncData( ()=> $client.contributor.getContributorId.query({email}));
+
+    const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: `http://localhost:3000/contributor/${contrId._rawValue}/questions` })
     if (error) {
          formError.value = "Incorrect credentials! Please try again";
-    } else {
+        } else {
         return navigateTo(url, { external: true })
     }
 }

@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ["@sidebase/nuxt-auth", "@nuxtjs/tailwindcss", "nuxt-icon"],
+  modules: ["@sidebase/nuxt-auth", "@nuxtjs/tailwindcss", "nuxt-icon", "@nuxtjs/supabase"],
   build: {
     transpile: ["trpc-nuxt"],
   },
@@ -12,6 +12,8 @@ export default defineNuxtConfig({
     authSecret: process.env.AUTH_SECRET,
     mailerEmail: process.env.MAILER_EMAIL,
     mailerPassword: process.env.MAILER_PASSWORD,
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseKey: process.env.SUPABASE_KEY,
   },
   auth: { origin: process.env.AUTH_ORIGIN },
 });

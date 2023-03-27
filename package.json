@@ -1,5 +1,6 @@
 {
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -12,6 +13,7 @@
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^12.0.0",
+    "@nuxtjs/supabase": "^0.3.1",
     "@nuxtjs/tailwindcss": "^6.4.0",
     "@sidebase/nuxt-auth": "^0.4.3",
     "@tiptap/extension-image": "^2.0.0-beta.209",
@@ -27,28 +29,37 @@
     "@tiptap/starter-kit": "^2.0.0-beta.209",
     "@tiptap/vue-3": "^2.0.0-beta.209",
     "@types/bcrypt": "^5.0.0",
-    "@types/node": "^18.11.18",
+    "@types/node": "^18.15.5",
     "@types/nodemailer": "^6.4.7",
     "@vuepic/vue-datepicker": "^3.6.5",
     "eslint": "^8.33.0",
     "nuxt": "^3.2.3",
     "prisma": "^4.11.0",
     "sass": "^1.58.3",
+    "ts-node": "^10.9.1",
     "typescript": "^4.9.5",
     "vue-tsc": "^1.0.24"
   },
   "dependencies": {
+    "@nuxtjs/supabase": "^0.3.1",
     "@prisma/client": "^4.11.0",
     "@trpc/client": "^10.12.0",
     "@trpc/server": "^10.12.0",
+    "@types/csv-parse": "^1.2.2",
     "@vee-validate/zod": "^4.7.4",
     "bcrypt": "^5.1.0",
+    "csv-parse": "^5.3.6",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "lint-fix": "^0.24.0",
     "next-auth": "^4.18.8",
     "nodemailer": "^6.9.1",
     "nuxt-icon": "^0.2.6",
     "superjson": "^1.12.2",
     "trpc-nuxt": "^0.7.0",
     "vee-validate": "^4.7.4",
+    "vue2-dropzone-vue3": "^1.1.0",
+    "vuex": "^4.0.2",
     "zod": "^3.21.2"
   }
 }

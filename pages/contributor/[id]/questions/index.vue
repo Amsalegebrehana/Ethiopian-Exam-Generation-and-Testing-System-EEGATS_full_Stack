@@ -1,17 +1,32 @@
+<script setup lang="ts">
+definePageMeta({ middleware: 'is-contributor' })
+const { $client } = useNuxtApp()
+
+const route = useRoute ();
+const contrId = route.params.id as string;
+const {data: isAssigned } = await useAsyncData( ()=> $client.contributor.checkifAssigned.query({contrId }));
+
+const questions =  [
+                { "id": "1", "name": "At which of the following times is The graph shows the rates of res ", "status": "ACTIVE" }, 
+                { "id": "2", "name": "which of the correctly identifies which of the correctly identifies", "status": "INACTIVE" }, 
+                { "id": "3", "name": "Lysosomes are involved in the which of the correctly identifies", "status": "ACTIVE" }] ;
+
+
+
+</script>
 <template>
     <div>
-        <AdminTopBar role="contributor" />
+        <TopBar role="contributor" :id="contrId" />
         <div class="flex">
 
-            <ContributorSideBar pageName="questions" />
+            <ContributorSideBar pageName="questions" :contrId="contrId"/>
             <div class="w-full mx-6">
-
-
+    
                 <h2 class="intro-y text-lg font-medium mt-10">List of Questions</h2>
                 <div class="grid grid-cols-12 gap-6 mt-5">
                     <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2">
-                        <NuxtLink :to="`/contributor/create-question`">
-                        <button  class="btn btn-primary shadow-md mr-2">Add question
+                        <NuxtLink :to="`/contributor/${contrId}/create-question`">
+                        <button  class="btn btn-primary shadow-md mr-2"  :disabled="!isAssigned">Add question
                             <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
                         </button>
                         </NuxtLink>
@@ -47,7 +62,7 @@
                                             </NuxtLink>
                                         </td>
                                         <td>
-                                            <NuxtLink :to="`/contributor/questions/${question.id}`"
+                                            <NuxtLink :to="`/contributor/${contrId}/questions/${question.id}`"
                                                 class="font-medium whitespace-nowrap">
                                                 {{
         question.name.length > 40 ? question.name.slice(0, 39) + "..." : question.name
@@ -71,7 +86,7 @@
                                                     <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon> Edit
                                                 </a>
                                                 <a class="flex items-center text-danger" href="javascript:;"
-                                                    @click="deleteConfirmationModal = true">
+                                                  >
                                                     <Icon name="fa6-regular:trash-can" class="w-4 h-4"></Icon> Delete
                                                 </a>
                                             </div>
@@ -144,25 +159,3 @@
 </template>
 
 
-<script>
-definePageMeta({ middleware: 'is-contributor' })
-import AdminTopBar from '~~/components/TopBar.vue'
-import ContributorSideBar from '~~/components/contributor/ContributorSideBar.vue';
-export default {
-    components: { ContributorSideBar, AdminTopBar },
-    name: 'Questions',
-    data() {
-        return {
-            questions: [
-                { "id": "1", "name": "At which of the following times is The graph shows the rates of res ", "status": "ACTIVE" }, 
-                { "id": "2", "name": "which of the correctly identifies which of the correctly identifies", "status": "INACTIVE" }, 
-                { "id": "3", "name": "Lysosomes are involved in the which of the correctly identifies", "status": "ACTIVE" }],
-           
-        }
-
-    },
-    methods: {
-        
-    }
-}
-</script>

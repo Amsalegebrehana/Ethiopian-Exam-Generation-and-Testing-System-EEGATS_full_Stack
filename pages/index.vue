@@ -12,9 +12,9 @@ if (session.value?.role === "admin") {
   navigateTo('/admin/pools');
 }
 if (session.value?.role === "contributor") {
-  navigateTo('/contributor/questions');
+  navigateTo(`/contributor/${session.value?.uid}/questions`);
 }
 if (session.value?.role === "testtaker") {
-  navigateTo('/testtaker/exams');
+  navigateTo(`/testtaker/${session.value?.uid}//exams`);
 }
 </script>

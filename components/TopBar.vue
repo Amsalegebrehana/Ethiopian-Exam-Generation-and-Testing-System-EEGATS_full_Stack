@@ -5,13 +5,13 @@
                 </div>
             <div class="flex flex-row bg-primary mx-auto -mt-8 rounded-xl h-14 items-center space-x-auto"> 
                 
-                    <NuxtLink :to="role === 'admin' ? `/admin/pools` : role === 'testtaker' ? `/testtaker/exams` : `/contributor/questions` "><div class="flex flex-row items-center">
+                    <NuxtLink :to="role === 'admin' ? `/admin/pools` : role === 'testtaker' ? `/testtaker/${id}/exams` : `/contributor/${id}/questions` "><div class="flex flex-row items-center">
                         <img src="@/assets/images/whitelogo.png" class="w-8 m-6" />
                         <h1 class="text-2xl my-auto text-white">EEGTS</h1>
                     </div>
                     </NuxtLink>
                     <div class="flex flex-row items-center ml-auto">
-                          <NuxtLink :to="`/${role}/account`">
+                          <NuxtLink :to="role === 'admin' ?`/${role}/account` : `/${role}/${id}/account`">
                             <img src="@/assets/images/prof.png" class="w-8 m-6" />
               </NuxtLink>
                   
@@ -26,7 +26,8 @@ export default {
     components: {},
     name: 'AdminTopBar',
     props: {
-        role: String
+        role: String,
+        id : String
     },
 }
 </script>
