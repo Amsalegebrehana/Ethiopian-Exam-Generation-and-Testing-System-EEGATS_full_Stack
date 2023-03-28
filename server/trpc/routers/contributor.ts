@@ -18,6 +18,7 @@ export const contributorRouter = router({
       }).then((data) => {
         return data;
       })
+      
       return data;
     }
   ),
