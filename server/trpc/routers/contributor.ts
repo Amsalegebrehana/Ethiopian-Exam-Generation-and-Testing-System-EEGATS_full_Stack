@@ -18,10 +18,22 @@ export const contributorRouter = router({
       }).then((data) => {
         return data;
       })
-      
+
       return data;
     }
   ),
+
+  getAllQuestions: publicProcedure
+  .query(
+    async ({ctx, input}) => {
+      const data = await ctx.prisma.questions.findMany()
+      .then((data) => {
+        return data;
+      })
+      return data;
+    }
+  ),
+
 
   getReviewsMade: publicProcedure
   .input(
