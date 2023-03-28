@@ -34,6 +34,25 @@ export const contributorRouter = router({
     }
   ),
 
+  getQuestionByContributorId: publicProcedure
+  .input(
+    z.string()
+  )
+  .query(
+    async ({ctx, input}) => {
+      const data = await ctx.prisma.questions.findMany({
+        where: {
+          contributorId: input,
+        }
+      }).then((data) => {
+        return data;
+      })
+
+      return data;
+    }
+  ),
+
+
 
   getReviewsMade: publicProcedure
   .input(
