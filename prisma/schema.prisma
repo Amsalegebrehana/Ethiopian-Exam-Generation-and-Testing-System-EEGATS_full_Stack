@@ -90,7 +90,7 @@ model Choice{
   title     String
   image     String?
   questionId String
-  questions  Questions @relation(fields: [questionId], references: [id])
+  questions  Questions @relation(fields: [questionId], references: [id], onDelete: Cascade)
   QuestionAnswer QuestionAnswer []
   TestTakerResponse TestTakerResponse ?
   createdAt        DateTime           @default(now())
@@ -100,7 +100,7 @@ model Choice{
 model QuestionAnswer{
   id        String            @id @default(uuid())
   questionId String
-  questions  Questions @relation(fields: [questionId], references: [id])
+  questions  Questions @relation(fields: [questionId], references: [id], onDelete: Cascade)
   choiceId String
   choice Choice @relation(fields: [choiceId], references: [id])
   createdAt        DateTime           @default(now())
@@ -158,7 +158,7 @@ model TestSession {
 model Review {
   id        String            @id @default(uuid())
   questionId String
-  questions  Questions @relation(fields: [questionId], references: [id])
+  questions  Questions @relation(fields: [questionId], references: [id], onDelete: Cascade)
   reviewerId String
   Reviewers Contributors @relation(fields: [reviewerId], references: [id])
   feedback String?
