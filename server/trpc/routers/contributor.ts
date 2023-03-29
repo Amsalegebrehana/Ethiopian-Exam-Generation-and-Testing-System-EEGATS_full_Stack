@@ -5,6 +5,24 @@ const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
 export const contributorRouter = router({
 
+  getQuestionCount: publicProcedure
+  .input(
+    z.string()
+  )
+  .query(
+    async ({ctx, input}) => {
+      const data = await ctx.prisma.questions.count({
+        where: {
+          contributorId: input,
+        }
+      }).then((data) => {
+        return data;
+      })
+      
+      return data;
+    }
+  ),
+
   getReviewsMade: publicProcedure
   .input(
     z.object({
