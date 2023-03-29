@@ -1,3 +1,4 @@
+import { Choice, QuestionAnswer, Questions } from "@prisma/client";
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 const {supabaseUrl} = useRuntimeConfig();
@@ -137,4 +138,41 @@ export const questionRouter = router({
         return "error adding question";
     }
      }),
+
+     getQuestion: publicProcedure
+     .input(
+        z.string()
+     )
+     .query(
+        async ({ctx, input}) => {
+
+            const question = await ctx.prisma.questions.findUnique({
+                where: {
+                    id: input
+                }
+            })
+            const choices = await ctx.prisma.choice.findMany({
+                where: {
+                    questionId: input
+                }
+            })
+            const answer = await ctx.prisma.questionAnswer.findFirst({
+                where: {
+                    questionId: input
+                }
+            })
+            const review = await ctx.prisma.review.findFirst({
+                where: {
+                    questionId: input
+                }
+            })
+
+            return {
+                question: question,
+                choices: choices,
+                answer: answer,
+                review: review,
+            }
+        }
+     )
 });

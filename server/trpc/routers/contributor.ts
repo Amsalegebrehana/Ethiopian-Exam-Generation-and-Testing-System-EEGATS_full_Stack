@@ -5,7 +5,25 @@ const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
 export const contributorRouter = router({
 
-  getQuestionCount: publicProcedure
+  
+  getContributorQuestions: publicProcedure
+  .input(
+    z.string()
+  )
+  .query(
+    async ({ctx, input}) => {
+      const data = await ctx.prisma.questions.findMany({
+        where: {
+          contributorId: input,
+        }
+      }).then((data) => {
+        return data;
+      })
+
+      return data;
+    }),
+
+  getContributorQuestionCount: publicProcedure
   .input(
     z.string()
   )
@@ -18,11 +36,38 @@ export const contributorRouter = router({
       }).then((data) => {
         return data;
       })
-      
+
       return data;
     }
   ),
-
+  
+  searchContributorQuestions: publicProcedure
+  .input(
+   z.object({
+      skip: z.number(),
+      search: z.string().optional(), 
+      contributorID: z.string(), 
+    })
+  )
+  .query(
+    async ({ctx, input}) => {
+      const data = await ctx.prisma.questions.findMany(
+        {
+          skip: input.skip, 
+          take: 6, 
+          orderBy: {
+            createdAt: "desc"
+          },
+          where: {
+            contributorId: input.contributorID,
+            title: {
+              contains: input.search,
+            },
+          },
+        });
+        return data;
+    }),
+    
   getReviewsMade: publicProcedure
   .input(
     z.object({
