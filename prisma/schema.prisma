@@ -134,7 +134,7 @@ model TestTakerResponse {
   testTakers TestTakers? @relation(fields: [testTakerId], references: [id])
   isCorrect   Boolean 
   questionId String 
-  questions  Questions @relation(fields: [questionId], references: [id])
+  questions  Questions @relation(fields: [questionId], references: [id], onDelete: Cascade)
   examId    String
   exam      Exam @relation(fields: [examId], references: [id])
   choiceId String @unique
