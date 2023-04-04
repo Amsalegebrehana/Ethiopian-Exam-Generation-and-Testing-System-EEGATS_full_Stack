@@ -38,5 +38,77 @@ export const reviewsRouter = router({
           },
         });
       }),
+//   getReview: publicProcedure
+//     .input(
+//       z.object({
+//         id: z.string(),
+//       })
+//     )
+//     .query(async ({ ctx, input }) => {
+//       const data = await ctx.prisma.review.findUnique({
+//         where: {
+//           id: input.id,
+//         },
+//       });
+//       return data;
+//     }),
+
+    registerFeedback: publicProcedure
+        .input(
+        z.object({
+            reviewId: z.string(),
+            feedback: z.string(),
+            final: z.boolean()
+        })
+        )
+        .mutation(async ({ ctx, input }) => {
+        const data = await ctx.prisma.review.update({
+            where: {
+                id: input.reviewId,
+            },
+            data: {
+                feedback: input.feedback,
+                isReviewed: true 
+            },
+        }).then(async (data) => {
+            const question = await ctx.prisma.questions.update({
+                where: {
+                    id: data.questionId
+                },
+                data: {
+                    status: input.final ? "approved" : "rejected"
+                }
+            });
+
+            if (input.final) {
+                const pool = await ctx.prisma.pool.update({
+                    where: {
+                       id: question.poolId
+                    },
+                    data: {
+                        numberOfQuestions: {
+                            increment: 1,
+                        }
+                    }
+                }); 
+            } else {
+                const contAss = await ctx.prisma.contributorAssignment.update({
+                    where: {
+                        contrId_catId: {
+                            contrId: question.contributorId,
+                            catId: question.catId,
+                        }
+                    },
+                    data: {
+                        questionsRemaining: {
+                            increment: 1
+                        }
+                    }
+                });
+            }
+        });   
+            
+            return data;
+        }),
 
 });
