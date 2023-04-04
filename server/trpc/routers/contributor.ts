@@ -16,8 +16,6 @@ export const contributorRouter = router({
         where: {
           contributorId: input,
         }
-      }).then((data) => {
-        return data;
       })
 
       return data;
@@ -33,8 +31,6 @@ export const contributorRouter = router({
         where: {
           contributorId: input,
         }
-      }).then((data) => {
-        return data;
       })
 
       return data;
