@@ -33,10 +33,10 @@
                                 </div>
                             
                             
-                                <DropDownSelect :optionslist="examgroups" v-model="selectedExamGroup.value" title="Choose Exam Group" class="" />
+                                <DropDownSelect :optionslist="examgroups" v-model="selectedExamGroup" title="Choose Exam Group"  />
                             </div>
-                        </div>
-                        <div class="flex flex-row w-4/6 mt-3 ">
+                       </div>
+                      <div class="flex flex-row w-4/6 mt-3 ">
                             <label for="horizontal-form-1" class="my-auto w-2/6  font-medium">Question Pool</label>
                             <div class="flex flex-row rounded-md border">
                                 <div
@@ -45,8 +45,8 @@
                             
                                 </div>
                         
-                                <DropDownSelect :optionslist="pools" v-model="selectedPool.value" title="Choose Question Pool"  />
-                            </div>
+                                <DropDownSelect :optionslist="pools" v-model="selectedPool" title="Choose Question Pool"  />
+                        </div>
                         </div>
                           <!-- Categories -->
                         <div class="flex flex-row align-middle w-4/6 mt-3">
@@ -94,9 +94,9 @@
 
             
                 </div>
+                <button class="btn btn-primary shadow-md mt-5 w-100" @click="createExam">Create</button>
                 </div>
         </div>
-        <button class="btn btn-primary shadow-md mt-5 " @click="createExam">Create</button>
 </div>
  
 </template>
@@ -113,7 +113,9 @@ const { $client } = useNuxtApp();
 
 const selectedPool = ref('');
 const selectedExamGroup = ref('');
+
 const examName = ref('');
+const totalNumberOfQuestions = ref(0);
 
 const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
 
@@ -159,8 +161,9 @@ console.log(availableOptions.value);
 
 const addRow = () => {
   const options = availableOptions.value;
-  rows.value.push({ selectValue: options[0] || '', inputValue: '' });
+  rows.value.push({ selectValue: options[0] || '', inputValue: 0 });
   console.log("rows",rows.value);
+ 
 };
 
 const removeRow = (index: number) => {
@@ -171,14 +174,21 @@ const removeRow = (index: number) => {
 
 // create exam
 const createExam = async () => {
+    rows.value.map((row:{ selectValue: any; inputValue: any; }) => {
+      totalNumberOfQuestions.val += row.inputValue;
+       
+    });
     const exam = {
         name: examName.value,
         examGroupId: selectedExamGroup.value,
         poolId: selectedPool.value,
-        categories: rows.value
+        numberOfQuestions : totalNumberOfQuestions.value,
+        categories: rows.value,
+        testingDate: new Date(),
+        duration: 60,
     }
     console.log(exam);
-    // const createdExam = await $client.exam.createExam.query(exam);
+    const createdExam = await $client.exam.addExam.query(exam);
     console.log(createdExam);
     // if (createdExam) {
     //     alert("Exam created successfully");
