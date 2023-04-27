@@ -92,14 +92,14 @@ model Choice{
   questionId String
   questions  Questions @relation(fields: [questionId], references: [id])
   QuestionAnswer QuestionAnswer []
-  TestTakerResponse TestTakerResponse ?
+  TestTakerResponse TestTakerResponse[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 }
 
 model QuestionAnswer{
   id        String            @id @default(uuid())
-  questionId String
+  questionId String @unique
   questions  Questions @relation(fields: [questionId], references: [id])
   choiceId String
   choice Choice @relation(fields: [choiceId], references: [id])
@@ -121,7 +121,7 @@ model Questions{
   contributorId String
   Contributors Contributors @relation(fields: [contributorId], references: [id])
   choices Choice []
-  review Review []
+  review Review?
   QuestionAnswer QuestionAnswer []
   TestTakerResponse TestTakerResponse[]
   createdAt        DateTime           @default(now())
@@ -137,15 +137,16 @@ model TestTakerResponse {
   questions  Questions @relation(fields: [questionId], references: [id])
   examId    String
   exam      Exam @relation(fields: [examId], references: [id])
-  choiceId String @unique
+  choiceId String 
   choice Choice @relation(fields: [choiceId], references: [id])
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+  @@unique([testTakerId, examId, questionId])
 }
 
 model TestSession {
   id        String            @id @default(uuid())
-  grade     Int
+  grade     Int @default(0)
   isSubmitted Boolean  @default(false)
   testTakerId String
   testTakers TestTakers @relation(fields: [testTakerId], references: [id])
@@ -153,11 +154,13 @@ model TestSession {
   exam     Exam @relation(fields: [examId], references: [id])
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+
+  @@unique([testTakerId, examId])
 }
 
 model Review {
   id        String            @id @default(uuid())
-  questionId String
+  questionId String @unique
   questions  Questions @relation(fields: [questionId], references: [id])
   reviewerId String
   Reviewers Contributors @relation(fields: [reviewerId], references: [id])
@@ -185,6 +188,7 @@ model ContributorAssignment {
   category            Category @relation(fields:[catId], references: [id])
   contributor         Contributors @relation(fields: [contrId], references: [id])
   questionsRemaining  Int
+  @@unique([contrId, catId])
 }
 
 enum QuestionStatus {
