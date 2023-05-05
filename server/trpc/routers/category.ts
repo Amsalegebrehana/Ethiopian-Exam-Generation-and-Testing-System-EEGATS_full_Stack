@@ -45,6 +45,7 @@ export const category = router({
         .input(
             z.object({
                 skip:z.number(),
+                poolId: z.string(),
                 search: z.string().optional()
             })
         )
@@ -56,6 +57,7 @@ export const category = router({
                     name:{
                         contains: input.search
                     },
+                    poolId:input.poolId
                 },
             });
             return data;
