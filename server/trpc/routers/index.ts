@@ -6,6 +6,7 @@ import { contributorRouter } from './contributor'
 import { poolRouter } from './pool';
 import {questionRouter} from './question'
 import {testTakerRouter} from './testtaker'
+import { category } from './category';
 
 export const appRouter = router({
 
@@ -14,7 +15,7 @@ export const appRouter = router({
     contributor: contributorRouter,
     question :questionRouter,
     testtaker : testTakerRouter,
-    
+    category :  category
 });
 
 // export type definition of API
