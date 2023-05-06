@@ -81,7 +81,7 @@
                    </div>
                     <div class="text-center mt-5">
                         
-                        <button type="button" class="btn btn-primary w-24">Save</button>
+                        <button type="button" class="btn btn-primary w-24" @click="addExam">Save</button>
                     </div>
                 </div>
                 <!-- END: Form Layout -->
@@ -93,7 +93,7 @@
        
 </template>
 
-<script>
+<script setup lang="ts">
 import AdminTopBar from '~~/components/TopBar.vue'
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 import DropDownSelect from '~~/components/DropDownSelect.vue';
@@ -102,30 +102,44 @@ import '@vuepic/vue-datepicker/dist/main.css';
 
 definePageMeta({ middleware: 'is-admin' })
 
-export default {
-    components: { AdminSideBar, AdminTopBar, DropDownSelect, Datepicker },
-    name: 'CreateExam',
-    data() {
-        return {
-            pools: [{ "id": "1", "name": "Chemistry", "numberofQuestions": 180 }, { "id": "2", "name": "Physics", "numberofQuestions": 90 }, { "id": "3", "name": "Biology", "numberofQuestions": 120 }],
-            examgroups: [{ "id": "1", "name": "1990 Ethiopian National Exam", "numberOfExams": 9 }, { "id": "2", "name": "2000 Ethiopian National Exam", "numberOfExams": 9 }, { "id": "3", "name": "2001 Ethiopian National Exam", "numberOfExams": 9 }],
-            examInfo: {
+const { $client } = useNuxtApp();
+
+const getPools = async () => {
+    const pools = await $client.pool.getPools.query({skip:0});
+    return pools;
+};
+
+const pools = await getPools();
+
+const getExamGroups = async () => {
+    const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
+    return examgroups;
+};
+
+const examgroups = await getExamGroups();
+
+const examInfo =  {
                 name: '',
                 selectedPool : '',
                 selectedExamGroup:'',
                 numberofQuestions:100,
                 duration: 60,
-                testingDate :''
-            },
-        }
+                testingDate : new Date()
+            }     
 
-    },
-    methods: {
-        addExam() {
-            //TODO : form validation 
-            console.log(this.examInfo);
-        },
-        
-    }
+const addExam = async  () => {
+   
+
+    //TODO : form validation
+    const exam = await $client.exam.addExam.mutate({
+        name: examInfo.name,
+        poolId: examInfo.selectedPool,
+        examGroupId: examInfo.selectedExamGroup,
+        numberOfQuestions:examInfo.numberofQuestions,
+        duration :examInfo.duration,
+        testingDate: examInfo.testingDate
+
+    }); 
+    
 }
 </script>
