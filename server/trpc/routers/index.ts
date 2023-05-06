@@ -8,7 +8,7 @@ import {questionRouter} from './question'
 import {testTakerRouter} from './testtaker'
 import { category } from './category';
 import {examRouter} from './exams';
-import {category} from './category';
+
 
 export const appRouter = router({
 
@@ -19,7 +19,7 @@ export const appRouter = router({
     testtaker : testTakerRouter,
     category :  category,
     exam: examRouter,
-    category: category
+  
     
 });
 
