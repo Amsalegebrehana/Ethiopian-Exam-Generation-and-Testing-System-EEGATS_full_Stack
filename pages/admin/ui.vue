@@ -3,8 +3,9 @@
     <AdminTopBar role="admin" />
         <div class="flex">
             <AdminSideBar pageName="exams" />
+     
             <div  class="w-full mx-6 ">
-              <div class=" rounded-md mt-5 p-5 w-4/6">
+              <div class=" rounded-md mt-5 p-5 ">
               <div class="flex flex-row  align-middle mt-10"> 
                 <NuxtLink :to="`/admin/exams`">
                 <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
@@ -12,44 +13,96 @@
                 <h2 class="intro-y text-lg font-medium ">Create Exam</h2>
               </div>
             
-                    <div class="flex flex-row w-4/6 mt-3">
-                            <label for="horizontal-form-1" class=" my-auto  w-2/6   font-medium">Exam Name</label>
-                            <div class="flex flex-row rounded-md border">
-                                <div class="  w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400 ">
-                                    <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
-                            
-                                </div>
-                            
-                            
-                                    <input id="horizontal-form-1" type="text" class="" placeholder="Enter Exam Name" v-model="examName" required>
-                            </div>
-                        </div>
-                    </div>
-                      <div class="flex flex-row w-4/6 mt-3 ">
-                            <label for="horizontal-form-1" class="my-auto w-2/6  font-medium">Exam Group</label>
-                            <div class="flex flex-row rounded-md border">
-                                <div class="  w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400 ">
-                                    <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
-                                </div>
-                            
-                            
-                                <DropDownSelect :optionslist="examgroups" v-model="selectedExamGroup" title="Choose Exam Group"  />
-                            </div>
-                       </div>
-                       <div class="flex flex-row w-4/6 mt-3 ">
-                        <label for="horizontal-form-1" class="my-auto w-2/6  font-medium">Question Pool</label>
+                   <div class="ml-5">
 
-                            <div class="flex flex-row rounded-md border">
-                                <div class="  w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400 ">
-                                    <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
-                                </div>
-                            
-                            
-                                <DropDownSelect :optionslist="pools" v-model="selectedPool" title="Choose Pools"  />
-                            </div>
-                       </div>
-                       <!-- Duration -->
-                      <div class="flex flex-row w-4/6 mt-3 ">
+                  
+                   
+                    <div class="flex flex-row w-4/6 mt-3">
+                      <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Exam Name</label>
+                      <div class="flex flex-row rounded-md border">
+                          <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                              <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
+                          </div>
+                          <input id="horizontal-form-1" type="text" class="w-full py-2 px-2" placeholder="Enter Exam Name" v-model="examName" required>
+                      </div>
+                  </div>
+                  <div class="flex flex-row w-4/6 mt-3 ">
+                      <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Exam Group</label>
+                      <div class="flex flex-row rounded-md border">
+                          <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                              <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
+                          </div>
+                          <DropDownSelect :optionslist="examgroups" v-model="selectedExamGroup" title="Choose Exam Group"  />
+                      </div>
+                  </div>
+                  <div class="flex flex-row w-4/6 mt-3 ">
+                      <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Question Pool</label>
+                      <div class="flex flex-row rounded-md border">
+                          <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                              <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
+                          </div>
+                          <DropDownSelect :optionslist="pools" v-model="selectedPool" title="Choose Pools"  />
+                      </div>
+                  </div>
+                             
+                   
+                          <!-- Categories -->
+                          <div class="flex flex-row align-middle w-full mt-3">
+                          <label for="horizontal-form-1" class="my-auto align-middle w-2/6 font-medium">Categories</label>
+                        </div>
+                        <div>
+
+                <!-- categories dynamic ui -->
+                <div class="flex flex-row w-4/6 mt-3 ">
+                        <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Category Name</th>
+                          <th>Number of questions</th>
+                          <th>Remove</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(selectedCategory, index) in selectedCategories" :key="index">
+                          <td>
+                            <select v-model="selectedCategory.categoryName" class="select" :selected="selectedCategory.categoryName" required>
+                              <option v-for="option in availableOptions" :value="option">{{ option }}</option>
+                              <option :value="selectedCategory.categoryName" selected>{{ selectedCategory.categoryName }}</option>
+                            </select>
+                          </td>
+                          <td>
+                            <input type="number" v-model="selectedCategory.numberOfQuestionPerCategory" class="input"  required  min="1" :max="setMax(selectedCategory.categoryName)" />
+                            <input type="hidden" :value="selectedCategory.selectedId=categoryNameId[selectedCategory.categoryName]" />
+                          </td>
+                          <td>
+                              
+                            <button class="btn btn-primary shadow-md"  @click="removeCategory(index)">
+                                <Icon name="material-symbols:close" ></Icon>
+                            </button>
+                          
+                          </td>
+                          <td>
+                            <p v-if="selectedCategory.categoryName && !selectedCategory.isValid" class="error-message">Please enter a value between 1 and {{ setMax(selectedCategory.categoryName) }}</p>
+
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                      </div>
+                    <button class="btn btn-primary shadow-md mt-5 " @click="addCategory">Add Category</button>
+                 <!-- end categories dynamic ui -->
+                  </div>
+                 <!-- Tesing Date-->
+                               
+                <div class="flex flex-row align-middle w-4/6 mt-3">
+
+                    <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium">Exam Date</label>
+                    <Datepicker calendar-class="rounded text-priamry " v-model="testingDate"  />
+
+                  </div>  
+
+                    <!-- Duration -->
+                    <div class="flex flex-row w-4/6 mt-3 ">
                             <label for="horizontal-form-1" class="my-auto w-2/6  font-medium">Duration</label>
                             <div class="flex flex-row rounded-md border">
                                 <div
@@ -63,65 +116,43 @@
                         </div>
 
                         </div>
-                          <!-- Categories -->
-                        <div class="flex flex-row align-middle w-4/6 mt-3">
-                            <label for="horizontal-form-1" class=" my-auto align-middle  w-2/6  font-medium">Categories</label>
-                          
-                        </div>
-                        <div>
-
-                <!-- categories dynamic ui -->
-                <div class="flex flex-row w-4/6 mt-3 ">
-                        <table class="table">
-                      <thead>
-                        <tr>
-                          <th>Categorie Name</th>
-                          <th>Number of questions</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="(row, index) in rows" :key="index">
-                          <td>
-                            <select v-model="row.categoryName" class="select" :selected="row.categoryName" required>
-                              <option v-for="option in availableOptions" :value="option">{{ option }}</option>
-                              <option :value="row.categoryName" selected>{{ row.categoryName }}</option>
-                            </select>
-                          </td>
-                          <td>
-                            <input type="number" v-model="row.inputValue" class="input" required  min="1" :max="setMax(row.categoryName)" />
-                            <input type="hidden" :value="row.selectedId=categoryNameId[row.categoryName]" />
-                          </td>
-                          <td>
-                              
-                            <button class="btn btn-primary shadow-md"  @click="removeRow(index)">
-                                <Icon name="material-symbols:close" ></Icon>
-                            </button>
-                          
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                      </div>
-                    <button class="btn btn-primary shadow-md mt-5 " @click="addRow">Add</button>
-                
-
-                <!-- end categories dynamic ui -->
 
             
                 </div>
-                  <button v-if="!isLoading" class="btn btn-primary shadow-md mt-5 w-100" @click="createExam">Create Exam </button>
+              </div>
+                <div class="flex justify-center">
+  
+                  <button v-if="!isLoading" class="btn btn-primary shadow-md mt-5 w-100 px-5 py-3" type="submit" @click="createExam">Create Exam </button>
+                  <button v-if="isLoading" class="btn btn-primary shadow-md mt-5 w-100" >
+                    <i  class="fa fa-spinner fa-spin"></i>
+                </button>
+
+              </div>
+
+               <!--alert for successfully created exam  -->
+              <div v-if="isExamCreated" class="flex items-center alert alert-success text-white text-sm font-bold px-4 py-3 mb-2 rounded-lg mt-4 ml-2" role="alert">
+            
+                  <span class="truncate">Exam successfully created.</span>
+              </div>
                 </div>
+       
+              </div>
         </div>
-</div>
+
  
 </template>
 
 <script setup lang="ts">
+
 import AdminTopBar from '~~/components/TopBar.vue'
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 import DropDownSelect from '~~/components/DropDownSelect.vue';
-import { ref, computed } from 'vue';
+import Datepicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
+
+
+import { ref, computed, watch } from 'vue';
+
 
 definePageMeta({ middleware: 'is-admin' })
 
@@ -133,12 +164,19 @@ const selectedExamGroup = ref('');
 
 const isLoading = ref(false);
 
+
 const examName = ref('');
 
 // total of all selected questions from each category
 const totalNumberOfQuestions = ref(0);
 
+// testing date of exam
+const testingDate = ref('');
+
+// duration of exam
 const duration = ref(0);
+// is exam created successfully
+const isExamCreated = ref(false);
 
 // fetch exam groups from db
 const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
@@ -147,34 +185,38 @@ const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
 const pools = await $client.pool.getPoolsWithCategories.query({});
 
 
-interface Row {
+interface CategoryInterface {
   selectedId: string;
   categoryName: string;
-  inputValue: number;
+  numberOfQuestionPerCategory: number;
+  isValid: boolean;
 }
 // make available options from pools categories
 
-const rows = ref<Row[]>([
-  { selectedId:'', categoryName: '', inputValue: 0 },
+const selectedCategories = ref<CategoryInterface[]>([
+  { selectedId:'', categoryName: '', numberOfQuestionPerCategory: 1, isValid: false },
 ]);
 
 // to store categories name as a key  and id as a value
-const categoryNameId = {};
+const categoryNameId = {} as any;
 
 //  categories and number of approved questions - categories name as a key  and number of approved questions as a value
-const categoriesAndNumberOfQuestions = {};
+const categoriesAndNumberOfQuestions = {} as any;
 
-
+// filtere categories based on selected pool
 const categoriesFilter = (poolId: string) => {
     try {
+
         const poolsCategory = pools.filter((pool: { id: string; }) => {
             return (pool.id === poolId );
         });
 
-        const categories = poolsCategory[0].Category.map((category: { name: any; }) => {
+        const categories = poolsCategory[0].Category.map((category: {[q: string]: any; name: any; 
+          }) => {
             categoryNameId[category.name] = category.id;
           
             categoriesAndNumberOfQuestions[category.name] = category.questions.length;
+            
             return category.name;
         });
 
@@ -186,54 +228,73 @@ const categoriesFilter = (poolId: string) => {
 
 };
 
-
-// console.log(categoriesAndNumberOfQuestions);
-
-
+// all available options for categories that are not selected yet
 const availableOptions = computed(() => {
   
-  const selectedValues = rows.value.map(row => row.categoryName);
+  const selectedValues = selectedCategories.value.map(selectedCategory => selectedCategory.categoryName);
   
-  // console.log(selectedValues);
-  // console.log("categoriesFiltered",categoriesFilter(selectedPool.value));
-  
-  return categoriesFilter(selectedPool.value).filter(option => !selectedValues.includes(option));
+  return categoriesFilter(selectedPool.value).filter((option: string) => !selectedValues.includes(option) && categoriesAndNumberOfQuestions[option] > 0);
 });
 
-// console.log(availableOptions.value);
-// while choosing categories to choose half of maximum number of questions in a pool
-const setMax = (categoryName) => {
 
+// while choosing categories to choose half of maximum number of questions in a pool
+
+const setMax = (categoryName: string | number) => {
   // number of questions in a category
   const number = categoriesAndNumberOfQuestions[categoryName];
-  return Math.floor(number/2);
+
+  return Math.ceil(number/2);
 };
 
-const addRow = () => {
+// check input field value 
+const checkInputValid = (selectedCategory: { selectedId: string; categoryName: string; numberOfQuestionPerCategory: number; isValid:boolean; }) => {
+  // number of questions in a category
+  const number = categoriesAndNumberOfQuestions[selectedCategory.categoryName];
 
-  const options = availableOptions.value;
-  rows.value.push({selectedId: categoryNameId[options[0]] || '', categoryName: options[0] || '', inputValue: 0 });
-  // console.log("rows",rows.value);
-  console.log("categoriesAndNumberOfQuestions",categoriesAndNumberOfQuestions);
+  const maxnum = Math.ceil(number / 2);
+  
+  selectedCategory.isValid = selectedCategory.numberOfQuestionPerCategory > 0 && selectedCategory.numberOfQuestionPerCategory <= maxnum;
+ 
 };
 
-const removeRow = (index: number) => {
+// check whenever number of questions input value is changed
+watch(selectedCategories.value, (newVal, oldVal) => {
 
-  const removedOption = rows.value[index].categoryName;
+  newVal.forEach(selectedCategory => {
+    checkInputValid(selectedCategory);
+  });
 
-  rows.value.splice(index, 1);
+}, { deep: true });
 
+// push to categories array
+const addCategory = () => {
+
+  const availableCategory = availableOptions.value;
+
+  selectedCategories.value.push(
+    {selectedId: categoryNameId[availableCategory[0]] || '', categoryName: availableCategory[0] || '', numberOfQuestionPerCategory: 0 , isValid:false});
+  
+  };
+
+// remove from categories array
+const removeCategory = (index: number) => {
+  // remove from selected categories based on index
+  const removedOption = selectedCategories.value[index].categoryName;
+
+  selectedCategories.value.splice(index, 1);
+
+  // add removed selected Category back to available options
   availableOptions.value.push(removedOption);
 };
 
 // create exam
 const createExam = async () => {
 
-    // isLoading.value = true;
+    isLoading.value = true;
 
-    rows.value.map((row:{ selectedId:any, categoryName: any; inputValue: any; }) => {
+    selectedCategories.value.map((selectedCategory:{ selectedId:any, categoryName: any; numberOfQuestionPerCategory: any; }) => {
 
-      totalNumberOfQuestions.value += row.inputValue;
+      totalNumberOfQuestions.value += selectedCategory.numberOfQuestionPerCategory;
       
     });
 
@@ -244,22 +305,25 @@ const createExam = async () => {
         examGroupId: selectedExamGroup.value,
         poolId: selectedPool.value,
         numberOfQuestions : totalNumberOfQuestions.value,
-        testingDate: new Date(),
+        testingDate: testingDate.value,
         duration: duration.value,
-        categories:rows.value
+        categories: selectedCategories.value
     }
-    console.log("exam.categories",exam.categories);
-    exam.categories.map((category: { selectedId: any; inputValue: any; }) => {
-      console.log("category",category.selectedId);
-    });
+  
 
     const createdExam = await $client.exam.createExam.mutate(exam);
 
-    // isLoading.value = false;
-    console.log(createdExam);
+   
+    
     if (createdExam) {
-        alert("Exam created successfully");
+
+      isExamCreated.value = true;
+
+      isLoading.value = false;
+
+      return navigateTo("/admin/exams", { external: true })
     }
+
 }
 </script>
 
@@ -303,6 +367,11 @@ th {
   border: 1px solid #ddd;
   border-radius: 4px;
   width: 100%;
+}
+
+.error-message {
+    color: red;
+    
 }
 
 .select {

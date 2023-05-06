@@ -38,12 +38,12 @@ export const examRouter = router({
                 duration: z.number(),
                 categories: z.array(z.object({
                     selectedId: z.string(),
-                    inputValue: z.number(),
+                    numberOfQuestionPerCategory: z.number(),
                 })),
             })
         )
         .mutation(async ({ ctx, input }) => {
-            console.log("here is the input ", input);
+           
 
             const data = await ctx.prisma.exam.create({
                 data: {
@@ -60,10 +60,10 @@ export const examRouter = router({
             // filter aproved questions by category id
             // assign each approved questions the create exam id
             // filter questions by category id
-            console.log("Categories from backend ", input.categories);
+         
             
             input.categories.forEach(async (category) => {
-                console.log(" selected Categories  id", category.selectedId)
+               
                 const approvedQuestions = await ctx.prisma.questions.findMany({  
                     where: {
                         
@@ -71,10 +71,10 @@ export const examRouter = router({
                         status: "approved",
                     },
                 });
-                console.log("approvedQuestions first ", approvedQuestions);
+               
 
                 // pick random based on the number of questions
-                //  Fisher-Yates shuffle algorithm
+                
                 const randomApprovedQuestions = [];
                 // shuffle the array
                 for (let i = approvedQuestions.length - 1; i > 0; i--) {
@@ -84,14 +84,15 @@ export const examRouter = router({
                   };
 
                 // take the first category.inputValue elements from the shuffled array
-                randomApprovedQuestions.push(...approvedQuestions.slice(0, category.inputValue));
+                randomApprovedQuestions.push(...approvedQuestions.slice(0, category.numberOfQuestionPerCategory));
 
                 // iterate the randomly picked questions then assign the exam id to each question
                 randomApprovedQuestions.forEach(async (question) => {
-
+                  
                     question.examId = data.id;
-
-                    // question.status = "selected";
+               
+                    question.status = "selected";
+                   
                     // then update the question table
                     await ctx.prisma.questions.update({
                         where: {
@@ -99,10 +100,10 @@ export const examRouter = router({
                         },
                         data: {
                             examId: question.examId,
+                            status: question.status
                         },
                     });
                 });
-                console.log("sec approvedQuestions created ", randomApprovedQuestions);
 
             }
             );
