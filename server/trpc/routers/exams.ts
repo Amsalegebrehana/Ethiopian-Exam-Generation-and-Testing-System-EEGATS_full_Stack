@@ -120,6 +120,7 @@ export const examRouter = router({
                 return await ctx.prisma.exam.findUnique({
                     where: {
                         id: input.id,
+
                         
                     },
                     include: {
@@ -185,9 +186,23 @@ export const examRouter = router({
             .input(
                 z.object({
                     id: z.string(),
+                
                 })
             )
             .mutation(async ({ ctx, input }) => {
+                const exam = await ctx.prisma.exam.findUnique({
+                    where: {
+                        id: input.id,
+
+                    },
+                });
+                if (!exam) {
+                    throw new Error(`Exam with id ${input.id} not found`);
+                }
+                if (exam.testingDate <= new Date()) {
+                    throw new Error('Testing date has already passed');
+                }
+                // change status if testing date is greater than today
                 return await ctx.prisma.exam.update({
                     where: {
                         id: input.id,
@@ -207,12 +222,60 @@ export const examRouter = router({
                 })
             )
             .mutation(async ({ ctx, input }) => {
+                const exam = await ctx.prisma.exam.findUnique({
+                    where: {
+                        id: input.id,
+                    },
+                });
+                if (!exam) {
+                    throw new Error(`Exam with id ${input.id} not found`);
+                }
+                if (exam.testingDate <= new Date()) {
+                    throw new Error('Testing date has already passed');
+                }
+                // change status if testing date is greater than today
                 return await ctx.prisma.exam.update({
                     where: {
                         id: input.id,
                     },
                     data: {
                         status: "generated",
+                    },
+                });
+            }
+            ),
+
+            // release exam
+            releaseExam: publicProcedure
+            .input(
+                z.object({
+                    id: z.string(),
+                })
+            )
+            .mutation(async ({ ctx, input }) => {
+
+                const exam = await ctx.prisma.exam.findUnique({
+                    where: {
+                        id: input.id,
+                    },
+                });
+
+                if (!exam) {
+                    throw new Error(`Exam with id ${input.id} not found`);
+                }
+                // check if testing are already taken or not
+                const twoDaysLater = new Date(exam.testingDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+
+                if (new Date()  < twoDaysLater) {
+                    throw new Error('Testing date has not yet passed');
+                }
+                // change status if testing date is greater than today
+                return await ctx.prisma.exam.update({
+                    where: {
+                        id: input.id,
+                    },
+                    data: {
+                        status: "gradeReleased",
                     },
                 });
             }
