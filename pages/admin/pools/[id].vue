@@ -12,12 +12,15 @@ const { $client } = useNuxtApp()
 const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').email('Must be a valid email'));
 const numberfieldSchema = toFieldValidator(zod.number().min(0));
 const page = ref(1);
+const catPage = ref(1);
 const searchText = ref('');
+const searchTextCat = ref('');
 const contributorEmail = ref('');
 const { data:poolInfo} = await useAsyncData(() => $client.pool.getPool.query({ id: poolId!}));
 const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.pool.getPoolContributorsCount.query({poolId: poolId!}));
+const {data: catCount, refresh: fetchCatCount} = await useAsyncData(()=> $client.category.getCategoryCount.query({poolId: poolId}));
 const { data: contributors, refresh: fetchContributors, pending } = await useAsyncData(() => $client.pool.getPoolContributors.query({poolId:poolId, search: searchText.value !== '' ? searchText.value : undefined, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
-const { data: categories, refresh: fetchCategories } = await useAsyncData(() => $client.category.getAllCategories.query({poolId:poolId, search: searchText.value !== '' ? searchText.value : undefined, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
+const { data: categories, refresh: fetchCategories } = await useAsyncData(() => $client.category.getAllCategories.query({poolId:poolId, search: searchTextCat.value !== '' ? searchTextCat.value : undefined, skip: (catPage.value - 1) * 6 }), { watch: [catPage, searchTextCat] });
 
 
 const paginate = async (newPage: number) => {
@@ -30,8 +33,22 @@ const paginate = async (newPage: number) => {
         isReloading.value = false
     }
 }
+
+const paginateCat = async (newPage: number) => {
+    catPage.value = newPage;
+    isReloadingCat.value = true;
+    try {
+        await fetchCategories();
+        await fetchCatCount();
+    } finally {
+        isReloadingCat.value = false
+    }
+}
+
 const isReloading = ref(false);
 const isLoading = ref(false);
+const isReloadingCat = ref(false);
+const isLoadingCat = ref(false);
 const isInviteSuccess = ref(false);
 const isInviteDup = ref(false);
 const showInv = ref(true);
@@ -110,12 +127,12 @@ const toggleAddModal = () => {
 const handleAddCategory = async () => {
     isLoading.value = true;
     await $client.category.addCategory.mutate({name: catInfo.value.name, numOfQuestions: catInfo.value.numberofQuestions,poolId: poolId});
-    isReloading.value = true;
-    isLoading.value =false;
+    isReloadingCat.value = true;
+    isLoadingCat.value =false;
     showAddModal.value = false;
     catInfo.value.name = '';
     await fetchCategories();
-    await fetchCount();
+    await fetchCatCount();
     isReloading.value = false;
 }
 
@@ -135,13 +152,13 @@ const EditModal = async (catId : string, catName : string) => {
 const handleEditPool = async () => {
     isLoading.value = true;
     await $client.category.updateCategory.mutate(catInfo.value);
-    isReloading.value = true;
-    isLoading.value = false;
+    isReloadingCat.value = true;
+    isLoadingCat.value = false;
     showEditModal.value = false;
     catInfo.value.id = '';
     catInfo.value.name = '';
     await fetchCategories();
-    await fetchCount();
+    await fetchCatCount();
     isReloading.value = false;
 }
 
@@ -177,13 +194,13 @@ const DeleteCatModal = async (catId: string, catName: string) => {
 const handleDeleteCategory= async () => {
     isLoading.value = true;
     await $client.category.deleteCategory.mutate({id :catInfo.value.id});
-    isReloading.value = true;
-    isLoading.value = false;
+    isReloadingCat.value = true;
+    isLoadingCat.value = false;
     showDeleteCatModal.value = false;
     catInfo.value.id = '';
     catInfo.value.name = '';
     await fetchCategories();
-    await fetchCount();
+    await fetchCatCount();
     isReloading.value = false;
 }
 
@@ -250,7 +267,7 @@ const handleDisableContributor = async () => {
 
                                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                                             <div class="w-56 relative text-slate-500">
-                                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." />
+                                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." v-model="searchTextCat"/>
                                                 <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
                             
                                             </div>
@@ -260,8 +277,13 @@ const handleDisableContributor = async () => {
                                     <div v-if="isReloading" class="flex justify-center items-center">
                                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6 "></Icon>
                                         </div>
-                                    <div v-else class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                                        <div v-if="categories?.length == 0" class="w-full text-center text-lg mt-10 h-full">
+                                                <p>No categories found</p>
+                                            </div>
                                         
+
+                                    <div v-else class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                                        <div v-if="categories?.length !== 0">
                                         <table class="table table-report -mt-2">
                                             <thead>
                                                 <tr>
@@ -302,16 +324,17 @@ const handleDisableContributor = async () => {
                                             </tbody>
                                         </table>
                                     </div>
+                                    
                 <div class="flex flex-row mt-3">
                         <div class="md:block  text-slate-500">
-                         Showing {{1 + (page-1)*6}} to {{ page*6 <count! ? page*6:count }} of {{count! }} entries
+                         Showing {{1 + (catPage-1)*6}} to {{ catPage*6 <catCount! ? catPage*6:catCount }} of {{catCount! }} entries
                         </div>
                                     <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                                         <nav class="w-full sm:w-auto sm:mr-auto">
                                             <ul class="pagination">
                                                 
                                                 <li class="page-item">
-                                                    <button class="page-link" v-on:click="paginate(page-1)" :disabled="page===1">
+                                                    <button class="page-link" v-on:click="paginateCat(catPage-1)" :disabled="catPage===1">
                                                         <div class="flex flex-row align-middle justify-center items-center  ">
                                                             <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
                                                             <span class="">Previous</span>
@@ -319,7 +342,7 @@ const handleDisableContributor = async () => {
                                                     </button>
                                                 </li>
                                                 <li class="page-item">  
-                                                    <button class="page-link" v-on:click="paginate(page+1)" :disabled="(page) * 6 >= count!">
+                                                    <button class="page-link" v-on:click="paginateCat(catPage+1)" :disabled="(catPage) * 6 >= catCount!">
                                                         <div class="flex flex-row align-middle justify-center items-center">
                                                                 <span>Next</span>
                                                                 <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
@@ -333,55 +356,7 @@ const handleDisableContributor = async () => {
                                       
                                         </div>
                             </div>
-                                    <!-- BEGIN: Pagination -->
-                                    <!-- <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
-                                        <nav class="w-full sm:w-auto sm:mr-auto">
-                                            <ul class="pagination">
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-double-left" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-left" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">...</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">1</a>
-                                                </li>
-                                                <li class="page-item active">
-                                                    <a class="page-link" href="#">2</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">3</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">...</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-right" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-double-right" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </nav>
-                                        <select class="w-20 form-select box mt-3 sm:mt-0">
-                                            <option>10</option>
-                                            <option>25</option>
-                                            <option>35</option>
-                                            <option>50</option>
-                                        </select>
-                                    </div> -->
-                                    <!-- END: Pagination -->
+                        </div>
                                 </div>
                     
                             </div>   
@@ -419,7 +394,6 @@ const handleDisableContributor = async () => {
                                 <th class="whitespace-nowrap">NAME</th>
                                 <th class="text-center whitespace-nowrap">E-mail</th>
                                 <th class="text-center whitespace-nowrap">Questions Assigned</th>
-                                <th class="text-center whitespace-nowrap">Reviews Assigned</th>
                                 <th class="text-center whitespace-nowrap">ACTIONS</th>
                             </tr>
                         </thead>
@@ -440,7 +414,7 @@ const handleDisableContributor = async () => {
                                        
                                         </td>
                                         <td class="text-center">{{ contributor.email }}</td>
-                                        <!-- <td class="text-center">{{ contributor.questionsRemaining }}</td> -->
+                                        <!-- TEMPO -->
                                         <td class="text-center">{{ contributor.reviewsMade }}</td>
                                  
                                         <td class="table-report__action w-56">
