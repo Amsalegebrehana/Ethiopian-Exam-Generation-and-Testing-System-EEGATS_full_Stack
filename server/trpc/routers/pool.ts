@@ -148,4 +148,32 @@ export const poolRouter = router({
         return  'Can\'t delete pool.';
       }
     }),
+    getPoolsWithCategories: publicProcedure
+      .input(
+        z.object({
+         
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const data = await ctx.prisma.pool.findMany({
+        select:{
+          id:true,
+          name:true,
+          Category:{
+            select:{
+              id:true,
+              name:true,
+              questions:{
+                where:{
+                  status:{equals:'approved'}
+                }
+              }
+            }
+          }
+        }
+      });
+      return data;
+    }),
+
+      
 });

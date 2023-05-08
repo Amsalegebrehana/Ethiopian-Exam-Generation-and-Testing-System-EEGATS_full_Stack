@@ -36,8 +36,8 @@
                                         </button>
                           
                                         <div class="hidden md:block mx-auto text-slate-500">
-                                            Showing 1 to 10 of {{ testTakers.length }} entries
-                                        </div>
+                                           
+                                       </div> 
                                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                                             <div class="w-56 relative text-slate-500">
                                                 <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." />
@@ -47,6 +47,15 @@
                                         </div>
                                          
                                     </div>
+                                    <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center justify-end mt-2">
+                                        <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
+                                            <div class="w-56 relative text-slate-500">
+                                                <button @click="exportTableData()" class="btn btn-success text-white shadow-md mr-2">Export Table Data</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
                                     <div v-if="isReloading" class="flex justify-center items-center">
                                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6 "></Icon>
                                         </div>
@@ -82,6 +91,12 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2">
+                                    
+                                       <div class="hidden md:block mx-auto text-slate-500">
+                                           Showing 1 to 10 of {{ testTakers.length }} entries
+                                       </div>   
+                                   </div>
                                     <!-- BEGIN: Pagination -->
                                     <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                                         <nav class="w-full sm:w-auto sm:mr-auto">
@@ -181,11 +196,11 @@
                                                     <td class="text-center">{{ exam.numberOfQuestions }}</td>
                                                     <td class="w-24">
                                                                 <div class="flex items-center justify-center" :class="{
-                                                                    'text-success': exam.status === 'ACTIVE',
-                                                                    'text-danger': exam.status === 'INACTIVE',
+                                                                    'text-success': exam.status === 'generated',
+                                                                    'text-danger': exam.status === 'published',
                                                                 }">
                                                                     <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon>
-                                                                    {{ exam.status === 'ACTIVE' ? "Active" : "Inactive" }}
+                                                                    {{ exam.status === 'generated' ? "generated" : "published" }}
                                                                 </div>
                                                             </td>
                                                             <td class="">{{ exam.testingDate }}</td>
@@ -311,9 +326,9 @@
 
 <script setup lang="ts">
 
-import { TestTakers } from '.prisma/client';
-import AdminTopBar from '~~/components/TopBar.vue'
+import AdminTopBar from '~~/components/TopBar.vue';
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
+ 
 
 definePageMeta({ middleware: 'is-admin' });
 const { $client } = useNuxtApp();
@@ -332,9 +347,17 @@ const toggleAddModal = () => {
 }
 let testTakers: string | any[] = [];
 
+const rows = [['Name', 'Admission Number']]; // add header row
+
 const getTestTakers = async () => {
   testTakers = await $client.examGroup.getExamGroupTestTakers.query({ id: examGroupId });
+    if (testTakers) {
 
+             testTakers.forEach((student) => { 
+            rows.push([student.name, student.username]); // add data rows
+        });
+      }
+      
 }
 
 const handleAddPool = async () => {
@@ -354,19 +377,24 @@ const handleAddPool = async () => {
 };
 
 getTestTakers();
-
+const exportTableData = async() => {
+      
+      const csvContent = 'data:text/csv;charset=utf-8,' + rows.map((row) => row.join(',')).join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'table-data.csv');
+      document.body.appendChild(link);
+      link.click();
+};
 const handleDelete = async (id: string) => {
     const response = await $client.examGroup.deleteExamGroup.mutate({ id: id });
     if (response) {
         isReloading.value = true;
     }
 }
-const exams =  [
-                { "id": "1", "name": "Physics 1990 Ethiopian National Exam", "numberOfQuestions": 45, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990" }, 
-                { "id": "2", "name": "Chemistry 2000 Ethiopian National Exam", "numberOfQuestions": 80, "status": "INACTIVE", "testingDate": "01:00 PM Dec 12, 1990" }, 
-                { "id": "3", "name": "Biology 2001 Ethiopian National Exam", "numberOfQuestions": 120, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990" },
-                { "id": "2", "name": "Chemistry 2010 Ethiopian National Exam", "numberOfQuestions": 80, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990" }
-            ]
+
+const exams = await $client.exam.getExamsByExamGroup.query({skip:0, id: examGroupId });
 
  
 

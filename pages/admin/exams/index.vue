@@ -26,59 +26,59 @@
                             </div>
                         </div>
                     </div>
-                    <!-- BEGIN: Data List -->
-                    <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                        <table class="table table-report -mt-2">
-                            <thead>
-                                <tr>
-                                    <th class="whitespace-nowrap"></th>
-                                    <th class="whitespace-nowrap">Exams</th>
-                                    <th class="text-center whitespace-nowrap">Number of Questions</th>
-                                    <th class="whitespace-nowrap">Status</th>
-                                    <th class="whitespace-nowrap">Testing Date</th>
-                                    <th class="text-center whitespace-nowrap">ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="exam in exams" :key="exam.id" class="intro-x">
-                                    <td class="w-10">
-                                        <NuxtLink :to="`/admin/exams/${exam.id}`">
-                                        <Icon name="iconoir:page" class="w-6 h-6"></Icon>
-                                        </NuxtLink>
-                                    </td>
-                                    <td>
-                                        <NuxtLink :to="`/admin/exams/${exam.id}`" class="font-medium whitespace-nowrap">{{
-    exam.name.length > 40 ? exam.name.slice(0,39) + "..." : exam.name
-                                        }}</NuxtLink>
-            
-                                    </td>
-                                    <td class="text-center">{{ exam.numberOfQuestions }}</td>
-                                    <td class="w-24">
-                                                <div class="flex items-center justify-center" :class="{
-                                                    'text-success': exam.status === 'ACTIVE',
-                                                    'text-danger': exam.status === 'INACTIVE',
-                                                }">
-                                                    <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon>
-                                                    {{ exam.status === 'ACTIVE' ? "Active" : "Inactive" }}
-                                                </div>
-                                            </td>
-                                            <td class="">{{ exam.testingDate }}</td>
-                                    <td class="table-report__action w-40">
-                                        <div class="flex justify-center items-center">
-                                            <a class="flex items-center mr-3" href="javascript:;">
-                                                <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon> Edit
-                                            </a>
-                                            <a class="flex items-center text-danger" href="javascript:;"
-                                                @click="deleteConfirmationModal = true">
-                                                <Icon name="fa6-regular:trash-can" class="w-4 h-4"></Icon> Delete
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- END: Data List -->
+                     <!-- BEGIN: Data List -->
+                     <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                                        <table class="table table-report -mt-2">
+                                            <thead>
+                                                <tr>
+                                                    <th class="whitespace-nowrap"></th>
+                                                    <th class="whitespace-nowrap">Exams</th>
+                                                    <th class="text-center whitespace-nowrap">Number of Questions</th>
+                                                    <th class="whitespace-nowrap">Status</th>
+                                                    <th class="whitespace-nowrap">Testing Date</th>
+                                                    <th class="text-center whitespace-nowrap">ACTIONS</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="exam in exams" :key="exam.id" class="intro-x">
+                                                    <td class="w-10">
+                                                        <NuxtLink :to="`/admin/exams/${exam.id}`">
+                                                        <Icon name="iconoir:page" class="w-6 h-6"></Icon>
+                                                        </NuxtLink>
+                                                    </td>
+                                                    <td>
+                                                        <NuxtLink :to="`/admin/exams/${exam.id}`" class="font-medium whitespace-nowrap">{{
+                                                            exam.name.length > 40 ? exam.name.slice(0,39) + "..." : exam.name
+                                                        }}</NuxtLink>
+                            
+                                                    </td>
+                                                    <td class="text-center">{{ exam.numberOfQuestions }}</td>
+                                                    <td class="w-24">
+                                                                <div class="flex items-center justify-center" :class="{
+                                                                    'text-success': exam.status === 'generated',
+                                                                    'text-danger': exam.status === 'published',
+                                                                }">
+                                                                    <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon>
+                                                                    {{ exam.status === 'generated' ? "generated" : "published" }}
+                                                                </div>
+                                                            </td>
+                                                            <td class="">{{ exam.testingDate }}</td>
+                                                    <td class="table-report__action w-40">
+                                                        <div class="flex justify-center items-center">
+                                                            <a class="flex items-center mr-3" href="javascript:;">
+                                                                <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon> Edit
+                                                            </a>
+                                                            <a class="flex items-center text-danger" href="javascript:;"
+                                                                >
+                                                                <Icon name="fa6-regular:trash-can" class="w-4 h-4"></Icon> Delete
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- END: Data List -->
                     <!-- BEGIN: Pagination -->
                     <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                         <nav class="w-full sm:w-auto sm:mr-auto">
@@ -152,22 +152,17 @@
         </div>
     </div>
 </template>
-<script>
-definePageMeta({ middleware: 'is-admin' })
+
+<script setup lang="ts">
+
+
 import AdminTopBar from '~~/components/TopBar.vue'
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
-export default {
-    components: {AdminSideBar, AdminTopBar},
-    name: 'Exams',
-    data() {
-        return{
-            exams: [
-                { "id": "1", "name": "Physics 1990 Ethiopian National Exam", "numberOfQuestions": 45, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990" }, 
-                { "id": "2", "name": "Chemistry 2000 Ethiopian National Exam", "numberOfQuestions": 80, "status": "INACTIVE", "testingDate": "01:00 PM Dec 12, 1990" }, 
-                { "id": "3", "name": "Biology 2001 Ethiopian National Exam", "numberOfQuestions": 120, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990" },
-                { "id": "2", "name": "Chemistry 2010 Ethiopian National Exam", "numberOfQuestions": 80, "status": "ACTIVE", "testingDate": "10:00 AM Dec 12, 1990" }]
-        }
 
-    },
-}
+definePageMeta({ middleware: 'is-admin' });
+const { $client } = useNuxtApp();
+
+const exams = await $client.exam.getExams.query({skip:0 });
+
+
 </script>
