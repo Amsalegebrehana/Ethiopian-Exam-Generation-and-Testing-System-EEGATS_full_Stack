@@ -120,7 +120,21 @@ export const examRouter = router({
                 return await ctx.prisma.exam.findUnique({
                     where: {
                         id: input.id,
+                        
                     },
+                    include: {
+                        examGroup: {
+                            select:{
+                                name: true
+                            },
+                        },
+                        pool:{
+                            select:{
+                                name: true
+                            },
+                        },
+
+                    }
                 });
             }),
             // get all exams by exam group id
@@ -167,5 +181,41 @@ export const examRouter = router({
                     },
                 });
             }),
+            publishExam: publicProcedure
+            .input(
+                z.object({
+                    id: z.string(),
+                })
+            )
+            .mutation(async ({ ctx, input }) => {
+                return await ctx.prisma.exam.update({
+                    where: {
+                        id: input.id,
+                    },
+                    data: {
+                        status: "published",
+                    },
+                });
+            }
+            ),
+            // unpublish exam
+            unPublishExam: publicProcedure
+            .input(
+                z.object({
+                    id: z.string(),
 
+                })
+            )
+            .mutation(async ({ ctx, input }) => {
+                return await ctx.prisma.exam.update({
+                    where: {
+                        id: input.id,
+                    },
+                    data: {
+                        status: "generated",
+                    },
+                });
+            }
+            ),
+         
 });
