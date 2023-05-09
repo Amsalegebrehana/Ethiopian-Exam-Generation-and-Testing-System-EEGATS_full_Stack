@@ -20,7 +20,7 @@
                         </div>
                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                             <div class="w-56 relative text-slate-500">
-                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." />
+                                <input type="text" class="form-control w-56 box pr-10" v-model="searchInput" placeholder="Search..." />
                                 <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
             
                             </div>
@@ -40,7 +40,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="exam in exams" :key="exam.id" class="intro-x">
+                                                <tr v-for="exam in filteredExams" :key="exam.id" class="intro-x">
                                                     <td class="w-10">
                                                         <NuxtLink :to="`/admin/exams/${exam.id}`">
                                                         <Icon name="iconoir:page" class="w-6 h-6"></Icon>
@@ -53,16 +53,17 @@
                             
                                                     </td>
                                                     <td class="text-center">{{ exam.numberOfQuestions }}</td>
-                                                    <td class="w-24">
+                                                    <td class="w-40">
                                                                 <div class="flex items-center justify-center" :class="{
                                                                     'text-success': exam.status === 'generated',
-                                                                    'text-danger': exam.status === 'published',
+                                                                    'text-primary': exam.status === 'published',
+                                                                    'text-danger': exam.status === 'gradeReleased',
                                                                 }">
                                                                     <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon>
-                                                                    {{ exam.status === 'generated' ? "generated" : "published" }}
+                                                                         {{ examStatus(exam.status) }}
                                                                 </div>
                                                             </td>
-                                                            <td class="">{{ exam.testingDate }}</td>
+                                                            <td class="">{{ testingDateformat(exam.testingDate) }}</td>
                                                     <td class="table-report__action w-40">
                                                         <div class="flex justify-center items-center">
                                                             <a class="flex items-center mr-3" href="javascript:;">
@@ -146,5 +147,43 @@ const { $client } = useNuxtApp();
 
 const exams = await $client.exam.getExams.query({skip:0 });
 
+const searchInput = ref('');
+
+const filteredExams = ref(exams);
+
+// filter exam by search input
+const filterExams = (name: any) => {
+  // filter exams by name if it includes or starts with the search input
+  return exams.filter((exam: any) => {
+    return exam.name.toLowerCase().includes(name.toLowerCase()) ||
+      exam.name.toLowerCase().startsWith(name.toLowerCase());
+  });
+  
+}
+// watch search input change
+watch(searchInput, (value) => {
+ 
+    filteredExams.value = filterExams(value);
+ 
+})
+
+// exam status text
+const examStatus = (status: string) => {
+  if (status === 'generated') {
+    return 'Generated';
+  } else if (status === 'published') {
+    return 'Published';
+  } else if (status === 'gradeReleased') {
+    return 'Grade Released';
+  } else {
+    return 'UnPublished';
+  }
+  
+}
+// testing date format
+const testingDateformat = (date: string) => {
+  return new Date(date).toLocaleDateString();
+}
+console.log("testingDateformat",testingDateformat(exams[0].testingDate));
 
 </script>
