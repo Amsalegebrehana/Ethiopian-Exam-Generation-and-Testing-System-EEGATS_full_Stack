@@ -1,6 +1,7 @@
 <script setup lang="ts" >
 import AdminTopBar from '~~/components/TopBar.vue'
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
+import DropDownSelect from '~~/components/DropDownSelect.vue';
 import { Field, Form, ErrorMessage } from 'vee-validate';
 import { toFieldValidator } from '@vee-validate/zod';
 import * as zod from 'zod';
@@ -11,6 +12,7 @@ const poolId = route.params.id as string;
 const { $client } = useNuxtApp()
 const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').email('Must be a valid email'));
 const numberfieldSchema = toFieldValidator(zod.number().min(0));
+const catID = "";
 const page = ref(1);
 const catPage = ref(1);
 const searchText = ref('');
@@ -58,6 +60,7 @@ const showDeleteContModal = ref(false);
 const showDeleteCatModal = ref(false);
 const showEditModal = ref(false);
 const showAddModal = ref(false);
+let questionsAssigned = 0;
 const contrInfo = ref({
     questionNumber: 0,
     id: '',
@@ -106,18 +109,18 @@ const AssignModal = async (contrId : string, noOfQuestions : number) => {
 
 
 //TODO: Fix this
-// const handleAssignQuestions = async () => {
-//     isLoading.value = true;
-//     await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, numberofQuestions : contrInfo.value.questionNumber});
-//     isReloading.value = true;
-//     isLoading.value = false;
-//     showAssignModal.value = false;
-//     contrInfo.value.id = '';
-//     contrInfo.value.questionNumber = 0;
-//     await fetchContributors();
-//     await fetchCount();
-//     isReloading.value = false;
-// }
+const handleAssignQuestions = async () => {
+    isLoading.value = true;
+    await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, catId: catID,questionsRemaining : contrInfo.value.questionNumber});
+    isReloading.value = true;
+    isLoading.value = false;
+    showAssignModal.value = false;
+    contrInfo.value.id = '';
+    contrInfo.value.questionNumber = 0;
+    await fetchContributors();
+    await fetchCount();
+    isReloading.value = false;
+}
 
 const toggleAddModal = () => {
     catInfo.value.id = '';
@@ -216,6 +219,7 @@ const handleDisableContributor = async () => {
     await fetchCount();
     isReloading.value = false;
 }
+
 </script>
 <template>
     <div>
@@ -274,6 +278,7 @@ const handleDisableContributor = async () => {
                                         </div>
                                          
                                     </div>
+                                  
                                     <div v-if="isReloading" class="flex justify-center items-center">
                                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6 "></Icon>
                                         </div>
@@ -381,6 +386,7 @@ const handleDisableContributor = async () => {
                         </div>
                     </div>
                     </div>
+                   
                     <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
                       <div v-if="contributors?.length == 0" class="w-full text-center text-lg mt-10 h-full">
                                     <p>No contributors found</p>
@@ -414,8 +420,7 @@ const handleDisableContributor = async () => {
                                        
                                         </td>
                                         <td class="text-center">{{ contributor.email }}</td>
-                                        <!-- TEMPO -->
-                                        <td class="text-center">{{ contributor.reviewsMade }}</td>
+                                        <td class="text-center">{{  contributor.reviewsMade}}</td>
                                  
                                         <td class="table-report__action w-56">
                                             <div class="flex justify-center items-center">
@@ -579,19 +584,27 @@ const handleDisableContributor = async () => {
                                 <div class="relative p-6 flex-auto">
                                     <div class="flex flex-row align-middle">
                                         <p class="w-8/12 align-middle my-auto font-bold text-lg">Number of Questions</p>
-                                          <Form class="w-full">
-                                                    
-                <input name="editpoolInfoName" type="number" class="intro-x login__input form-control py-3 block"  
-                                                        placeholder="Enter Pool Name" v-model="contrInfo.questionNumber"  min="0"/>
-              </Form>
+                                          <Form class="w-full">      
+                                            <input name="editpoolInfoName" type="number" class="intro-x login__input form-control py-3 block"  
+                                                placeholder="Enter Pool Name" v-model="contrInfo.questionNumber"  min="0"/>
+                                        </Form>
+                             
                                         <!-- <input type="text" class="intro-x login__input form-control py-3 px-4 block"
                                             placeholder="Enter Pool Name" v-model="poolInfo.name"> -->
+                                    </div>
+                                    <div class="flex flex-row align-middle">
+                                        <p class="w-8/12 align-middle my-auto font-bold text-lg">Category</p>
+                                        <Form class="w-full">   
+                                            <div v-if="categories">
+                                                <DropDownSelect :optionslist="categories" v-model="catID" title="Choose Cateogry" class=""/>
+                                            </div>
+                                        </Form>
                                     </div>
                                 </div>
                                 <!--footer-->
                                 <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
                                     
-                                    <!-- <button @click="handleAssignQuestions()"
+                                    <button @click="handleAssignQuestions()"
                                         class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading ">
                                         <div v-if="isLoading || pending">
                                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
@@ -599,7 +612,7 @@ const handleDisableContributor = async () => {
                                             <div v-else>
                                                 Assign
                                             </div>
-                                    </button> -->
+                                    </button>
 
                                 </div>
                             </div>
