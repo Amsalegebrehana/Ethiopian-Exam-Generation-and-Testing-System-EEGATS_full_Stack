@@ -16,7 +16,7 @@
                         </button>
                         </NuxtLink>
                         <div class="hidden md:block mx-auto text-slate-500">
-                            Showing 1 to 10 of {{ exams.length }} entries
+                            Showing 1 to 10 of {{ exams?.length }} entries
                         </div>
                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                             <div class="w-56 relative text-slate-500">
@@ -69,68 +69,72 @@
                                                             <a class="flex items-center mr-3" href="javascript:;">
                                                                 <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon> Edit
                                                             </a>
-                                                            <a class="flex items-center text-danger" href="javascript:;"
-                                                                >
-                                                                <Icon name="fa6-regular:trash-can" class="w-4 h-4"></Icon> Delete
-                                                            </a>
+                                                         
                                                         </div>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div>
-                                    <!-- END: Data List -->
-                    <!-- BEGIN: Pagination -->
-                    <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
-                        <nav class="w-full sm:w-auto sm:mr-auto">
-                            <ul class="pagination">
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-double-left" class="h-4 w-4"></Icon>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-left" class="h-4 w-4"></Icon>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">...</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">1</a>
-                                </li>
-                                <li class="page-item active">
-                                    <a class="page-link" href="#">2</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">3</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">...</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-right" class="h-4 w-4"></Icon>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-double-right" class="h-4 w-4"></Icon>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                        <select class="w-20 form-select box mt-3 sm:mt-0">
-                            <option>10</option>
-                            <option>25</option>
-                            <option>35</option>
-                            <option>50</option>
-                        </select>
                     </div>
+                                    <!-- END: Data List -->
+                   
+                     </div>
+                      <!-- BEGIN: Pagination -->
+                    <div class="flex flex-row mt-3">
+                      <div class="md:block  text-slate-500">
+                   
+                         Showing  entries
+                        </div>
+                        <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+                            <nav class="w-full sm:w-auto sm:mr-auto">
+                                <ul class="pagination">
+                                    
+                                    <li class="page-item">
+                                        <button class="page-link" v-on:click="paginate(page-1)" :disabled="page===1">
+                                            <div class="flex flex-row align-middle justify-center items-center  ">
+                                                <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
+                                                <span class="">Previous</span>
+                                            </div>
+                                        </button>
+                                    </li>
+                                    <li class="page-item">  
+                                        <button class="page-link"  v-on:click="paginate(page+1)" :disabled="(page) * 6 >= count!">
+                                            <div class="flex flex-row align-middle justify-center items-center">
+                                                    <span>Next</span>
+                                                    <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
+                                            </div>
+                                            </button>
+                                        </li>
+                                
+                                    
+                                    </ul>
+                            </nav>
+                            
+                            </div>
+                     </div>
                     <!-- END: Pagination -->
-                </div>
-               
+                    <div v-if="isReloading"
+                                class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+                                <div class="relative  my-6 mx-auto max-w-10xl">
+                                    <!--content-->
+                                    <div
+                                        class="border-0 rounded-lg relative flex flex-col w-full outline-none focus:outline-none">
+                                      
+                                        <div class="relative p-6 flex-auto">
+                                            
+                                        
+                                            <div class="flex flex-row items-center space-x-4 mx-auto">
+                                                 <Icon name="eos-icons:bubble-loading" class="w-20 h-20 text-primary"></Icon>
+                                                
+                                            </div>
+                                        </div>
+                                        <!--footer-->
+                                      
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="isReloading" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                    
             </div>
         </div>
     </div>
@@ -145,7 +149,31 @@ import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 definePageMeta({ middleware: 'is-admin' });
 const { $client } = useNuxtApp();
 
-const exams = await $client.exam.getExams.query({skip:0 });
+
+// page skip value for pagination
+const page = ref(1);
+
+// get exam count
+const {data: count, refresh:fetchCount} = await useAsyncData( ()=> $client.exam.getExamsCount.query());
+// console.log(count);
+ 
+// get exams
+let {data: exams,refresh:fetchExams } =await useAsyncData(()=> $client.exam.getExams.query({skip:(page.value - 1) * 6},{watch: [page]}));
+
+const isReloading = ref(false);
+
+const paginate = async (newPage: number) => {
+    page.value = newPage;
+    isReloading.value = true;
+    try {
+        await fetchExams();
+        await fetchCount();
+    } finally {
+        isReloading.value = false
+    }
+
+}
+
 
 const searchInput = ref('');
 
@@ -180,10 +208,10 @@ const examStatus = (status: string) => {
   }
   
 }
-// testing date format
+// testing date  short format
 const testingDateformat = (date: string) => {
   return new Date(date).toLocaleDateString();
 }
-console.log("testingDateformat",testingDateformat(exams[0].testingDate));
+
 
 </script>

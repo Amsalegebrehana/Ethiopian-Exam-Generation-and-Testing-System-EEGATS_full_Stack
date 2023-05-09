@@ -2,9 +2,11 @@ import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 
 export const examRouter = router({
+
     getExamsCount: publicProcedure.query(async ({ ctx }) => {
       return await ctx.prisma.exam.count();
     }),
+    
     getExams: publicProcedure
         .input(
             z.object({

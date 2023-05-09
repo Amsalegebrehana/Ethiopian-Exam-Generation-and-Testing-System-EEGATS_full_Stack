@@ -73,15 +73,20 @@ const twoDaysLater = new Date(exam.testingDate.getTime() + 2 * 24 * 60 * 60 * 10
 // if exam grade is released then no publish exam
 if (exam.status === 'gradeReleased' || exam.status === 'published' && twoDaysLater < new Date()) {
     publishBtn.value = false;
-}
 
+}
+// if exam is published and the testing date is in the future then unpublishing exam is possible
+if (exam.status === 'published' && exam.testingDate > new Date()) {
+    unpublishBtn.value = true;
+    publishBtn.value = false;
+}
 // if the exam is published and the testing date is two days later then release grade btn is enabled
 if (exam.status === 'published' && twoDaysLater < new Date()) {
     releaseGradeBtn.value.disabled = false;
 }
 
 
-
+// publish the generated exam if the exam hasn't started yet (change status to published)
 const publishExam = async () => {
 
     const updatedExam = await $client.exam.publishExam.mutate({id:id});
@@ -98,6 +103,7 @@ const publishExam = async () => {
     console.log(updatedExam.status);
 };
 
+// unpublish the published exam if the exam hasn't started yet (change status back to generated)
 const unPublishExam = async () =>{
 
     const updatedExam =  await $client.exam.unPublishExam.mutate({id:id});
@@ -109,16 +115,15 @@ const unPublishExam = async () =>{
     else {
         publishBtn.value = false;
     }
-    console.log(updatedExam.status);
+   
 };
 
 const releaseGrade = async () =>{
-    console.log("release grade")
+   
     // change the status to gradedrelease
     const updatedExam =  await $client.exam.releaseExam.mutate({id:id});
     releaseGradeBtn.value.disabled = true;
-    console.log(updatedExam.status);
-    console.log("release grade")
+    
 };
 
 </script>
