@@ -52,7 +52,7 @@ export const questionRouter = router({
             const question = await ctx.prisma.questions.create({
                 data:{
                     title: input.questionTitle,
-                    image:  urlPrefix+  input.questionImage,
+                    image: input.questionImage ?  urlPrefix+  input.questionImage : '',
                     catId: input.catId,
                     poolId: poolId,
                     contributorId : input.contrId,
@@ -63,28 +63,28 @@ export const questionRouter = router({
                     const choiceOne =  await ctx.prisma.choice.create({
                         data:{
                             title: input.choiceOneTitle,
-                            image: urlPrefix+  input.choiceOneImage,
+                            image: input.choiceOneImage ? urlPrefix+  input.choiceOneImage : '',
                             questionId: data.id,
                         }
                     });
                     const choiceTwo =  await ctx.prisma.choice.create({
                         data:{
                             title: input.choiceTwoTitle,
-                            image:  urlPrefix+  input.choiceTwoImage,
+                            image: input.choiceTwoImage? urlPrefix+  input.choiceTwoImage  :'',
                             questionId: data.id,
                         }
                     });
                     const choiceThree =  await ctx.prisma.choice.create({
                         data:{
                             title: input.choiceThreeTitle,
-                            image:  urlPrefix+  input.choiceThreeImage,
+                            image: input.choiceThreeImage ? urlPrefix+  input.choiceThreeImage : '',
                             questionId: data.id,
                         }
                     });
                     const choiceFour =  await ctx.prisma.choice.create({
                         data:{
                             title: input.choiceFourTitle,
-                            image:  urlPrefix+  input.choiceFourImage,
+                            image: input.choiceFourImage ? urlPrefix+  input.choiceFourImage : '',
                             questionId: data.id,
                         }
                     });
