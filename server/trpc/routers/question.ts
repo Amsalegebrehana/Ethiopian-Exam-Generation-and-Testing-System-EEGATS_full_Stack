@@ -1,5 +1,8 @@
+import { Choice, QuestionAnswer, Questions } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
+import {QuestionStatus } from "@prisma/client";
 const {supabaseUrl} = useRuntimeConfig();
 export const questionRouter = router({
     addQuestion: publicProcedure.input(
@@ -137,4 +140,156 @@ export const questionRouter = router({
         return "error adding question";
     }
      }),
+        
+     getQuestion: publicProcedure
+     .input(
+        z.string()
+     )
+     .query(
+        async ({ctx, input}) => {
+
+            const question = await ctx.prisma.questions.findUnique({
+                where: {
+                    id: input
+                }
+            })
+            const choices = await ctx.prisma.choice.findMany({
+                where: {
+                    questionId: input
+                }
+            })
+            const answer = await ctx.prisma.questionAnswer.findFirst({
+                where: {
+                    questionId: input
+                }
+            })
+            const review = await ctx.prisma.review.findFirst({
+                where: {
+                    questionId: input
+                }
+            })
+
+            return {
+                question: question,
+                choices: choices,
+                answer: answer,
+                review: review,
+            }
+        }
+     ),
+     deleteQuestion: publicProcedure
+     .input(
+        z.string()
+     )
+     .mutation(
+        async ({ctx, input}) => {
+            const question = await ctx.prisma.questions.findFirst({
+                where: {
+                    id: input
+                }
+            })
+            if (!question){
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Question doesn't exist"
+                })
+            }
+            const deleteQuestion = await ctx.prisma.questions.delete({
+                where: {    
+                    id: input
+                }
+            })
+            const deleteChoices = await ctx.prisma.choice.deleteMany({
+                where: {
+                    questionId: input
+                }
+            })
+        }
+     ),
+     updateQuestion: publicProcedure
+     .input(
+        z.object({
+            questionId: z.string(),
+            questionTitle: z.string(),
+            questionImage: z.string().optional(),
+            choiceOneId: z.string(),
+            choiceOneTitle : z.string(),
+            choiceOneImage : z.string().optional(),
+            choiceTwoId: z.string(),
+            choiceTwoTitle : z.string(),
+            choiceTwoImage : z.string().optional(),
+            choiceThreeId: z.string(),
+            choiceThreeTitle : z.string(),
+            choiceThreeImage : z.string().optional(),
+            choiceFourId: z.string(),
+            choiceFourTitle : z.string(),
+            choiceFourImage : z.string().optional(),
+            correctChoiceId : z.string(),
+            correctChoice : z.string(),
+            catId : z.string(),
+        }),
+     )
+     .mutation(
+        async ({ctx, input}) => {
+            const updateQuestion = await ctx.prisma.questions.update({
+                where: {
+                    id: input.questionId
+                },
+                data: {
+                    title: input.questionTitle,
+                    image: input.questionImage,
+                    catId: input.catId,
+                }
+            })
+
+            const updateChoiceOne = await ctx.prisma.choice.update({
+                where: {
+                    id: input.choiceOneId,
+                },
+                data: {
+                    title: input.choiceOneTitle,
+                    image: input.choiceOneImage,
+                }
+            })
+            const updateChoiceTwo = await ctx.prisma.choice.update({
+                where: {
+                    id: input.choiceTwoId,
+                },
+                data: {
+                    title: input.choiceTwoTitle,
+                    image: input.choiceTwoImage,
+                }
+            })
+            const updateChoiceThree = await ctx.prisma.choice.update({
+                where: {
+                    id: input.choiceThreeId,
+                },
+                data: {
+                    title: input.choiceThreeTitle,
+                    image: input.choiceThreeImage,
+                }
+            })
+            const updateChoiceFour = await ctx.prisma.choice.update({
+                where: {
+                    id: input.choiceFourId,
+                },
+                data: {
+                    title: input.choiceFourTitle,
+                    image: input.choiceFourImage,
+                }
+            })
+            // Update Correct answer
+            const deleteFormerCorrectAnswer = await ctx.prisma.questionAnswer.delete({
+                where: {
+                    id: input.correctChoiceId
+                }
+            })
+            const correctAnswer = await ctx.prisma.questionAnswer.create({
+                data:{
+                    questionId : input.questionId,
+                    choiceId : input.correctChoice == 'choiceOne' ? input.choiceOneId : input.correctChoice == 'choiceTwo' ? input.choiceTwoId : input.correctChoice == 'choiceThree' ? input.choiceThreeId : input.choiceFourId
+                }
+            });
+        })
+
 });

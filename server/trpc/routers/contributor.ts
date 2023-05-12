@@ -1,13 +1,72 @@
-import { z } from "zod";
+import { array, z } from "zod";
 import {  sendNewInvite, sendReturnEmail } from "~~/utils/mailer";
 import { publicProcedure, router } from "../trpc";
 const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
 export const contributorRouter = router({
 
+  
+  getContributorQuestions: publicProcedure
+  .input(
+    z.string()
+  )
+  .query(
+    async ({ctx, input}) => {
+      const data = await ctx.prisma.questions.findMany({
+        where: {
+          contributorId: input,
+        }
+      })
+
+      return data;
+    }),
+
+  getContributorQuestionCount: publicProcedure
+  .input(
+    z.string()
+  )
+  .query(
+    async ({ctx, input}) => {
+      const data = await ctx.prisma.questions.count({
+        where: {
+          contributorId: input,
+        }
+      })
+
+      return data;
+    }
+  ),
+  
+  searchContributorQuestions: publicProcedure
+  .input(
+   z.object({
+      skip: z.number(),
+      search: z.string().optional(), 
+      contributorID: z.string(), 
+    })
+  )
+  .query(
+    async ({ctx, input}) => {
+      const data = await ctx.prisma.questions.findMany(
+        {
+          skip: input.skip, 
+          take: 6, 
+          orderBy: {
+            createdAt: "desc"
+          },
+          where: {
+            contributorId: input.contributorID,
+            title: {
+              contains: input.search,
+            },
+          },
+        });
+        return data;
+    }),
+    
   getReviewsMade: publicProcedure
   .input(
-    z.object({
+    z.object({ 
       id: z.string(),
      
     })
@@ -107,42 +166,55 @@ export const contributorRouter = router({
    return data;
   }),
  
-  // getQuestionsRemaining: publicProcedure
-  // .input(
-  //   z.object({
-  //     id: z.string(),
+  getQuestionsRemaining: publicProcedure
+  .input(
+    z.object({
+      id: z.string(),
      
-  //   })
-  // )
-  // .query(async ({ ctx, input }) => {
-  //   const data = await ctx.prisma.contributors.findUnique({
-  //     where: {
-  //       id: input.id,
-  //     }
-  //   }).then((data) => {
-  //     return data?.questionsRemaining;
-  //   }
-  // )}),
+    })
+  )
+  .query(async ({ ctx, input }) => {
+    await ctx.prisma.contributorAssignment.findMany({
+      where: {
+        contrId: input.id
+      }
+    }).then(async(data: { catId: any; questionsRemaining: any; }[])=>{
+      let results: any[] = [];
+      data.forEach(async(relation: { catId: any; questionsRemaining: any; })=>{
+         const category = await ctx.prisma.category.findUnique({
+          where: {
+            id: relation.catId
+          }
+         });
+         results.push({
+                    category: category?.name,
+                    questionsRemaining: relation.questionsRemaining
+                  })
+      });
 
+      return results;
+    });
+    }),
 
-  // assignQuestion: publicProcedure
-  // .input(
-  //   z.object({
-  //     id: z.string(),
-  //     numberofQuestions: z.number(),
-  //   })
-  // )
-  // .mutation(async ({ ctx, input }) => {
-  //   const data = await ctx.prisma.contributors.update({
-  //     where: {
-  //       id: input.id,
-  //     },
-  //     data: {
-  //       questionsRemaining: input.numberofQuestions,
-  //     },
-  //   });
-  //   return data;
-  // }),
+  assignQuestion: publicProcedure
+  .input(
+    z.object({
+      id: z.string(),
+      catId: z.string(),
+      questionsRemaining: z.number()
+    })
+  )
+  .mutation(async ({ ctx, input }) => {
+        const data =  await ctx.prisma.contributorAssignment.create({
+                data:{
+                  catId: input.catId,
+                  contrId: input.id,
+                  questionsRemaining: input.questionsRemaining
+                }
+      });
+        return data;
+  }),
+
   disableContributor: publicProcedure
   .input(
     z.object({
