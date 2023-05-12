@@ -113,7 +113,7 @@ export const testTakerRouter = router({
       getExamDetails :  publicProcedure
       .input(z.object({
         examId : z.string(),
-        testTakerId : z.string()
+        testTakerId : z.string  ()
       })).query(async ({ ctx, input }) => {
         const data = await ctx.prisma.exam.findUnique({
           where: {
@@ -127,6 +127,25 @@ export const testTakerRouter = router({
               
               },
             },
+          }
+        }).then((data) => {
+          if(data){
+         
+            const currentDateTime = new Date();
+            const globalTimeInSeconds: number = (data.duration * 60) - Math.floor((currentDateTime.valueOf() - data.testingDate.valueOf()) / 1000);
+    
+            const res = {
+              ...data,
+              globalTime: globalTimeInSeconds,
+              curr : currentDateTime,
+              currentDateTime : currentDateTime.valueOf(),
+              testingDate : data.testingDate.valueOf(),
+            };
+            return res;
+    
+          }
+          else{
+            // throw new Error('Exam not found');
           }
         });
         return data;
@@ -184,13 +203,26 @@ export const testTakerRouter = router({
         examId : z.string(),
         testTakerId : z.string()
       })).mutation(async ({ ctx ,input}) => {
-        const data = await ctx.prisma.testSession.create({
-          data: {
-            examId : input.examId,
-            testTakerId : input.testTakerId,
+        const exam = await ctx.prisma.exam.findUnique({
+          where: {
+            id: input.examId,
           }
         });
-        return data;
+        if(exam){
+
+          if(Date.now()> exam?.testingDate.getDate() && Date.now() < exam?.testingDate.getDate() + exam?.duration * 60 * 1000){
+            const data = await ctx.prisma.testSession.create({
+              data: {
+                examId : input.examId,
+                testTakerId : input.testTakerId,
+              }
+            });
+            return data;
+          }
+        }else{
+          // throw new Error('Exam not found');
+        }
+      
       
       }),
       getTestSession : publicProcedure

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import SingleQuestion from '@/components/testtaker/SingleQuestion.vue'
-import { useQuestionListStore , itemInterface} from '~~/stores/questions';
+import CountdownTimer from '@/components/testtaker/CountdownTimer.vue'
+
+import { useQuestionListStore , questionInterface} from '~~/stores/questions';
 definePageMeta({ middleware: 'is-testtaker' })
 const route = useRoute ();
 const testTakerId = route.params.id as string;
@@ -9,50 +11,109 @@ const showInstructionModal = ref(true);
 const { $client } = useNuxtApp();
 const {data: examDetails} = await useAsyncData(()=> $client.testtaker.getExamDetails.query({testTakerId, examId}));
 const {data: testSession} = await useAsyncData(()=> $client.testtaker.getTestSession.query({testTakerId, examId}));
-const idx = ref(0);
 
 const questionListStore = useQuestionListStore();
+const question = computed(() => {
+  return questionListStore.questionList[questionListStore.currentQuestion]
+})
 questionListStore.setTestTaker(testTakerId);
-// const {data: questions  } = await useAsyncData(()=> $client.testtaker.getExamQuestions.query({testTakerId, examId}));;
-    // questionListStore.setQuestions(questions as unknown as itemInterface[]);
-
+const timeLeft = ref();
 const isLoading = ref(false);
 const handlesubmit = () => {
+    console.log("submitting exam");
     // isLoading.value = true;
     // $client.testtaker.submitExam.mutate({testTakerId, examId});
     // navigateTo( `/testtaker/${testTakerId}/exams`)
 }
+const loadQuestions = async () => {
+    const {data: questions  } = await useAsyncData(()=> $client.testtaker.getExamQuestions.query({testTakerId, examId}));;
+    questionListStore.setQuestions(questions as unknown as questionInterface[]);
+}
+const prevQ = () => {
+    questionListStore.setPrevQuestion();
+}
+const nextQ = () => {
+    questionListStore.setNextQuestion();
+}
 
 const handleStartExam = async () => {
     await $client.testtaker.createTestSession.mutate({testTakerId, examId});
-    const {data: questions  } = await useAsyncData(()=> $client.testtaker.getExamQuestions.query({testTakerId, examId}));;
-    questionListStore.setQuestions(questions as unknown as itemInterface[]);
-    showInstructionModal.value = false;
+    handleResumeSession();
     }
 const handleResumeSession = async () => {
-    const {data: questions  } = await useAsyncData(()=> $client.testtaker.getExamQuestions.query({testTakerId, examId}));;
-    questionListStore.setQuestions(questions as unknown as itemInterface[]);
-   
+    
+    questionListStore.getQuestionsLength() === 0 && await loadQuestions();
+        if(examDetails.value){
+
+            if(examDetails.value.globalTime > 0){
+                timeLeft.value = examDetails.value.globalTime;
+                startCountDown();
+            }
+            else{
+                handlesubmit();
+            }
+        
+        }
+    // setInterval(() => {
+    //     questionListStore.decrementTimeTracker();
+    //   }, 3000)
+    // if(testingDate !== undefined){
+    //     questionListStore.setTimeTracker(Date.now() - testingDate);
+    // }
+
     showInstructionModal.value = false;
 }
+const startCountDown = () => {
+    setInterval(() => {
+        if(timeLeft.value > 0){
+            timeLeft.value--;
+        }else{
+            handlesubmit();
+        }
+      }, 1000)
+}
+const hours = computed(() => {
+    return Math.floor(timeLeft.value/ 3600)
+        .toString()
+        .padStart(2, '0')
+});
+const minutes = computed(() => {
+    return Math.floor((timeLeft.value % 3600) / 60)
+        .toString()
+        .padStart(2, '0')
+});
+const seconds = computed(() => {
+    return (timeLeft.value % 60).toString().padStart(2, '0')
+});
+
 </script>
 
 <template>
     <div>
 
         <h1>Exam page for test taker</h1>
-        {{ examDetails }}
-        {{ questionListStore.questionList }}
-      
-            <!-- {{ questions }} -->
-        
-            <div v-for="question in questionListStore.getAllQuestions()" :key="question.id" class="px-20">
+        {{ examDetails }} 
+        {{ timeLeft }}
+        <div>{{ hours }}:{{ minutes }}:{{ seconds }}</div>
     
+       <!-- {{ questionListStore }} -->
+   
+        <!-- <CountdownTimer  :duration="questionListStore.timeTracker" @timeout="onTimeout" /> -->
+    
+         <!-- <div v-if="question">
 
-<SingleQuestion :question="question" :model-value="question.selectedAnswer"/>
+            <SingleQuestion :question="question" />
+         </div> -->
+<!-- 
+           <div class="flex flex-row mt-5 w-10/12">
+<div v-if="questionListStore.currentQuestion > 0"  class="py-2 ml-auto w-1/12">
+    <button @click="prevQ" class="btn btn-primary">Previous</button>
+</div>
+<div v-if="questionListStore.currentQuestion < questionListStore.questionList.length - 1"  class="py-2 ml-auto w-1/12">
+    <button @click="nextQ" class="btn btn-primary">Next</button>
+</div>
+</div> -->
 
-
-           </div>
            <button @click="handlesubmit" class="btn btn-primary"> <div v-if="isLoading">
                                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                         </div>
@@ -93,10 +154,11 @@ const handleResumeSession = async () => {
                 <div v-if="testSession">
                     <button @click="handleResumeSession()"
                                             class="bg-primary rounded-xl text-white py-3 px-4 text-center">
-                                           Resume
+                                           Resume Exam
                                         </button>
                 </div>
                 <div v-else>
+                    <!-- TODO add if no error -->
                     <button @click="handleStartExam()"
                                             class="bg-primary rounded-xl text-white py-3 px-4 text-center">
                                             Start Exam

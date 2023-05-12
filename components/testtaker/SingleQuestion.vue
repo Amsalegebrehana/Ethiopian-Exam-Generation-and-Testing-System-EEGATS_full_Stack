@@ -1,31 +1,32 @@
 <script setup lang="ts">
-import { useQuestionListStore , itemInterface} from '~~/stores/questions';
+
 import { useOnline } from '@vueuse/core'
 
 const online = useOnline()
-const props = defineProps(['question', 'modelValue'])
+const props = defineProps(['question'])
 const route = useRoute ();
 const { $client } = useNuxtApp();
 const testTakerId = route.params.id as string;
 const examId = route.params.eid as string;
-const { question, modelValue } = toRefs(props)
-const questionListStore = useQuestionListStore();
+const { question } = toRefs(props)
+// const question = useQuestionListStore().getCurrentQuestion();
+
 const regiseterResponse = async(choiceId:string, questionId:string) => {
-    questionListStore.regiseterResponse(choiceId, questionId);
-    await $client.testtaker.registerResponse.mutate({testTakerId, examId, questionId, choiceId});
+    // await $client.testtaker.registerResponse.mutate({testTakerId, examId, questionId, choiceId});
 }
 </script>
 
 <template>
-  <div class="">
+ 
+  <div v-if="question">
     {{ online }}
     <form>
 
     <div>
             <div v-html="question.title" class="p-2"></div>
             <img
-      v-if="question.titleImage"
-      :src=question.titleImage
+      v-if="question.image"
+      :src=question.image
       style="width: 10em; height: 10em;"
     />
         </div>
@@ -48,5 +49,8 @@ const regiseterResponse = async(choiceId:string, questionId:string) => {
               </div>
 </div>
 </form>
+  </div>
+  <div v-else>
+    <p> Error Loading...</p>
   </div>
 </template>

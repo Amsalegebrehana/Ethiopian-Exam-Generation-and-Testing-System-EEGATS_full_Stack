@@ -59,6 +59,7 @@ showGradeModal.value = !showGradeModal.value;
                                 </div>
                             <div v-if="exams?.length !== 0">
                         
+                                {{ exams }}
                     <table class="table table-report -mt-2">
                         <thead>
                             <tr>
@@ -74,6 +75,7 @@ showGradeModal.value = !showGradeModal.value;
 
                           
                             <tbody>
+                               
                                 <tr v-for="exam in exams" :key="exam.id" class="intro-x">
                                     <td class="w-10">
                                         <Icon name="iconoir:page" class="w-6 h-6"></Icon>
@@ -94,26 +96,37 @@ showGradeModal.value = !showGradeModal.value;
                                     <td class="items-center">
                                     
                                         <div v-if="exam.status === 'gradeReleased'" class="flex items-center justify-center">
-                                            <div class="flex justify-center items-center">
-                                                <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade )">
-                                                    <Icon name="material-symbols:demography-rounded" class="w-4 h-4 mr-1"></Icon> View Grade
-                                                </a>
-                                                
+                                            <div v-if="exam.TestSession[0]&& exam.TestSession[0].isSubmitted">
+
+                                                <div class="flex justify-center items-center">
+                                                    <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade )">
+                                                        <Icon name="material-symbols:demography-rounded" class="w-4 h-4 mr-1"></Icon> View Grade
+                                                    </a>
+                                                    
+                                                </div>
+                                            </div>
+                                            <div v-else>
+                                                <div class="flex flex-row justify-center text-danger" >
+                                                        <Icon name="ph:warning-circle" class="w-4 h-4 mr-1" ></Icon>
+                                                        <span> Unavailable</span>
+                                                    </div>
                                             </div>
                                         </div>
                                         <div v-if="exam.status === 'published'">
+                                            <!-- before testing date -->
                                             <div v-if=" exam.testingDate > new Date()"  >
                                                 <div class="flex flex-row justify-center text-danger" >
                                                     <Icon name="ph:warning-circle" class="w-4 h-4 mr-1" ></Icon>
                                                     <span> Unavailable</span>
                                                 </div>
                                             </div>
-                                            <div v-else-if=" (exam.testingDate < new Date && new Date(exam.testingDate.getTime() + exam.duration*60000) > new Date()  )">
-
+                                            <!-- during exam -->
+                                            <div v-else-if=" (exam.testingDate < new Date )">
+                                                <!-- check test session -->
                                                 <div v-if="exam.TestSession[0]">
                                                     <div v-if="!exam.TestSession[0].isSubmitted">
                                                         <Nuxt-Link class="flex items-center text-success justify-center " :to="`/testtaker/${testTakerId}/exams/${exam.id}`" >
-                                                            <Icon name="material-symbols:play-circle" class="w-4 h-4 mr-1"></Icon> Resume Exam
+                                                            <Icon name="material-symbols:resume" class="w-4 h-4 mr-1"></Icon> Resume Exam
                                                         </Nuxt-Link>
                                                     </div>
                                                     <div v-else>
@@ -130,26 +143,15 @@ showGradeModal.value = !showGradeModal.value;
                                                             <Icon name="material-symbols:play-circle" class="w-4 h-4 mr-1"></Icon> Start Exam
                                                         </Nuxt-Link>
                                                     </div>
-                                                </div>
-                                            </div>
-                                            <div v-else>
-                                                <div v-if="exam.TestSession[0]">
-                                                    <div v-if="exam.TestSession[0].isSubmitted">
-                                                        <div class="flex flex-row text-success justify-center ">
-    
-                                                            <Icon name="material-symbols:check-circle-outline" class="w-4 h-4 mr-1" ></Icon>
-                                                            <span> Submitted</span>
-                                                            </div>
-                                                    </div>
-                                        
-                                                </div>
-                                                <div v-else>
-                                                    <div class="flex flex-row justify-center text-danger" >
+                                                    <div v-else>
+                                                        <div class="flex flex-row justify-center text-danger" >
                                                     <Icon name="ph:warning-circle" class="w-4 h-4 mr-1" ></Icon>
                                                     <span> Unavailable</span>
                                                 </div>
+                                                    </div>
                                                 </div>
                                             </div>
+                                           
 
                                         </div>
                                      
