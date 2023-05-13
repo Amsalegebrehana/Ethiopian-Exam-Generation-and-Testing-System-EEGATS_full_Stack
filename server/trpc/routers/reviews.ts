@@ -33,10 +33,13 @@ export const reviewsRouter = router({
                 },
 
                 where: {
-                    // name: {
-                    //   contains: input.search,
-                    // },
-                    reviewerId: input.reviewerId
+                    questions: {
+                        title: {
+                            contains: input.search,
+                        }
+                    },
+                    reviewerId: input.reviewerId,
+                    isReviewed: false
                 },
                 include: {
                     questions: {
@@ -62,20 +65,61 @@ export const reviewsRouter = router({
             //   console.log(new_reviews);
             //   return new_reviews;
         }),
-    //   getReview: publicProcedure
-    //     .input(
-    //       z.object({
-    //         id: z.string(),
-    //       })
-    //     )
-    //     .query(async ({ ctx, input }) => {
-    //       const data = await ctx.prisma.review.findUnique({
-    //         where: {
-    //           id: input.id,
-    //         },
-    //       });
-    //       return data;
-    //     }),
+    getReview: publicProcedure
+        .input(
+            z.object({
+                id: z.string(),
+            })
+        )
+        .query(async ({ ctx, input }) => {
+            const data = await ctx.prisma.review.findUnique({
+                where: {
+                    id: input.id,
+                },
+            });
+            return data;
+        }),
+
+    getQuestionForReview: publicProcedure
+        .input(
+            z.object({
+                reviewId: z.string(),
+            })
+        )
+        .query(async ({ ctx, input }) => {
+            const data = await ctx.prisma.review.findFirst({
+                where: {
+                    id: input.reviewId,
+                },
+                select: {
+                    questions: {
+                        select: {
+                            title: true,
+                            id: true,
+                            image: true,
+                            choices: true,
+                            QuestionAnswer: {
+                                select: {
+                                    choiceId: true
+                                }
+                            },
+                            category: {
+                                select: {
+                                    name: true
+                                    
+                                }
+                            },
+                            pool: {
+                                select: {
+                                    name: true
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            return data;
+        }),
 
     registerFeedback: publicProcedure
         .input(
