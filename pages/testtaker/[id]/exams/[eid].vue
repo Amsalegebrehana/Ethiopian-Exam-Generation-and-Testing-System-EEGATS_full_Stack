@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import SingleQuestion from '@/components/testtaker/SingleQuestion.vue'
-import CountdownTimer from '@/components/testtaker/CountdownTimer.vue'
 
 import { useQuestionListStore , questionInterface} from '~~/stores/questions';
 definePageMeta({ middleware: 'is-testtaker' })
