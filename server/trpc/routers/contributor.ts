@@ -272,4 +272,30 @@ export const contributorRouter = router({
       
     }),
 
+    getCategoryForAssignment: publicProcedure
+    .input(
+      z.object({
+        contrID: z.string(),
+      }))
+      .query(async({ctx, input})=>{
+        const categories = await ctx.prisma.category.findMany({
+          select:{
+              name:true,
+              id:true,
+              contributorAssignments:{
+                where:{
+                  contrId: input.contrID
+                },
+                select:{
+                  questionsRemaining:true
+                }
+              }
+            }
+          
+        });
+        // console.log(input.contrID);
+        
+          return categories;
+      })
+    
 });

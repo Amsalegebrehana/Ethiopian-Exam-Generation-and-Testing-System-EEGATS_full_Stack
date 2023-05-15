@@ -1,10 +1,12 @@
 <script setup lang="ts" >
-import AdminTopBar from '~~/components/TopBar.vue'
+import AdminTopBar from '~~/components/TopBar.vue';
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 import DropDownSelect from '~~/components/DropDownSelect.vue';
+import Loading from "~~/components/Loading.vue";
 import { Field, Form, ErrorMessage } from 'vee-validate';
 import { toFieldValidator } from '@vee-validate/zod';
 import * as zod from 'zod';
+import { Category, ContributorAssignment } from '@prisma/client';
 definePageMeta({ middleware: 'is-admin' })
 const route = useRoute();
 const activeTab = ref(1);
@@ -12,12 +14,23 @@ const poolId = route.params.id as string;
 const { $client } = useNuxtApp()
 const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').email('Must be a valid email'));
 const numberfieldSchema = toFieldValidator(zod.number().min(0));
-const catID = "";
+const catID = ref("");
 const page = ref(1);
 const catPage = ref(1);
 const searchText = ref('');
 const searchTextCat = ref('');
 const contributorEmail = ref('');
+let categoriesNow: { name: string; id: string; contributorAssignments: { questionsRemaining: number; }[]; }[]= [];
+const contrInfo = ref({
+    questionNumber: 0,
+    id: '',
+    name : ''
+});
+const catInfo = ref({
+    id:"",
+    name:"",
+    numberofQuestions:0
+});
 const { data:poolInfo} = await useAsyncData(() => $client.pool.getPool.query({ id: poolId!}));
 const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.pool.getPoolContributorsCount.query({poolId: poolId!}));
 const {data: catCount, refresh: fetchCatCount} = await useAsyncData(()=> $client.category.getCategoryCount.query({poolId: poolId}));
@@ -47,6 +60,17 @@ const paginateCat = async (newPage: number) => {
     }
 }
 
+const checkCatID = (object: any) => { 
+   if (object.id===catID){
+    return true;
+   }
+   return false;
+} 
+
+// console.log(searchedCat.contributorAssignments[0].questionsRemaining)
+const isLoadingAssign = ref(false);
+const isReloadingAssign = ref(false);
+const isContModal = ref(false);
 const isReloading = ref(false);
 const isLoading = ref(false);
 const isReloadingCat = ref(false);
@@ -60,18 +84,7 @@ const showDeleteContModal = ref(false);
 const showDeleteCatModal = ref(false);
 const showEditModal = ref(false);
 const showAddModal = ref(false);
-let questionsAssigned = 0;
-const contrInfo = ref({
-    questionNumber: 0,
-    id: '',
-    name : ''
-});
 
-const catInfo = ref({
-    id:"",
-    name:"",
-    numberofQuestions:0
-});
 
 const toggleInviteModal = () => {
     contributorEmail.value = '';
@@ -100,18 +113,24 @@ const toggleAssignModal = () => {
 }
 
 const AssignModal = async (contrId : string, noOfQuestions : number) => {
-
+    isContModal.value = true;
     contrInfo.value.id = contrId;
     contrInfo.value.questionNumber = noOfQuestions;
     showAssignModal.value = !showAssignModal.value;
-   
+    categoriesNow = await $client.contributor.getCategoryForAssignment.query({contrID:contrInfo.value.id});
+    if (categoriesNow) {
+        isContModal.value = false;
+    }
+
 }
 
 
 //TODO: Fix this
 const handleAssignQuestions = async () => {
+    // console.log("cont",contrInfo.value.id);
+    // console.log("cat",catID);
     isLoading.value = true;
-    await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, catId: catID,questionsRemaining : contrInfo.value.questionNumber});
+    await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, catId: catID.value,questionsRemaining : contrInfo.value.questionNumber});
     isReloading.value = true;
     isLoading.value = false;
     showAssignModal.value = false;
@@ -136,7 +155,7 @@ const handleAddCategory = async () => {
     catInfo.value.name = '';
     await fetchCategories();
     await fetchCatCount();
-    isReloading.value = false;
+    isReloadingCat.value = false;
 }
 
 const toggleEditModal = () => {
@@ -162,7 +181,7 @@ const handleEditPool = async () => {
     catInfo.value.name = '';
     await fetchCategories();
     await fetchCatCount();
-    isReloading.value = false;
+    isReloadingCat.value = false;
 }
 
 
@@ -204,7 +223,7 @@ const handleDeleteCategory= async () => {
     catInfo.value.name = '';
     await fetchCategories();
     await fetchCatCount();
-    isReloading.value = false;
+    isReloadingCat.value = false;
 }
 
 const handleDisableContributor = async () => {
@@ -219,6 +238,21 @@ const handleDisableContributor = async () => {
     await fetchCount();
     isReloading.value = false;
 }
+
+
+watch(catID, (newId:string, oldId:string) => {
+    console.log(catID)
+    console.log(categoriesNow[0].id, typeof categoriesNow[0].id);
+    categoriesNow.filter(category => {
+        console.log("inside", category.id);
+        if (category.id === catID.value){
+            // console.log(category.contributorAssignments[0]? category.contributorAssignments[0].questionsRemaining : 0)
+            contrInfo.value.questionNumber =  category.contributorAssignments[0]? category.contributorAssignments[0].questionsRemaining : 0
+        }
+    })
+
+    
+})
 
 </script>
 <template>
@@ -403,10 +437,14 @@ const handleDisableContributor = async () => {
                                 <th class="text-center whitespace-nowrap">ACTIONS</th>
                             </tr>
                         </thead>
+<!-- {{ categoriesNow }} -->
                        
-
                           
                             <tbody>
+                                <tr>
+
+                                </tr>
+
                                     <tr v-for="contributor in contributors" :key="contributor.id" class="intro-x">
                                         <td class="w-10">
                                              
@@ -581,32 +619,41 @@ const handleDisableContributor = async () => {
                                     </button>
                                 </div>
                                 <!--body-->
-                                <div class="relative p-6 flex-auto">
-                                    <div class="flex flex-row align-middle">
-                                        <p class="w-8/12 align-middle my-auto font-bold text-lg">Number of Questions</p>
-                                          <Form class="w-full">      
-                                            <input name="editpoolInfoName" type="number" class="intro-x login__input form-control py-3 block"  
-                                                placeholder="Enter Pool Name" v-model="contrInfo.questionNumber"  min="0"/>
-                                        </Form>
-                             
-                                        <!-- <input type="text" class="intro-x login__input form-control py-3 px-4 block"
-                                            placeholder="Enter Pool Name" v-model="poolInfo.name"> -->
-                                    </div>
-                                    <div class="flex flex-row align-middle">
-                                        <p class="w-8/12 align-middle my-auto font-bold text-lg">Category</p>
-                                        <Form class="w-full">   
-                                            <div v-if="categories">
-                                                <DropDownSelect :optionslist="categories" v-model="catID" title="Choose Cateogry" class=""/>
+                                <div class="relative p-6 flex-auto justify-content-center">
+                                    <div class="flex flex-row " v-if="!isContModal">
+                                          <div class="ml-12 ">    
+                                            <div v-if="categoriesNow" class="flex flex-row w-4/6 mt-3 ">
+                                                <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Category</label>
+                                                <div class="flex flex-row rounded-md border ml-4">
+                                                    <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                                                        <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
+                                                    </div>
+                                                    <DropDownSelect :optionslist="categoriesNow" v-model="catID" title="Choose Cateogry" id="cat" class=""/>
+                                                </div>
                                             </div>
-                                        </Form>
+
+                                                <div class="flex flex-row w-4/6 mt-3">
+                                                    <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Number of Questions</label>
+                                                    <div class="flex flex-row rounded-md border ml-5">
+                                                        <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                                                            <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
+                                                        </div>
+                                                        <input                                      
+                                                            name="editQuestionNumber" type="number" class="w-full px-5 "  
+                                                            v-model="contrInfo.questionNumber"  min="0" id="ques" />
+                                                    </div>
+                                                </div>
+                                            
+                                           
+                                            </div>
+                            
                                     </div>
                                 </div>
                                 <!--footer-->
-                                <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
-                                    
+                                <div  class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
                                     <button @click="handleAssignQuestions()"
-                                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading ">
-                                        <div v-if="isLoading || pending">
+                                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isReloading">
+                                            <div v-if="isContModal">
                                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                             </div>
                                             <div v-else>
@@ -618,7 +665,7 @@ const handleDisableContributor = async () => {
                             </div>
                         </div>
                     </div>
-                    <div v-if="showAssignModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                    
               
                     <div>
 
@@ -818,38 +865,7 @@ const handleDisableContributor = async () => {
                                 </div>
                             </div>
                         </div>
-                        <div v-if="showDeleteContModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
-                        <div v-if="isReloading"
-                                class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
-                                <div class="relative  my-6 mx-auto max-w-10xl">
-                                    <!--content-->
-                                    <div
-                                        class="border-0 rounded-lg relative flex flex-col w-full outline-none focus:outline-none">
-                                        <!--header-->
-                                        <div class="flex items-start justify-between p-5 rounded-t">
-                                            <!-- <h3 class="text-3xl font-semibold">
-                                                Modal Title
-                                            </h3> -->
-                                            <!-- <button
-                                                class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                                type="button" v-on:click="toggleDeleteModal()">
-                                                <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
-                                            </button> -->
-                                        </div>
-                                        <!--body-->
-                                        <div class="relative p-6 flex-auto">
-                                            
-                                        
-                                            <div class="flex flex-row items-center space-x-4 mx-auto">
-                                                 <Icon name="eos-icons:bubble-loading" class="w-20 h-20 text-primary"></Icon>
-                                                
-                                            </div>
-                                        </div>
-                                        <!--footer-->
-                                      
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="isReloading" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                        <Loading v-if="isReloading || isContModal" />
+     
 </template>
 
