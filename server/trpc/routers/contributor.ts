@@ -199,18 +199,27 @@ export const contributorRouter = router({
   assignQuestion: publicProcedure
   .input(
     z.object({
-      id: z.string(),
+      contrId: z.string(),
       catId: z.string(),
       questionsRemaining: z.number()
     })
   )
   .mutation(async ({ ctx, input }) => {
-        const data =  await ctx.prisma.contributorAssignment.create({
-                data:{
-                  catId: input.catId,
-                  contrId: input.id,
-                  questionsRemaining: input.questionsRemaining
-                }
+        const data =  await ctx.prisma.contributorAssignment.upsert({
+          where:{
+            contrId_catId :{
+              contrId : input.contrId,
+              catId: input.catId
+            }
+          },
+          update:{
+            questionsRemaining: input.questionsRemaining
+          },
+          create:{
+            catId: input.catId,
+            contrId: input.contrId,
+            questionsRemaining: input.questionsRemaining
+          }
       });
         return data;
   }),

@@ -130,7 +130,7 @@ const handleAssignQuestions = async () => {
     // console.log("cont",contrInfo.value.id);
     // console.log("cat",catID);
     isLoading.value = true;
-    await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, catId: catID.value,questionsRemaining : contrInfo.value.questionNumber});
+    await $client.contributor.assignQuestion.mutate({contrId :contrInfo.value.id, catId: catID.value,questionsRemaining : contrInfo.value.questionNumber});
     isReloading.value = true;
     isLoading.value = false;
     showAssignModal.value = false;
