@@ -106,7 +106,7 @@ export const reviewsRouter = router({
                             category: {
                                 select: {
                                     name: true
-                                    
+
                                 }
                             },
                             pool: {
@@ -159,6 +159,7 @@ export const reviewsRouter = router({
                             }
                         }
                     });
+                    return data;
                 } else {
                     const contAss = await ctx.prisma.contributorAssignment.update({
                         where: {
@@ -173,6 +174,7 @@ export const reviewsRouter = router({
                             }
                         }
                     });
+                    return data;
                 }
             });
 

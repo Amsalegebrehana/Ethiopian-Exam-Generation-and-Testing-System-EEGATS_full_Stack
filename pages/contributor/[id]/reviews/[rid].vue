@@ -6,18 +6,43 @@ const { $client } = useNuxtApp()
 const contrId = route.params.id as string;
 const reviewId = route.params.rid as string;
 const { data, refresh: fetchReview } = await useAsyncData(() => $client.review.getQuestionForReview.query({ reviewId }));
-
+const isLoading = ref(false);
 const question = data.value?.questions;
 
 const reviewMetrics = ref([
     { "id": 1, "text": "Is this the first time you're seeing this question? ", "select": false },
     { "id": 2, "text": "Is the chosen answer correct? ", "select": false },
-    { "id": 3, "text": "Is the question coherent or clear enough? ", "select": false },
-    { "id": 4, "text": "Are the choices clear enough? ", "select": false },
-    { "id": 5, "text": "Is the question's difficulty suitable? ", "select": false },
-    { "id": 6, "text": "Is the question in the category intended? ", "select": false },
-    { "id": 7, "text": "Is the question from the intended subject? ", "select": false },
+    { "id": 3, "text": "Does the qustion encourage critical thinking or problem-solving skills? ", "select": false },
+    { "id": 4, "text": "Is the question coherent or clear enough? ", "select": false },
+    { "id": 5, "text": "Are the choices clear enough? ", "select": false },
+    { "id": 6, "text": "Is the question's difficulty suitable? ", "select": false },
+    { "id": 7, "text": "Is the question engaging and interesting for the test taker? ", "select": false },
+    { "id": 8, "text": "Is the question in the category intended? ", "select": false },
+    { "id": 9, "text": "Is the question from the intended subject? ", "select": false },
 ]);
+
+
+
+const submitFeedback = async () => {
+    isLoading.value = true
+    const isApproved = ref(true);
+    reviewMetrics.value.forEach(metric => {
+        if (metric.id != 3 && metric.id != 7) {
+            if (metric.select == false) {
+                isApproved.value = false;
+            }
+        }
+    });
+
+    const res = await $client.review.registerFeedback.mutate({ feedback: "", reviewId: reviewId, final: isApproved.value });
+    if (res) {
+        isLoading.value = false;
+        navigateTo(`/contributor/${contrId}/reviews`); 
+    } else {
+        //error handling
+    }
+
+}
 </script>
 
 
@@ -73,7 +98,8 @@ const reviewMetrics = ref([
                                     <p class="py-1 pr-4">{{ metric.text }}</p>
                                     <div class=" px-2">
 
-                                        <input id={{metric.id}} type="radio" name="radio" :value="true" v-model="metric.select">
+                                        <input id={{metric.id}} type="radio" name="radio" :value="true"
+                                            v-model="metric.select">
                                         <label class="pl-2 " for={{metric.id}}>
                                             Yes
                                         </label>
@@ -90,6 +116,16 @@ const reviewMetrics = ref([
                             </form>
                         </li>
                     </ol>
+                    <div class="w-5/12 flex flex-row">
+                        <button :disabled="isLoading" @click="submitFeedback()" class="btn btn-primary shadow-md my-6 ml-auto">
+                            <div v-if="isLoading">
+                                <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+                            </div>
+                            <div v-else>
+                                Submit
+                            </div>
+                        </button>
+                    </div>
 
                 </div>
 
