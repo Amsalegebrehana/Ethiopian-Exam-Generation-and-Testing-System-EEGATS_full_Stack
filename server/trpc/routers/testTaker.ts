@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 import shuffleSeed from 'shuffle-seed';
+import { TRPCError } from "@trpc/server";
 
 export const testTakerRouter = router({
     getTestTakersCount: publicProcedure.query(async ({ ctx }) => {
@@ -137,9 +138,6 @@ export const testTakerRouter = router({
             const res = {
               ...data,
               globalTime: globalTimeInSeconds,
-              curr : currentDateTime,
-              currentDateTime : currentDateTime.valueOf(),
-              testingDate : data.testingDate.valueOf(),
             };
             return res;
     
@@ -156,7 +154,8 @@ export const testTakerRouter = router({
       getExamQuestions :  publicProcedure
       .input(z.object({
         examId : z.string(),
-        testTakerId : z.string()
+        testTakerId : z.string(),
+        currentIndex : z.number()
       })).query(async ({ ctx, input }) => {
   
         const data = await ctx.prisma.questions.findMany({
@@ -191,11 +190,49 @@ export const testTakerRouter = router({
             return {
               ...item,
               choices : shuffleSeed.shuffle(item.choices,input.testTakerId),
-              selectedAnswer: item.TestTakerResponse.length > 0 ? item.TestTakerResponse[0].choiceId : ''
+              selectedAnswer: item.TestTakerResponse.length > 0 ? item.TestTakerResponse[0].choiceId : '',
+              changed : false
+            }
+          })
+        });
+        const allQuestions =  shuffleSeed.shuffle(data,input.testTakerId);
+        return allQuestions[input.currentIndex];
+      }),
+
+      getExamChecklist :  publicProcedure
+      .input(z.object({
+        examId : z.string(),
+        testTakerId : z.string(),
+      })).query(async ({ ctx, input }) => {
+  
+        const data = await ctx.prisma.questions.findMany({
+          where: {
+            examId: input.examId,
+          },
+          select:{
+            id : true,
+            TestTakerResponse : {
+              where : {
+                testTakerId : input.testTakerId,
+                examId : input.examId,
+              },
+              select:{
+                choiceId : true,
+              }
+            }
+          },
+        }
+         
+        ).then((data) => {
+          return data.map((item) => {
+            return {
+              ...item,
+              selectedAnswer: item.TestTakerResponse.length > 0 ? item.TestTakerResponse[0].choiceId : '',
             }
           })
         });
         return shuffleSeed.shuffle(data,input.testTakerId);
+       
       }),
       
       createTestSession : publicProcedure
@@ -268,33 +305,63 @@ export const testTakerRouter = router({
         questionId : z.string(),
         testTakerId : z.string(),
         examId : z.string(),
-        choiceId : z.string()
+        choiceId : z.string(), 
+        currentIndex : z.number(),
       }))
       .mutation(async ({ ctx ,input}) => {
-        const correctAnswer = await ctx.prisma.questionAnswer.findUnique({
-          where:{
-            questionId : input.questionId,
+  
+        try{
+          const correctAnswer = await ctx.prisma.questionAnswer.findUnique({
+            where:{
+              questionId : input.questionId,
+            }
+          });
+          const data = await ctx.prisma.testTakerResponse.upsert({
+            where: { testTakerId_examId_questionId :{
+                          questionId : input.questionId,
+                          testTakerId : input.testTakerId,
+                          examId : input.examId,
+                        },},
+            update: { 
+              choiceId : input.choiceId,
+              isCorrect : correctAnswer?.choiceId === input.choiceId ? true : false,
+             },
+            create: { 
+              
+              choiceId : input.choiceId,
+              testTakerId : input.testTakerId,
+              examId : input.examId,
+              questionId : input.questionId,
+              isCorrect : correctAnswer?.choiceId === input.choiceId ? true : false,
+             },
+          }). then(async(data) => {
+            await ctx.prisma.testSession.update({
+              where: {
+                testTakerId_examId : {
+                  testTakerId : input.testTakerId,
+                  examId : input.examId,
+                }
+              },
+              data: {
+                currentQuestion : input.currentIndex,
+              }
+            });
+            return data;
+          });
+          if(data){
+
+            return true;
+          }else{
+           return false;
           }
-        });
-        const data = await ctx.prisma.testTakerResponse.upsert({
-          where: { testTakerId_examId_questionId :{
-                        questionId : input.questionId,
-                        testTakerId : input.testTakerId,
-                        examId : input.examId,
-                      },},
-          update: { 
-            choiceId : input.choiceId,
-            isCorrect : correctAnswer?.choiceId === input.choiceId ? true : false,
-           },
-          create: { 
-            
-            choiceId : input.choiceId,
-            testTakerId : input.testTakerId,
-            examId : input.examId,
-            questionId : input.questionId,
-            isCorrect : correctAnswer?.choiceId === input.choiceId ? true : false,
-           },
-        });
+        }catch(e){
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error in registering response',
+      
+          });
+        }
+        
     
         return true;
       
