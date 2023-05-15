@@ -5,8 +5,8 @@ import { examGroupRouter } from './examGroups';
 import { contributorRouter } from './contributor'
 import { poolRouter } from './pool';
 import {questionRouter} from './question'
-import {testTakerRouter} from './testtaker'
-import { reviewsRouter } from './reviews';
+import {testTakerRouter} from './testTaker'
+import { reviewsRouter } from './reviews'
 import { category } from './category';
 import {examRouter} from './exams';
 
