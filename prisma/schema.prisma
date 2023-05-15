@@ -100,7 +100,7 @@ model Choice{
 model QuestionAnswer{
   id        String            @id @default(uuid())
   questionId String @unique
-  questions  Questions @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questions  Questions @relation(fields: [questionId], references: [id])
   choiceId String
   choice Choice @relation(fields: [choiceId], references: [id])
   createdAt        DateTime           @default(now())
