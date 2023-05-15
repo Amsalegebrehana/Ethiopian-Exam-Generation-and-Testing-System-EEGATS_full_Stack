@@ -85,7 +85,6 @@ const getSrc = (filepath : string)=>{
                         :class="{'font-medium': step === 1}">
                         Create Question
                     </div>
-                    {{ questionInfo }}
                 </div>
                 <div class="intro-x lg:text-center flex items-center mt-5 lg:mt-0 lg:block flex-1 z-10">
                     <span class="w-10 h-10 rounded-full btn" :class="{ 

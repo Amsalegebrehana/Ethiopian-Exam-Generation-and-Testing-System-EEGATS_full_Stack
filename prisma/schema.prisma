@@ -1,75 +1,73 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["filteredRelationCount"]
 }
+
 datasource db {
-  // NOTE: You probably want to change this to another database later on
   provider = "postgresql"
-  // This value is read from the .env file.
   url      = env("DATABASE_URL")
 }
+
 model Admin {
-  id        String            @id @default(uuid())
-  name      String
-  email     String  @unique
-  password  String
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
 }
 
 model Pool {
-  id        String            @id @default(uuid())
-  name      String    @unique
-  numberOfQuestions Int  @default(0)
-  Contributors Contributors []
-  Exam Exam []
-  Questions Questions []
-  Category  Category[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  id                String         @id @default(uuid())
+  name              String         @unique
+  numberOfQuestions Int            @default(0)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  Category          Category[]
+  Contributors      Contributors[]
+  Exam              Exam[]
+  Questions         Questions[]
 }
 
 model ExamGroup {
-  id        String            @id @default(uuid())
-  name      String
-  Exam  Exam []
-  TestTakers TestTakers []
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  id         String       @id @default(uuid())
+  name       String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  Exam       Exam[]
+  TestTakers TestTakers[]
 }
 
-model Contributors{
-  id        String            @id @default(uuid())
-  name      String
-  email     String  @unique
-  password  String
-  poolId    String
-  pool      Pool @relation(fields: [poolId], references: [id])
-  reviewsMade    Int @default(0) 
-  Questions Questions []
-  Reviews Review []
-  contributorAssignments  ContributorAssignment[]
-  isActive Boolean @default(true)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+model Contributors {
+  id                     String                  @id @default(uuid())
+  name                   String
+  email                  String                  @unique
+  password               String
+  poolId                 String
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  reviewsMade            Int                     @default(0)
+  contributorAssignments ContributorAssignment[]
+  pool                   Pool                    @relation(fields: [poolId], references: [id])
+  Questions              Questions[]
+  Reviews                Review[]
 }
 
 model Exam {
-  id                String            @id @default(uuid())
+  id                String              @id @default(uuid())
   name              String
-  numberOfQuestions Int  @default(0)
-  duration          Float @default(0)
+  numberOfQuestions Int                 @default(0)
+  duration          Float               @default(0)
   testingDate       DateTime
   status            ExamStatus
   poolId            String
-  pool              Pool @relation(fields: [poolId], references: [id])
   examGroupId       String
-  examGroup         ExamGroup @relation(fields: [examGroupId], references: [id])
-  Questions         Questions []
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  examGroup         ExamGroup           @relation(fields: [examGroupId], references: [id])
+  pool              Pool                @relation(fields: [poolId], references: [id])
+  Questions         Questions[]
+  TestSession       TestSession[]
   TestTakerResponse TestTakerResponse[]
-  TestSession            TestSession []
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
 }
 
 model TestTakers{
@@ -82,6 +80,8 @@ model TestTakers{
   TestTakerResponse TestTakerResponse [] 
   TestSession TestSession []
   createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt 
+  
  
 }
 
@@ -90,16 +90,16 @@ model Choice{
   title     String
   image     String?
   questionId String
-  questions  Questions @relation(fields: [questionId], references: [id])
+  questions         Questions          @relation(fields: [questionId], references: [id], onDelete: Cascade)
   QuestionAnswer QuestionAnswer []
-  TestTakerResponse TestTakerResponse ?
+  TestTakerResponse TestTakerResponse[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 }
 
 model QuestionAnswer{
   id        String            @id @default(uuid())
-  questionId String
+  questionId String @unique
   questions  Questions @relation(fields: [questionId], references: [id])
   choiceId String
   choice Choice @relation(fields: [choiceId], references: [id])
@@ -121,7 +121,7 @@ model Questions{
   contributorId String
   Contributors Contributors @relation(fields: [contributorId], references: [id])
   choices Choice []
-  review Review []
+  review Review?
   QuestionAnswer QuestionAnswer []
   TestTakerResponse TestTakerResponse[]
   createdAt        DateTime           @default(now())
@@ -129,7 +129,7 @@ model Questions{
 }
 
 model TestTakerResponse {
-  id        String            @id @default(uuid())
+  id          String     @id @default(uuid())
   testTakerId String
   testTakers TestTakers? @relation(fields: [testTakerId], references: [id])
   isCorrect   Boolean 
@@ -137,45 +137,50 @@ model TestTakerResponse {
   questions  Questions @relation(fields: [questionId], references: [id])
   examId    String
   exam      Exam @relation(fields: [examId], references: [id])
-  choiceId String @unique
+  choiceId String 
   choice Choice @relation(fields: [choiceId], references: [id])
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+  @@unique([testTakerId, examId, questionId])
 }
 
 model TestSession {
   id        String            @id @default(uuid())
-  grade     Int
+  grade     Int @default(0)
   isSubmitted Boolean  @default(false)
   testTakerId String
   testTakers TestTakers @relation(fields: [testTakerId], references: [id])
   examId String 
   exam     Exam @relation(fields: [examId], references: [id])
+  currentQuestion Int @default(0)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+
+  @@unique([testTakerId, examId])
 }
 
 model Review {
   id        String            @id @default(uuid())
-  questionId String
-  questions  Questions @relation(fields: [questionId], references: [id])
+  questionId String @unique
   reviewerId String
-  Reviewers Contributors @relation(fields: [reviewerId], references: [id])
-  feedback String?
-  isReviewed  Boolean   @default(false)   
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-
+  feedback   String?
+  isReviewed Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  questions  Questions    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  Reviewers  Contributors @relation(fields: [reviewerId], references: [id])
 }
 
 model Category {
-  id              String        @id @default(uuid())
-  name            String
-  poolId          String
-  pool            Pool @relation(fields: [poolId], references: [id])
-  numOfQuestions  Int
+  id                     String                  @id @default(uuid())
+  name                   String
+  poolId                 String
+  numOfQuestions         Int
+  pool                   Pool                    @relation(fields: [poolId], references: [id])
   contributorAssignments ContributorAssignment[]
-  questions       Questions[]
+  questions              Questions[]
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
 }
 
 model ContributorAssignment {
@@ -185,6 +190,7 @@ model ContributorAssignment {
   category            Category @relation(fields:[catId], references: [id])
   contributor         Contributors @relation(fields: [contrId], references: [id])
   questionsRemaining  Int
+  @@unique([contrId, catId])
 }
 
 enum QuestionStatus {
@@ -192,6 +198,7 @@ enum QuestionStatus {
   approved
   rejected
   selected
+  draft
 }
 
 enum ExamStatus {

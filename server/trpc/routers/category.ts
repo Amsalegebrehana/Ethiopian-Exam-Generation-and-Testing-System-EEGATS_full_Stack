@@ -104,7 +104,21 @@ export const category = router({
                 }
             });
             return data; //MIGHT NEED ADDITIONAL CHECKS
-        })
+        }),
+        getCategoriesByPoolId : publicProcedure
+        .input(
+            z.object({
+                poolId: z.string()
+            })
+        )
+        .query(async ({ctx, input})=>{  
+            const data = await ctx.prisma.category.findMany({
+                where:{
+                    poolId: input.poolId
+                }
+            });
+            return data;
+        }),
     
 });
 
