@@ -58,8 +58,6 @@ showGradeModal.value = !showGradeModal.value;
                                     <p>No exams found</p>
                                 </div>
                             <div v-if="exams?.length !== 0">
-                        
-                                {{ exams }}
                     <table class="table table-report -mt-2">
                         <thead>
                             <tr>

@@ -80,6 +80,8 @@ model TestTakers{
   TestTakerResponse TestTakerResponse [] 
   TestSession TestSession []
   createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt 
+  
  
 }
 
@@ -122,6 +124,8 @@ model Questions{
   review Review?
   QuestionAnswer QuestionAnswer []
   TestTakerResponse TestTakerResponse[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 }
 
 model TestTakerResponse {
@@ -148,6 +152,7 @@ model TestSession {
   testTakers TestTakers @relation(fields: [testTakerId], references: [id])
   examId String 
   exam     Exam @relation(fields: [examId], references: [id])
+  currentQuestion Int @default(0)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 
@@ -174,6 +179,8 @@ model Category {
   pool                   Pool                    @relation(fields: [poolId], references: [id])
   contributorAssignments ContributorAssignment[]
   questions              Questions[]
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
 }
 
 model ContributorAssignment {
@@ -191,6 +198,7 @@ enum QuestionStatus {
   approved
   rejected
   selected
+  draft
 }
 
 enum ExamStatus {
