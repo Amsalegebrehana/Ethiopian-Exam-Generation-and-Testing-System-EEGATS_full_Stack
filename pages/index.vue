@@ -20,6 +20,6 @@ if (session.value?.role === "contributor") {
   navigateTo(`/contributor/${session.value?.uid}/questions`);
 }
 if (session.value?.role === "testtaker") {
-  navigateTo(`/testtaker/${session.value?.uid}//exams`);
+  navigateTo(`/testtaker/${session.value?.uid}/exams`);
 }
 </script>
