@@ -3,6 +3,7 @@ import {  sendNewInvite, sendReturnEmail } from "~~/utils/mailer";
 import { publicProcedure, router } from "../trpc";
 const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
+import { QuestionStatus } from "@prisma/client";
 export const contributorRouter = router({
 
   
@@ -15,6 +16,7 @@ export const contributorRouter = router({
       const data = await ctx.prisma.questions.findMany({
         where: {
           contributorId: input,
+          status: QuestionStatus.draft,
         }
       })
 
