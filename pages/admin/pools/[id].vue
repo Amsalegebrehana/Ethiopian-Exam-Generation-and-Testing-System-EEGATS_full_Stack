@@ -67,7 +67,6 @@ const checkCatID = (object: any) => {
    return false;
 } 
 
-// console.log(searchedCat.contributorAssignments[0].questionsRemaining)
 const isLoadingAssign = ref(false);
 const isReloadingAssign = ref(false);
 const isContModal = ref(false);
@@ -127,8 +126,6 @@ const AssignModal = async (contrId : string, noOfQuestions : number) => {
 
 //TODO: Fix this
 const handleAssignQuestions = async () => {
-    // console.log("cont",contrInfo.value.id);
-    // console.log("cat",catID);
     isLoading.value = true;
     await $client.contributor.assignQuestion.mutate({contrId :contrInfo.value.id, catId: catID.value,questionsRemaining : contrInfo.value.questionNumber});
     isReloading.value = true;

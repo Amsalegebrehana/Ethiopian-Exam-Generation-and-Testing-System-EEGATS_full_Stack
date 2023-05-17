@@ -68,6 +68,18 @@ export const category = router({
                     },
                     poolId:input.poolId
                 },
+                include :{
+                    _count: {
+                      select: {
+                        questions: {
+                          where :{
+                            status : { equals: 'approved'}
+                          }
+                        },
+                      }, 
+                      },
+        
+                    },
             });
             return data;
         }),
