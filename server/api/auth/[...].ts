@@ -15,7 +15,7 @@ const confirmPasswordHash = (plainPassword: string, hashedPassword: string) => {
 
 export default NuxtAuthHandler({
   session: {
-    maxAge : 2 * 24 * 60 * 60, // 2 days
+    maxAge : 1 * 24 * 60 * 60, // 1 day
   },
   secret: authSecret,
   pages: {

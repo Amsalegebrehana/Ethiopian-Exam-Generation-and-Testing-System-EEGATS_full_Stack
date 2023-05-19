@@ -1,4 +1,3 @@
-<!-- Please remove this file from your project -->
 <template>
   <div class="items-center justify-center w-screen h-screen bg-white">
     <div class="flex flex-row">
