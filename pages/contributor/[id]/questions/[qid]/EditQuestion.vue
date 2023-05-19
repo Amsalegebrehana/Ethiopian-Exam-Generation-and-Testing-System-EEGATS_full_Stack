@@ -53,19 +53,19 @@ const handlesubmit = async () => {
         questionId: questionDetail.question!.id,
         questionTitle: questionInfo.value.title,
         questionImage: questionInfo.value.titleImage,
-        choiceOneId: questionDetail.choices[0].questionId,
+        choiceOneId: questionDetail.choices[0].id,
         choiceOneTitle: questionInfo.value.choiceOne,
-        choiceTwoId: questionDetail.choices[1].questionId,
+        choiceTwoId: questionDetail.choices[1].id,
         choiceTwoTitle: questionInfo.value.choiceTwo,
-        choiceThreeId: questionDetail.choices[2].questionId,
+        choiceThreeId: questionDetail.choices[2].id,
         choiceThreeTitle: questionInfo.value.choiceThree,
-        choiceFourId: questionDetail.choices[3].questionId,
+        choiceFourId: questionDetail.choices[3].id,
         choiceFourTitle: questionInfo.value.choiceFour,
         choiceOneImage: questionInfo.value.choiceOneImage,
         choiceTwoImage: questionInfo.value.choiceTwoImage,
         choiceThreeImage: questionInfo.value.choiceThreeImage,
         choiceFourImage: questionInfo.value.choiceFourImage,
-        correctChoiceId: questionDetail.answer!.choiceId,
+        correctChoiceId: questionDetail.answer!.id,
         correctChoice: correctAnswer.value,
         catId: questionInfo.value.categoryId,
     })
@@ -136,8 +136,6 @@ const getSrc = (filepath: string) => {
                         </div>
 
                     </div>
-
-
 
                     <div class="mt-10 py-5 px-5">
                         <div v-if="step === 1">

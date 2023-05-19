@@ -1,23 +1,42 @@
 <script setup lang="ts" >
-import AdminTopBar from '~~/components/TopBar.vue'
+import AdminTopBar from '~~/components/TopBar.vue';
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
+import DropDownSelect from '~~/components/DropDownSelect.vue';
+import Loading from "~~/components/Loading.vue";
 import { Field, Form, ErrorMessage } from 'vee-validate';
 import { toFieldValidator } from '@vee-validate/zod';
 import * as zod from 'zod';
+import { Category, ContributorAssignment } from '@prisma/client';
 definePageMeta({ middleware: 'is-admin' })
 const route = useRoute();
 const activeTab = ref(1);
 const poolId = route.params.id as string;
 const { $client } = useNuxtApp()
-const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').email('Must be a valid email'));
+const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').email("Must be a valid email"));
 const numberfieldSchema = toFieldValidator(zod.number().min(0));
+const catID = ref("");
 const page = ref(1);
+const catPage = ref(1);
 const searchText = ref('');
-const contributorEmail = ref('');
+const searchTextCat = ref('');
+const checkEmail = zod.string().nonempty().email();
+const contributorEmail = ref("");
+let categoriesNow: { name: string; id: string; contributorAssignments: { questionsRemaining: number; }[]; }[]= [];
+const contrInfo = ref({
+    questionNumber: 0,
+    id: '',
+    name : ''
+});
+const catInfo = ref({
+    id:"",
+    name:"",
+    numberofQuestions:0
+});
 const { data:poolInfo} = await useAsyncData(() => $client.pool.getPool.query({ id: poolId!}));
 const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.pool.getPoolContributorsCount.query({poolId: poolId!}));
+const {data: catCount, refresh: fetchCatCount} = await useAsyncData(()=> $client.category.getCategoryCount.query({poolId: poolId}));
 const { data: contributors, refresh: fetchContributors, pending } = await useAsyncData(() => $client.pool.getPoolContributors.query({poolId:poolId, search: searchText.value !== '' ? searchText.value : undefined, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
-const { data: categories, refresh: fetchCategories } = await useAsyncData(() => $client.category.getAllCategories.query({poolId:poolId, search: searchText.value !== '' ? searchText.value : undefined, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
+const { data: categories, refresh: fetchCategories } = await useAsyncData(() => $client.category.getAllCategories.query({poolId:poolId, search: searchTextCat.value !== '' ? searchTextCat.value : undefined, skip: (catPage.value - 1) * 6 }), { watch: [catPage, searchTextCat] });
 
 
 const paginate = async (newPage: number) => {
@@ -30,10 +49,36 @@ const paginate = async (newPage: number) => {
         isReloading.value = false
     }
 }
+
+const paginateCat = async (newPage: number) => {
+    catPage.value = newPage;
+    isReloadingCat.value = true;
+    try {
+        await fetchCategories();
+        await fetchCatCount();
+    } finally {
+        isReloadingCat.value = false
+    }
+}
+
+const checkCatID = (object: any) => { 
+   if (object.id===catID){
+    return true;
+   }
+   return false;
+} 
+
+const isLoadingAssign = ref(false);
+const isReloadingAssign = ref(false);
+const isContModal = ref(false);
 const isReloading = ref(false);
 const isLoading = ref(false);
+const isReloadingCat = ref(false);
+const isLoadingCat = ref(false);
 const isInviteSuccess = ref(false);
 const isInviteDup = ref(false);
+const isEmailInvalid = ref(false);
+const isAssignedtoAnotherPool = ref(false);
 const showInv = ref(true);
 const showInviteModal = ref(false);
 const showAssignModal = ref(false);
@@ -41,28 +86,45 @@ const showDeleteContModal = ref(false);
 const showDeleteCatModal = ref(false);
 const showEditModal = ref(false);
 const showAddModal = ref(false);
-const contrInfo = ref({
-    questionNumber: 0,
-    id: '',
-    name : ''
-});
 
-const catInfo = ref({
-    id:"",
-    name:"",
-    numberofQuestions:0
-});
 
 const toggleInviteModal = () => {
     contributorEmail.value = '';
     showInv.value = true;
     showInviteModal.value = !showInviteModal.value;
 }
+
+// const handleCheckContributorPool = async()=>{
+//     isLoading.value = true;
+//     const res = await $client.contributor.checkContributorAssignmnet.query({ email: contributorEmail.value, poolId: poolId! });
+//     if(res == "Invalid Email!"){
+//         isEmailInvalid.value = true;
+//         contributorEmail.value = "";
+//     }
+
+//     if(res == 'Already a member of this pool'){
+//         isInviteDup.value = true;
+//         contributorEmail.value = '';
+//     }
+
+//     if(res === true){
+//         isAssignedtoAnotherPool.value = true;
+//     }
+
+// }
+
 const handleInviteContributor = async () => {
     isLoading.value = true;
     const res = await $client.contributor.inviteContributor.mutate({ email: contributorEmail.value, poolId: poolId! });
     isLoading.value = false;
     showInv.value = false;
+    isEmailInvalid.value = false;
+    isInviteDup.value = false;
+    isInviteSuccess.value = false;
+    if(res == "Invalid Email!"){
+        isEmailInvalid.value = true;
+        contributorEmail.value = "";
+    }
     if(res == 'Already a member of this pool'){
         isInviteDup.value = true;
         contributorEmail.value = '';
@@ -80,27 +142,34 @@ const toggleAssignModal = () => {
 }
 
 const AssignModal = async (contrId : string, noOfQuestions : number) => {
-
+    isContModal.value = true;
     contrInfo.value.id = contrId;
-    contrInfo.value.questionNumber = noOfQuestions;
+    contrInfo.value.questionNumber = 0;
     showAssignModal.value = !showAssignModal.value;
-   
+    categoriesNow = await $client.contributor.getCategoryForAssignment.query({contrID:contrInfo.value.id});
+    if (categoriesNow) {
+        isContModal.value = false;
+
+    }
+
 }
 
 
 //TODO: Fix this
-// const handleAssignQuestions = async () => {
-//     isLoading.value = true;
-//     await $client.contributor.assignQuestion.mutate({id :contrInfo.value.id, numberofQuestions : contrInfo.value.questionNumber});
-//     isReloading.value = true;
-//     isLoading.value = false;
-//     showAssignModal.value = false;
-//     contrInfo.value.id = '';
-//     contrInfo.value.questionNumber = 0;
-//     await fetchContributors();
-//     await fetchCount();
-//     isReloading.value = false;
-// }
+const handleAssignQuestions = async () => {
+    isLoading.value = true;
+    await $client.contributor.assignQuestion.mutate({contrId :contrInfo.value.id, catId: catID.value,questionsRemaining : contrInfo.value.questionNumber, poolId: poolId});
+    isReloading.value = true;
+    isLoading.value = false;
+    showAssignModal.value = false;
+    contrInfo.value.id = '';
+    contrInfo.value.questionNumber = 0;
+    await fetchContributors();
+    await fetchCount();
+    isReloading.value = false;
+    catID.value="";
+    
+}
 
 const toggleAddModal = () => {
     catInfo.value.id = '';
@@ -110,13 +179,13 @@ const toggleAddModal = () => {
 const handleAddCategory = async () => {
     isLoading.value = true;
     await $client.category.addCategory.mutate({name: catInfo.value.name, numOfQuestions: catInfo.value.numberofQuestions,poolId: poolId});
-    isReloading.value = true;
-    isLoading.value =false;
+    isReloadingCat.value = true;
+    isLoadingCat.value =false;
     showAddModal.value = false;
     catInfo.value.name = '';
     await fetchCategories();
-    await fetchCount();
-    isReloading.value = false;
+    await fetchCatCount();
+    isReloadingCat.value = false;
 }
 
 const toggleEditModal = () => {
@@ -135,14 +204,14 @@ const EditModal = async (catId : string, catName : string) => {
 const handleEditPool = async () => {
     isLoading.value = true;
     await $client.category.updateCategory.mutate(catInfo.value);
-    isReloading.value = true;
-    isLoading.value = false;
+    isReloadingCat.value = true;
+    isLoadingCat.value = false;
     showEditModal.value = false;
     catInfo.value.id = '';
     catInfo.value.name = '';
     await fetchCategories();
-    await fetchCount();
-    isReloading.value = false;
+    await fetchCatCount();
+    isReloadingCat.value = false;
 }
 
 
@@ -177,14 +246,14 @@ const DeleteCatModal = async (catId: string, catName: string) => {
 const handleDeleteCategory= async () => {
     isLoading.value = true;
     await $client.category.deleteCategory.mutate({id :catInfo.value.id});
-    isReloading.value = true;
-    isLoading.value = false;
+    isReloadingCat.value = true;
+    isLoadingCat.value = false;
     showDeleteCatModal.value = false;
     catInfo.value.id = '';
     catInfo.value.name = '';
     await fetchCategories();
-    await fetchCount();
-    isReloading.value = false;
+    await fetchCatCount();
+    isReloadingCat.value = false;
 }
 
 const handleDisableContributor = async () => {
@@ -199,6 +268,23 @@ const handleDisableContributor = async () => {
     await fetchCount();
     isReloading.value = false;
 }
+
+
+watch(catID, (newId:string, oldId:string) => {
+    console.log(catID)
+    console.log(categoriesNow[0].id, typeof categoriesNow[0].id);
+    categoriesNow.filter(category => {
+        console.log("inside", category.id);
+        if (category.id === catID.value){
+            // console.log(category.contributorAssignments[0]? category.contributorAssignments[0].questionsRemaining : 0)
+            contrInfo.value.questionNumber =  category.contributorAssignments[0]? category.contributorAssignments[0].questionsRemaining : 0
+        }
+    })
+
+    
+})
+
+
 </script>
 <template>
     <div>
@@ -250,18 +336,24 @@ const handleDisableContributor = async () => {
 
                                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                                             <div class="w-56 relative text-slate-500">
-                                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." />
+                                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." v-model="searchTextCat"/>
                                                 <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
                             
                                             </div>
                                         </div>
                                          
                                     </div>
+                                  
                                     <div v-if="isReloading" class="flex justify-center items-center">
                                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6 "></Icon>
                                         </div>
-                                    <div v-else class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                                        <div v-if="categories?.length == 0" class="w-full text-center text-lg mt-10 h-full">
+                                                <p>No categories found</p>
+                                            </div>
                                         
+
+                                    <div v-else class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                                        <div v-if="categories?.length !== 0">
                                         <table class="table table-report -mt-2">
                                             <thead>
                                                 <tr>
@@ -302,16 +394,17 @@ const handleDisableContributor = async () => {
                                             </tbody>
                                         </table>
                                     </div>
+                                    
                 <div class="flex flex-row mt-3">
                         <div class="md:block  text-slate-500">
-                         Showing {{1 + (page-1)*6}} to {{ page*6 <count! ? page*6:count }} of {{count! }} entries
+                         Showing {{1 + (catPage-1)*6}} to {{ catPage*6 <catCount! ? catPage*6:catCount }} of {{catCount! }} entries
                         </div>
                                     <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                                         <nav class="w-full sm:w-auto sm:mr-auto">
                                             <ul class="pagination">
                                                 
                                                 <li class="page-item">
-                                                    <button class="page-link" v-on:click="paginate(page-1)" :disabled="page===1">
+                                                    <button class="page-link" v-on:click="paginateCat(catPage-1)" :disabled="catPage===1">
                                                         <div class="flex flex-row align-middle justify-center items-center  ">
                                                             <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
                                                             <span class="">Previous</span>
@@ -319,7 +412,7 @@ const handleDisableContributor = async () => {
                                                     </button>
                                                 </li>
                                                 <li class="page-item">  
-                                                    <button class="page-link" v-on:click="paginate(page+1)" :disabled="(page) * 6 >= count!">
+                                                    <button class="page-link" v-on:click="paginateCat(catPage+1)" :disabled="(catPage) * 6 >= catCount!">
                                                         <div class="flex flex-row align-middle justify-center items-center">
                                                                 <span>Next</span>
                                                                 <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
@@ -333,55 +426,7 @@ const handleDisableContributor = async () => {
                                       
                                         </div>
                             </div>
-                                    <!-- BEGIN: Pagination -->
-                                    <!-- <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
-                                        <nav class="w-full sm:w-auto sm:mr-auto">
-                                            <ul class="pagination">
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-double-left" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-left" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">...</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">1</a>
-                                                </li>
-                                                <li class="page-item active">
-                                                    <a class="page-link" href="#">2</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">3</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">...</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-right" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-double-right" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </nav>
-                                        <select class="w-20 form-select box mt-3 sm:mt-0">
-                                            <option>10</option>
-                                            <option>25</option>
-                                            <option>35</option>
-                                            <option>50</option>
-                                        </select>
-                                    </div> -->
-                                    <!-- END: Pagination -->
+                        </div>
                                 </div>
                     
                             </div>   
@@ -406,6 +451,7 @@ const handleDisableContributor = async () => {
                         </div>
                     </div>
                     </div>
+                   
                     <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
                       <div v-if="contributors?.length == 0" class="w-full text-center text-lg mt-10 h-full">
                                     <p>No contributors found</p>
@@ -419,14 +465,15 @@ const handleDisableContributor = async () => {
                                 <th class="whitespace-nowrap">NAME</th>
                                 <th class="text-center whitespace-nowrap">E-mail</th>
                                 <th class="text-center whitespace-nowrap">Questions Assigned</th>
-                                <th class="text-center whitespace-nowrap">Reviews Assigned</th>
                                 <th class="text-center whitespace-nowrap">ACTIONS</th>
                             </tr>
                         </thead>
                        
-
-                          
                             <tbody>
+                                <tr>
+
+                                </tr>
+
                                     <tr v-for="contributor in contributors" :key="contributor.id" class="intro-x">
                                         <td class="w-10">
                                              
@@ -440,8 +487,7 @@ const handleDisableContributor = async () => {
                                        
                                         </td>
                                         <td class="text-center">{{ contributor.email }}</td>
-                                        <!-- <td class="text-center">{{ contributor.questionsRemaining }}</td> -->
-                                        <td class="text-center">{{ contributor.reviewsMade }}</td>
+                                        <td class="text-center">{{  contributor.reviewsMade}}</td>
                                  
                                         <td class="table-report__action w-56">
                                             <div class="flex justify-center items-center">
@@ -537,12 +583,21 @@ const handleDisableContributor = async () => {
                         <p class=" font-bold text-lg text-center">Already a member of this pool!</p>
                     </div>
                     </div>
+
+                    <div v-else-if="isEmailInvalid && !showInv">
+                    <div class="flex flex-row items-center space-x-4 mx-auto">
+                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                        <p class=" font-bold text-lg text-center">Invalid Email!</p>
+                    </div>
+                    </div>
+
                     <div v-if="!isInviteSuccess && !showInv">
                         <div class="flex flex-row items-center space-x-4 mx-auto">
-                            <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                            <!-- <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon> -->
                             <p class=" font-bold text-lg text-center">Failed to send invite, please try again</p>
                         </div>
                     </div>
+                    
                     <!--body-->
                     <div class="relative p-6 flex-auto">
                         <div v-if="showInv">
@@ -552,11 +607,12 @@ const handleDisableContributor = async () => {
                                 <p class="w-8/12 align-middle my-auto font-bold text-lg">Contributor's Email</p>
 
                                 <Form class="w-full">
-                                    <ErrorMessage name="addpoolInfoName" class=" text-red-500" />
-                                    <Field name="addpoolInfoName" type="text"
+                                    <ErrorMessage name="addContributor" class=" text-red-500" />
+                                    <Field name="addContributor" type="text"
                                         class="intro-x login__input form-control py-3 block"
                                         placeholder="Enter Contributor's Email" v-model="contributorEmail"
                                         :rules="fieldSchema" />
+                                    
                                 </Form>
                             </div>
                         </div>
@@ -565,10 +621,9 @@ const handleDisableContributor = async () => {
                     <div v-if="showInv">
                         <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b ">
 
-
                             <button @click="handleInviteContributor()"
                                 class="bg-primary rounded-xl  text-white py-3 px-4 text-center"
-                                :disabled="isLoading || contributorEmail === ''">
+                                :disabled="isLoading || contributorEmail === '' ">
                                 <div v-if="isLoading">
                                     <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                 </div>
@@ -584,6 +639,7 @@ const handleDisableContributor = async () => {
         </div>
         <div v-if="showInviteModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
 </div>
+
 <div v-if="showAssignModal"
                         class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
                         <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
@@ -602,36 +658,58 @@ const handleDisableContributor = async () => {
                                     </button>
                                 </div>
                                 <!--body-->
-                                <div class="relative p-6 flex-auto">
-                                    <div class="flex flex-row align-middle">
-                                        <p class="w-8/12 align-middle my-auto font-bold text-lg">Number of Questions</p>
-                                          <Form class="w-full">
-                                                    
-                <input name="editpoolInfoName" type="number" class="intro-x login__input form-control py-3 block"  
-                                                        placeholder="Enter Pool Name" v-model="contrInfo.questionNumber"  min="0"/>
-              </Form>
-                                        <!-- <input type="text" class="intro-x login__input form-control py-3 px-4 block"
-                                            placeholder="Enter Pool Name" v-model="poolInfo.name"> -->
+                                <div class="relative p-6 flex-auto justify-content-center">
+                                    <div class="flex flex-row " v-if="!isContModal">
+                                          <div class="ml-12 ">    
+                                            <div v-if="categoriesNow" class="flex flex-row w-4/6 mt-3 ">
+                                                <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Category</label>
+                                                <div class="flex flex-row rounded-md border ml-4">
+                                                    <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                                                        <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
+                                                    </div>
+                                                    <DropDownSelect :optionslist="categoriesNow" v-model="catID" title="Choose Cateogry" id="cat" aria-required="true" class="" />
+                                                </div>
+                                            </div>
+                                                <div class="flex flex-row w-4/6 mt-3">
+                                                    <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Number of Questions</label>
+                                                    <div class="flex flex-row rounded-md border ml-5">
+                                                        <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                                                            <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
+                                                        </div>
+                                                        <input                                      
+                                                            name="editQuestionNumber" type="number" class="w-full px-5 "  
+                                                            v-model="contrInfo.questionNumber"  min="0" id="ques" />
+                                                    </div>
+                                                </div>
+                                            
+                                           
+                                            </div>
+                            
                                     </div>
                                 </div>
                                 <!--footer-->
-                                <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
-                                    
-                                    <!-- <button @click="handleAssignQuestions()"
-                                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading ">
-                                        <div v-if="isLoading || pending">
+                                    <div v-if="catID==''">
+                                        <p style="color:red; text-align: center;">Please choose the category before assigning!</p>
+                                    </div>
+                                    <div v-else>
+                                <div  class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
+
+                                        <button @click="handleAssignQuestions()"
+                                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isReloading">
+                                            <div v-if="isContModal">
                                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                             </div>
                                             <div v-else>
                                                 Assign
                                             </div>
-                                    </button> -->
+                                        </button>
+                                    </div>
 
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div v-if="showAssignModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                    
               
                     <div>
 
@@ -662,7 +740,7 @@ const handleDisableContributor = async () => {
                                             <Form class="w-full">
                                                 <ErrorMessage name="addcatInfoName" class=" text-red-500" />
             <Field name="addcatInfoName" type="text" class="intro-x login__input form-control py-3 block"  
-                                                    placeholder="Enter Category Name" v-model="catInfo.name" :rules="fieldSchema" />
+                                                    placeholder="Enter Category Name" v-model="catInfo.name" />
           </Form>
                                     </div>
                                 </div>
@@ -710,7 +788,7 @@ const handleDisableContributor = async () => {
                       <Form class="w-full">
                                 <ErrorMessage name="editpoolInfoName" class=" text-red-500" />
                         <Field name="editpoolInfoName" type="text" class="intro-x login__input form-control py-3 block"  
-                                    placeholder="Enter Pool Name" v-model="catInfo.name" :rules="fieldSchema" />
+                                    placeholder="Enter Pool Name" v-model="catInfo.name" />
                             </Form>
                 </div>
             </div>
@@ -831,38 +909,7 @@ const handleDisableContributor = async () => {
                                 </div>
                             </div>
                         </div>
-                        <div v-if="showDeleteContModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
-                        <div v-if="isReloading"
-                                class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
-                                <div class="relative  my-6 mx-auto max-w-10xl">
-                                    <!--content-->
-                                    <div
-                                        class="border-0 rounded-lg relative flex flex-col w-full outline-none focus:outline-none">
-                                        <!--header-->
-                                        <div class="flex items-start justify-between p-5 rounded-t">
-                                            <!-- <h3 class="text-3xl font-semibold">
-                                                Modal Title
-                                            </h3> -->
-                                            <!-- <button
-                                                class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                                type="button" v-on:click="toggleDeleteModal()">
-                                                <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
-                                            </button> -->
-                                        </div>
-                                        <!--body-->
-                                        <div class="relative p-6 flex-auto">
-                                            
-                                        
-                                            <div class="flex flex-row items-center space-x-4 mx-auto">
-                                                 <Icon name="eos-icons:bubble-loading" class="w-20 h-20 text-primary"></Icon>
-                                                
-                                            </div>
-                                        </div>
-                                        <!--footer-->
-                                      
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="isReloading" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                        <Loading v-if="isReloading || isContModal" />
+     
 </template>
 

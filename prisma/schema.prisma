@@ -195,11 +195,11 @@ model ContributorAssignment {
 }
 
 enum QuestionStatus {
+  draft
   waiting
   approved
   rejected
   selected
-  draft
 }
 
 enum ExamStatus {

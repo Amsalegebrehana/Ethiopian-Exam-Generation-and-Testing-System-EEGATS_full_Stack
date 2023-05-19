@@ -33,22 +33,10 @@ export const questionRouter = router({
                 id: input.contrId,
             }
         });
-        const contrAssignment = await ctx.prisma.contributorAssignment.findFirst({
-            where :{
-                catId: input.catId,
-                contrId: input.contrId,
-            }
-        });
-        var reviewers =  await ctx.prisma.contributors.findMany({
-            orderBy : {
-                reviewsMade : 'asc',
-            },
-            take :5
-        });
         if(contributor?.poolId == category?.poolId ){
         const poolId= category?.poolId;
         if(poolId){
-            const urlPrefix = supabaseUrl + '/storage/v1/object/public/eegts-images/'
+            const urlPrefix = supabaseUrl + '/storage/v1/object/public/eegts-images/' 
             const question = await ctx.prisma.questions.create({
                 data:{
                     title: input.questionTitle,
@@ -93,54 +81,73 @@ export const questionRouter = router({
                             questionId : data.id,
                             choiceId : input.correctChoice == 'choiceOne' ? choiceOne.id : input.correctChoice == 'choiceTwo' ? choiceTwo.id : input.correctChoice == 'choiceThree' ? choiceThree.id : choiceFour.id
                         }
-                    });
-                    if(contrAssignment){
-                        await ctx.prisma.contributorAssignment.update({
-                            where:{
-                                id: contrAssignment?.id
-                            },
-                            data : {
-                                questionsRemaining : contrAssignment?.questionsRemaining - 1
-                            }
-                        });
-                    }
-                    var reviewerSelected = reviewers[Math.floor(Math.random()*reviewers.length)];
-                    if(reviewerSelected.id == contributor?.id){
-                        reviewers = reviewers.filter((item) => item.id != contributor?.id);
-                        reviewerSelected  = reviewers[Math.floor(Math.random()*reviewers.length)];
-                    }
-                    const review = await ctx.prisma.review.create({
-                        data :{
-                            questionId : data.id,
-                            reviewerId : reviewerSelected.id,
-                        
-                        }
-                    }).then(async (data) => {
-                        await ctx.prisma.contributors.update({
-                            where:{
-                                id: reviewerSelected.id
-                            },
-                            data :{
-                                reviewsMade : reviewerSelected.reviewsMade + 1
-                            }
-                        });
-                        return "question added successfully";
-                    }
-                    );
-                   
-    
+                    }); 
+                    return data;
                 }
             )
-        }
-        }else{
-            return "error adding question";
-        }
+        return question;
+        }}
     }catch (err){
         console.log(err);
-        return "error adding question";
     }
      }),
-        
+    submitQuestion: publicProcedure
+     .input(
+        z.string()
+     )
+    .mutation(
+        async ({ctx, input}) => {
+            const question = await ctx.prisma.questions.update({
+                where: {
+                    id: input
+                },
+                data: {
+                    status: QuestionStatus.waiting
+                }
+            })
+            const contrAssignment = await ctx.prisma.contributorAssignment.findFirst({
+                where: {
+                    contrId: question.contributorId,
+                    catId: question.catId,
+                }
+            })
+            await ctx.prisma.contributorAssignment.update({
+                where:{
+                    id: contrAssignment?.id
+                },
+                data : {
+                    questionsRemaining : contrAssignment!.questionsRemaining - 1
+                }
+            });
+            var reviewers =  await ctx.prisma.contributors.findMany({
+                orderBy : {
+                    reviewsMade : 'asc',
+                },
+                take :5
+            });
+            var reviewerSelected = reviewers[Math.floor(Math.random()*reviewers.length)];
+            if(reviewerSelected.id == question.contributorId){
+                reviewers = reviewers.filter((item) => item.id != question.contributorId);
+                reviewerSelected  = reviewers[Math.floor(Math.random()*reviewers.length)];
+            }
+            const review = await ctx.prisma.review.create({
+                data :{
+                    questionId : question.id,
+                    reviewerId : reviewerSelected.id,
+                
+                }
+            }).then(async (data) => {
+                await ctx.prisma.contributors.update({
+                    where:{
+                        id: reviewerSelected.id
+                    },
+                    data :{
+                        reviewsMade : reviewerSelected.reviewsMade + 1
+                    }
+                })}
+            );
+        }
+    ), 
      getQuestion: publicProcedure
      .input(
         z.string()
