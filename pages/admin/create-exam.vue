@@ -19,16 +19,25 @@
                    
                     <div class="flex flex-row w-4/6 mt-3">
                       <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Exam Name</label>
-                      <div class="flex flex-row rounded-md border">
-                          <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
-                              <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
-                          </div>
-                          <input id="horizontal-form-1" type="text" class="w-full py-2 px-2" placeholder="Enter Exam Name" v-model="examName" required>
-                      </div>
+                      <Form class="w-full">
+                          <ErrorMessage name="addExam" class=" text-red-500" />
+                          <div class="flex flex-row rounded-md border">
+                              <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                                  <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
+                              </div>
+                                <Field name="addExam" type="text"
+                                    class=" form-control py-3 border-none w-full  font-medium text-black-900"
+                                  
+                                    v-model="examName"
+                                    :rules="fieldSchema" />
+                                
+                                  </div>
+                          </Form>
+                          <!-- <input id="horizontal-form-1" type="text" class="w-full py-2 px-2" placeholder="Enter Exam Name" v-model="examName" required> -->
                   </div>
                   <div class="flex flex-row w-4/6 mt-3 ">
                       <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Exam Group</label>
-                      <div class="flex flex-row rounded-md border">
+                      <div class="flex flex-row rounded-md border w-full">
                           <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                               <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
                           </div>
@@ -37,20 +46,20 @@
                   </div>
                   <div class="flex flex-row w-4/6 mt-3 ">
                       <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Question Pool</label>
-                      <div class="flex flex-row rounded-md border">
+                      <div class="flex flex-row rounded-md border ">
                           <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                               <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
                           </div>
-                          <DropDownSelect :optionslist="pools" v-model="selectedPool" title="Choose Pools"  />
+                          <DropDownSelect :optionslist="pools" v-model="selectedPool" title="Choose Pools       "  />
                       </div>
                   </div>
                              
                    
                           <!-- Categories -->
-                          <div class="flex flex-row align-middle w-full mt-3">
+                  <div class="flex flex-row align-middle w-full mt-3">
                           <label for="horizontal-form-1" class="my-auto align-middle w-2/6 font-medium">Categories</label>
-                        </div>
-                        <div>
+                  </div>
+                  <div>
 
                 <!-- categories dynamic ui -->
                 <div class="flex flex-row w-4/6 mt-3 ">
@@ -97,23 +106,33 @@
                 <div class="flex flex-row align-middle w-4/6 mt-3">
 
                     <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium">Exam Date</label>
-                    <Datepicker calendar-class="rounded text-priamry " v-model="testingDate"  />
+                    <Datepicker calendar-class="rounded text-priamry w-full" v-model="testingDate"  />
 
                   </div>  
 
                     <!-- Duration -->
                     <div class="flex flex-row w-4/6 mt-3 ">
-                            <label for="horizontal-form-1" class="my-auto w-2/6  font-medium">Duration</label>
-                            <div class="flex flex-row rounded-md border">
-                                <div
-                                    class="  w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400 ">
-                                    <Icon name="ri:pie-chart-2-fill" class="w-4 h-4 my-auto"></Icon>
-                            
-                                </div>
-                        
-                                <input type="number" v-model="duration" class="input" />
+                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium">Duration</label>
 
-                        </div>
+                      <Form class="w-full">
+                      
+                        <ErrorMessage name="duration" class="text-red-500" />
+                          <div class="flex flex-row rounded-md border">
+                              <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                                  <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
+                              </div>
+                                <Field 
+                                    class=" form-control py-3 border-none w-full  font-medium text-black-900"
+                                  
+                                    name="duration" 
+                                    type="number" 
+                                    v-model="duration"
+                                    :rules="numberfieldSchema" />
+                                
+                                  </div>
+                          </Form>
+                            
+                        
 
                         </div>
 
@@ -134,6 +153,11 @@
             
                   <span class="truncate">Exam successfully created.</span>
               </div>
+              <!--alert for error message  -->
+              <div v-if="!isExamCreated && errorMessage.length >0" class="flex items-center alert alert-danger text-white text-sm font-bold px-4 py-3 mb-2 rounded-lg mt-4 ml-2" role="alert">
+            
+                  <span class="truncate">{{ errorMessage }}</span>
+              </div>
                 </div>
        
               </div>
@@ -149,14 +173,19 @@ import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 import DropDownSelect from '~~/components/DropDownSelect.vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-
-
+import { Field, Form, ErrorMessage } from 'vee-validate';
+import * as zod from 'zod';
+import { toFieldValidator } from '@vee-validate/zod';
 import { ref, computed, watch } from 'vue';
+
 
 
 definePageMeta({ middleware: 'is-admin' })
 
 const { $client } = useNuxtApp();
+
+const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required'));
+const numberfieldSchema = toFieldValidator(zod.number().min(0));
 
 const selectedPool = ref('');
 
@@ -175,8 +204,14 @@ const testingDate = ref('');
 
 // duration of exam
 const duration = ref(0);
+
 // is exam created successfully
 const isExamCreated = ref(false);
+
+// error message
+const errorMessage = ref('');
+
+// 
 
 // fetch exam groups from db
 const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
@@ -184,7 +219,7 @@ const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
 // fetch all pools from db
 const pools = await $client.pool.getPoolsWithCategories.query({});
 
-
+// filter pools based on selected exam group
 interface CategoryInterface {
   selectedId: string;
   categoryName: string;
@@ -310,19 +345,28 @@ const createExam = async () => {
         categories: selectedCategories.value
     }
   
+    try {
+        const createdExam = await $client.exam.createExam.mutate(exam);
+      
+        if (createdExam) {
 
-    const createdExam = await $client.exam.createExam.mutate(exam);
 
-   
-    
-    if (createdExam) {
+            isExamCreated.value = true;
 
-      isExamCreated.value = true;
+            isLoading.value = false;
+
+            return navigateTo("/admin/exams", { external: true })
+          }
+    } 
+    catch (error : any ) {
 
       isLoading.value = false;
+      errorMessage.value =  error.message;
 
-      return navigateTo("/admin/exams", { external: true })
     }
+
+  
+    
 
 }
 </script>

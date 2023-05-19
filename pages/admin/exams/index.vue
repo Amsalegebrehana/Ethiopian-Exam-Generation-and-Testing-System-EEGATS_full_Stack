@@ -16,7 +16,7 @@
                         </button>
                         </NuxtLink>
                         <div class="hidden md:block mx-auto text-slate-500">
-                            Showing 1 to 10 of {{ exams?.length }} entries
+                           
                         </div>
                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                             <div class="w-56 relative text-slate-500">
@@ -83,14 +83,14 @@
                     <div class="flex flex-row mt-3">
                       <div class="md:block  text-slate-500">
                    
-                         Showing  entries
+                         Showing   {{ searchInput ? 1 :skipval  + 1 }} to {{ searchInput ? filteredExams.length : Math.min( skipval + 6, examCount )}} of {{ (filteredExams.length < examCount) && searchInput ?  filteredExams.length : examCount}} entries
                         </div>
                         <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                             <nav class="w-full sm:w-auto sm:mr-auto">
                                 <ul class="pagination">
                                     
                                     <li class="page-item">
-                                        <button class="page-link" v-on:click="paginate(page-1)" :disabled="page===1">
+                                        <button class="page-link" v-on:click="prevPaginate()"  :disabled="skipval === 1 || skipval === 0" >
                                             <div class="flex flex-row align-middle justify-center items-center  ">
                                                 <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
                                                 <span class="">Previous</span>
@@ -98,7 +98,7 @@
                                         </button>
                                     </li>
                                     <li class="page-item">  
-                                        <button class="page-link"  v-on:click="paginate(page+1)" :disabled="(page) * 6 >= count!">
+                                        <button class="page-link" v-on:click="nextPaginate()" :disabled="(skipval) + 6 >= examCount">
                                             <div class="flex flex-row align-middle justify-center items-center">
                                                     <span>Next</span>
                                                     <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
@@ -113,28 +113,7 @@
                             </div>
                      </div>
                     <!-- END: Pagination -->
-                    <div v-if="isReloading"
-                                class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
-                                <div class="relative  my-6 mx-auto max-w-10xl">
-                                    <!--content-->
-                                    <div
-                                        class="border-0 rounded-lg relative flex flex-col w-full outline-none focus:outline-none">
-                                      
-                                        <div class="relative p-6 flex-auto">
-                                            
-                                        
-                                            <div class="flex flex-row items-center space-x-4 mx-auto">
-                                                 <Icon name="eos-icons:bubble-loading" class="w-20 h-20 text-primary"></Icon>
-                                                
-                                            </div>
-                                        </div>
-                                        <!--footer-->
-                                      
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="isReloading" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
-                    
+               
             </div>
         </div>
     </div>
@@ -149,35 +128,35 @@ import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 definePageMeta({ middleware: 'is-admin' });
 const { $client } = useNuxtApp();
 
-
-// page skip value for pagination
-const page = ref(1);
-
-// get exam count
-const {data: count, refresh:fetchCount} = await useAsyncData( ()=> $client.exam.getExamsCount.query());
-// console.log(count);
- 
-// get exams
-let {data: exams,refresh:fetchExams } =await useAsyncData(()=> $client.exam.getExams.query({skip:(page.value - 1) * 6},{watch: [page]}));
-
-const isReloading = ref(false);
-
-const paginate = async (newPage: number) => {
-    page.value = newPage;
-    isReloading.value = true;
-    try {
-        await fetchExams();
-        await fetchCount();
-    } finally {
-        isReloading.value = false
-    }
-
-}
-
-
+// skip value for pagination
+const skipval = ref(0);
 const searchInput = ref('');
 
+// get exam count
+const examCount = await $client.exam.getExamsCount.query();
+
+// get exams
+let exams = await $client.exam.getExams.query({skip:skipval.value});
+// prev paginate
+
+const prevPaginate = () => {
+  skipval.value = skipval.value - 6;
+};
+
+// next paginate
+const nextPaginate = () => {
+  skipval.value = skipval.value + 6;
+};
+
 const filteredExams = ref(exams);
+// watch skip value change
+watch(skipval, async (newVal, oldVal) => {
+  // update exams with new skip value
+
+  exams = await $client.exam.getExams.query({skip: newVal});
+  filteredExams.value = exams;
+});
+
 
 // filter exam by search input
 const filterExams = (name: any) => {
@@ -188,6 +167,7 @@ const filterExams = (name: any) => {
   });
   
 }
+
 // watch search input change
 watch(searchInput, (value) => {
  
@@ -210,7 +190,8 @@ const examStatus = (status: string) => {
 }
 // testing date  short format
 const testingDateformat = (date: string) => {
-  return new Date(date).toLocaleDateString();
+    
+    return new Date(date).toLocaleDateString();
 }
 
 
