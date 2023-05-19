@@ -236,7 +236,8 @@ export const contributorRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if(!validateEmail(input.email)){
+      const emailCheck = validateEmail(input.email);
+      if(emailCheck == false){
         return "Invalid Email!";
       }
       const pool = await ctx.prisma.pool.findUnique({
@@ -290,7 +291,8 @@ export const contributorRouter = router({
         })
       )
       .query(async({ctx,input})=>{
-        if(!validateEmail(input.email)){
+        const emailCheck = validateEmail(input.email);
+        if(emailCheck == false){
           return "Invalid Email!";
         }
         const contributor = await ctx.prisma.contributors.findUnique({
