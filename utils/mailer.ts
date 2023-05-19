@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 
-
 export async function sendNewInvite({
   email,
   url,
@@ -60,4 +59,37 @@ export async function sendReturnEmail({
   });
 
   console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+}
+
+export async function sendNotificationEmail({
+  email,
+  url,
+  pool,
+  category,
+  numberOfQuestions
+}: {
+  email: string;
+  url: string;
+  pool :string;
+  category:string;
+  numberOfQuestions:number;
+}) {
+  const testAccount = await nodemailer.createTestAccount();
+
+  const transporter = nodemailer.createTransport({
+
+    service: "gmail",
+    auth: {
+      user: "invite.eegts@gmail.com",
+      pass: process.env.MAILER_PASSWORD,
+    },
+  });
+  
+  const info = await transporter.sendMail({
+    from: ' <no-reply@eegts.com>',
+    to: email,
+    subject: "Contribute at EEGTS",
+    html: `<p>Greetings,<br></p> <p>The number of questions you have been assigned for the Ethiopian Exam Generation and Testing System's in the ${pool} pool, with regards to ${category} category has been changed to ${numberOfQuestions}.<br></p><p>You can check the new update by logging into your account by clicking <a href="${url}">HERE</a></p>`,
+  });
+
 }

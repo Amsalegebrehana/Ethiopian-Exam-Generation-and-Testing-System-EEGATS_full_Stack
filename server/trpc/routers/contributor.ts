@@ -1,6 +1,7 @@
 import { array, z } from "zod";
-import {  sendNewInvite, sendReturnEmail } from "~~/utils/mailer";
+import {  sendNewInvite, sendReturnEmail, sendNotificationEmail } from "~~/utils/mailer";
 import { publicProcedure, router } from "../trpc";
+import { validateEmail } from "~~/utils/emailValidation";
 const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
 export const contributorRouter = router({
@@ -196,33 +197,7 @@ export const contributorRouter = router({
     });
     }),
 
-  assignQuestion: publicProcedure
-  .input(
-    z.object({
-      contrId: z.string(),
-      catId: z.string(),
-      questionsRemaining: z.number()
-    })
-  )
-  .mutation(async ({ ctx, input }) => {
-        const data =  await ctx.prisma.contributorAssignment.upsert({
-          where:{
-            contrId_catId :{
-              contrId : input.contrId,
-              catId: input.catId
-            }
-          },
-          update:{
-            questionsRemaining: input.questionsRemaining
-          },
-          create:{
-            catId: input.catId,
-            contrId: input.contrId,
-            questionsRemaining: input.questionsRemaining
-          }
-      });
-        return data;
-  }),
+  
 
   disableContributor: publicProcedure
   .input(
@@ -261,6 +236,9 @@ export const contributorRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if(!validateEmail(input.email)){
+        return "Invalid Email!";
+      }
       const pool = await ctx.prisma.pool.findUnique({
         where: {
           id: input.poolId,
@@ -301,10 +279,94 @@ export const contributorRouter = router({
           });
         }
       }
-   
-
       return true;
     }),
+
+    checkContributorAssignmnet: publicProcedure
+      .input(
+        z.object({
+          email: z.string(),
+          poolId: z.string()
+        })
+      )
+      .query(async({ctx,input})=>{
+        if(!validateEmail(input.email)){
+          return "Invalid Email!";
+        }
+        const contributor = await ctx.prisma.contributors.findUnique({
+          where:{
+            email:input.email
+          }
+        });
+
+        if(contributor && contributor.poolId===input.poolId){
+          return "Already a member of this pool";
+        }
+
+        if(contributor && contributor.poolId!==input.poolId){
+          return true;
+        }
+        return false;
+      }),
+
+    assignQuestion: publicProcedure
+      .input(
+        z.object({
+          contrId: z.string(),
+          catId: z.string(),
+          questionsRemaining: z.number(),
+          poolId: z.string()
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+            const category = await ctx.prisma.category.findUnique({
+              where:{
+                id: input.catId
+              }
+            });
+
+            const pool = await ctx.prisma.pool.findUnique({
+              where: {
+                id: input.poolId,
+              }
+            });
+
+            const contributor = await ctx.prisma.contributors.findUnique({
+              where:{
+                id: input.contrId
+              }
+            });
+
+            return await ctx.prisma.contributorAssignment.upsert({
+              where:{
+                contrId_catId :{
+                  contrId : input.contrId,
+                  catId: input.catId
+                }
+              },
+              update:{
+                questionsRemaining: input.questionsRemaining
+              },
+              create:{
+                catId: input.catId,
+                contrId: input.contrId,
+                questionsRemaining: input.questionsRemaining
+              }
+            }).then((data)=>{
+              if(pool && category && contributor){
+                sendNotificationEmail({
+                  url: `${auth.origin}`,
+                  email: contributor.email,
+                  pool : pool?.name,
+                  category: category?.name,
+                  numberOfQuestions: data.questionsRemaining
+                })
+              };
+
+              return data;
+          });
+         
+  }),
 
   registerContributor: publicProcedure
     .input(
@@ -339,7 +401,7 @@ export const contributorRouter = router({
       return res;
       
     }),
-
+    
     getCategoryForAssignment: publicProcedure
     .input(
       z.object({

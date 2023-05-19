@@ -12,14 +12,15 @@ const route = useRoute();
 const activeTab = ref(1);
 const poolId = route.params.id as string;
 const { $client } = useNuxtApp()
-const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').email('Must be a valid email'));
+const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').email("Must be a valid email"));
 const numberfieldSchema = toFieldValidator(zod.number().min(0));
 const catID = ref("");
 const page = ref(1);
 const catPage = ref(1);
 const searchText = ref('');
 const searchTextCat = ref('');
-const contributorEmail = ref('');
+const checkEmail = zod.string().nonempty().email();
+const contributorEmail = ref("");
 let categoriesNow: { name: string; id: string; contributorAssignments: { questionsRemaining: number; }[]; }[]= [];
 const contrInfo = ref({
     questionNumber: 0,
@@ -76,6 +77,8 @@ const isReloadingCat = ref(false);
 const isLoadingCat = ref(false);
 const isInviteSuccess = ref(false);
 const isInviteDup = ref(false);
+const isEmailInvalid = ref(false);
+const isAssignedtoAnotherPool = ref(false);
 const showInv = ref(true);
 const showInviteModal = ref(false);
 const showAssignModal = ref(false);
@@ -90,11 +93,38 @@ const toggleInviteModal = () => {
     showInv.value = true;
     showInviteModal.value = !showInviteModal.value;
 }
+
+const handleCheckContributorPool = async()=>{
+    isLoading.value = true;
+    const res = await $client.contributor.checkContributorAssignmnet.query({ email: contributorEmail.value, poolId: poolId! });
+    if(res == "Invalid Email!"){
+        isEmailInvalid.value = true;
+        contributorEmail.value = "";
+    }
+
+    if(res == 'Already a member of this pool'){
+        isInviteDup.value = true;
+        contributorEmail.value = '';
+    }
+
+    if(res === true){
+        isAssignedtoAnotherPool.value = true;
+    }
+
+}
+
 const handleInviteContributor = async () => {
     isLoading.value = true;
     const res = await $client.contributor.inviteContributor.mutate({ email: contributorEmail.value, poolId: poolId! });
     isLoading.value = false;
     showInv.value = false;
+    isEmailInvalid.value = false;
+    isInviteDup.value = false;
+    isInviteSuccess.value = false;
+    if(res == "Invalid Email!"){
+        isEmailInvalid.value = true;
+        contributorEmail.value = "";
+    }
     if(res == 'Already a member of this pool'){
         isInviteDup.value = true;
         contributorEmail.value = '';
@@ -114,11 +144,12 @@ const toggleAssignModal = () => {
 const AssignModal = async (contrId : string, noOfQuestions : number) => {
     isContModal.value = true;
     contrInfo.value.id = contrId;
-    contrInfo.value.questionNumber = noOfQuestions;
+    contrInfo.value.questionNumber = 0;
     showAssignModal.value = !showAssignModal.value;
     categoriesNow = await $client.contributor.getCategoryForAssignment.query({contrID:contrInfo.value.id});
     if (categoriesNow) {
         isContModal.value = false;
+
     }
 
 }
@@ -127,7 +158,7 @@ const AssignModal = async (contrId : string, noOfQuestions : number) => {
 //TODO: Fix this
 const handleAssignQuestions = async () => {
     isLoading.value = true;
-    await $client.contributor.assignQuestion.mutate({contrId :contrInfo.value.id, catId: catID.value,questionsRemaining : contrInfo.value.questionNumber});
+    await $client.contributor.assignQuestion.mutate({contrId :contrInfo.value.id, catId: catID.value,questionsRemaining : contrInfo.value.questionNumber, poolId: poolId});
     isReloading.value = true;
     isLoading.value = false;
     showAssignModal.value = false;
@@ -136,6 +167,8 @@ const handleAssignQuestions = async () => {
     await fetchContributors();
     await fetchCount();
     isReloading.value = false;
+    catID.value="";
+    
 }
 
 const toggleAddModal = () => {
@@ -250,6 +283,7 @@ watch(catID, (newId:string, oldId:string) => {
 
     
 })
+
 
 </script>
 <template>
@@ -434,9 +468,7 @@ watch(catID, (newId:string, oldId:string) => {
                                 <th class="text-center whitespace-nowrap">ACTIONS</th>
                             </tr>
                         </thead>
-<!-- {{ categoriesNow }} -->
                        
-                          
                             <tbody>
                                 <tr>
 
@@ -551,12 +583,21 @@ watch(catID, (newId:string, oldId:string) => {
                         <p class=" font-bold text-lg text-center">Already a member of this pool!</p>
                     </div>
                     </div>
+
+                    <div v-else-if="isEmailInvalid && !showInv">
+                    <div class="flex flex-row items-center space-x-4 mx-auto">
+                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                        <p class=" font-bold text-lg text-center">Invalid Email!</p>
+                    </div>
+                    </div>
+
                     <div v-if="!isInviteSuccess && !showInv">
                         <div class="flex flex-row items-center space-x-4 mx-auto">
-                            <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                            <!-- <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon> -->
                             <p class=" font-bold text-lg text-center">Failed to send invite, please try again</p>
                         </div>
                     </div>
+                    
                     <!--body-->
                     <div class="relative p-6 flex-auto">
                         <div v-if="showInv">
@@ -566,11 +607,12 @@ watch(catID, (newId:string, oldId:string) => {
                                 <p class="w-8/12 align-middle my-auto font-bold text-lg">Contributor's Email</p>
 
                                 <Form class="w-full">
-                                    <ErrorMessage name="addpoolInfoName" class=" text-red-500" />
-                                    <Field name="addpoolInfoName" type="text"
+                                    <ErrorMessage name="addContributor" class=" text-red-500" />
+                                    <Field name="addContributor" type="text"
                                         class="intro-x login__input form-control py-3 block"
                                         placeholder="Enter Contributor's Email" v-model="contributorEmail"
                                         :rules="fieldSchema" />
+                                    
                                 </Form>
                             </div>
                         </div>
@@ -579,10 +621,9 @@ watch(catID, (newId:string, oldId:string) => {
                     <div v-if="showInv">
                         <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b ">
 
-
                             <button @click="handleInviteContributor()"
                                 class="bg-primary rounded-xl  text-white py-3 px-4 text-center"
-                                :disabled="isLoading || contributorEmail === ''">
+                                :disabled="isLoading || contributorEmail === '' ">
                                 <div v-if="isLoading">
                                     <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                 </div>
@@ -598,6 +639,96 @@ watch(catID, (newId:string, oldId:string) => {
         </div>
         <div v-if="showInviteModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
 </div>
+
+<div>
+
+<div v-if="showInviteModal"
+    class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+    <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
+        <!--content-->
+        <div
+            class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none items-center">
+            <!--header-->
+            <div class="flex items-end ml-auto justify-between p-5 border-solid border-slate-200 rounded-t">
+                <!-- <h3 class="text-3xl font-semibold">
+                                        Modal Title
+                                    </h3> -->
+                <button
+                    class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                    type="button" v-on:click="toggleInviteModal()">
+                    <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
+                </button>
+            </div>
+            <div v-if="isInviteSuccess && !showInv">
+
+                <div class="flex flex-row items-center space-x-4 mx-auto">
+                    <Icon name="clarity:success-standard-line" class="w-20 h-20 text-green-600"></Icon>
+                    <p class=" font-bold text-lg text-center">Invite successfully sent!</p>
+                </div>
+            </div>
+            <div v-if="isInviteDup && !showInv">
+            <div class="flex flex-row items-center space-x-4 mx-auto">
+                <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                <p class=" font-bold text-lg text-center">Already a member of this pool!</p>
+            </div>
+            </div>
+
+            <div v-else-if="isEmailInvalid && !showInv">
+            <div class="flex flex-row items-center space-x-4 mx-auto">
+                <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                <p class=" font-bold text-lg text-center">Invalid Email!</p>
+            </div>
+            </div>
+
+            <div v-if="!isInviteSuccess && !showInv">
+                <div class="flex flex-row items-center space-x-4 mx-auto">
+                    <!-- <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon> -->
+                    <p class=" font-bold text-lg text-center">Failed to send invite, please try again</p>
+                </div>
+            </div>
+            
+            <!--body-->
+            <div class="relative p-6 flex-auto">
+                <div v-if="showInv">
+
+                    <div class="flex flex-row align-middle mt-2">
+
+                        <p class="w-8/12 align-middle my-auto font-bold text-lg">Contributor's Email</p>
+
+                        <Form class="w-full">
+                            <ErrorMessage name="addContributor" class=" text-red-500" />
+                            <Field name="addContributor" type="text"
+                                class="intro-x login__input form-control py-3 block"
+                                placeholder="Enter Contributor's Email" v-model="contributorEmail"
+                                :rules="fieldSchema" />
+                            
+                        </Form>
+                    </div>
+                </div>
+                <!--footer-->
+            </div>
+            <div v-if="showInv">
+                <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b ">
+
+                    <button @click="handleInviteContributor()"
+                        class="bg-primary rounded-xl  text-white py-3 px-4 text-center"
+                        :disabled="isLoading || contributorEmail === '' ">
+                        <div v-if="isLoading">
+                            <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+                        </div>
+                        <div v-else>
+                            Invite
+                        </div>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div v-if="showInviteModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+</div>
+
 <div v-if="showAssignModal"
                         class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
                         <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
@@ -625,10 +756,9 @@ watch(catID, (newId:string, oldId:string) => {
                                                     <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                                                         <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
                                                     </div>
-                                                    <DropDownSelect :optionslist="categoriesNow" v-model="catID" title="Choose Cateogry" id="cat" class=""/>
+                                                    <DropDownSelect :optionslist="categoriesNow" v-model="catID" title="Choose Cateogry" id="cat" aria-required="true" class="" />
                                                 </div>
                                             </div>
-
                                                 <div class="flex flex-row w-4/6 mt-3">
                                                     <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Number of Questions</label>
                                                     <div class="flex flex-row rounded-md border ml-5">
@@ -647,8 +777,13 @@ watch(catID, (newId:string, oldId:string) => {
                                     </div>
                                 </div>
                                 <!--footer-->
+                                    <div v-if="catID==''">
+                                        <p style="color:red; text-align: center;">Please choose the category before assigning!</p>
+                                    </div>
+                                    <div v-else>
                                 <div  class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
-                                    <button @click="handleAssignQuestions()"
+
+                                        <button @click="handleAssignQuestions()"
                                         class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isReloading">
                                             <div v-if="isContModal">
                                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
@@ -656,7 +791,8 @@ watch(catID, (newId:string, oldId:string) => {
                                             <div v-else>
                                                 Assign
                                             </div>
-                                    </button>
+                                        </button>
+                                    </div>
 
                                 </div>
                             </div>
@@ -693,7 +829,7 @@ watch(catID, (newId:string, oldId:string) => {
                                             <Form class="w-full">
                                                 <ErrorMessage name="addcatInfoName" class=" text-red-500" />
             <Field name="addcatInfoName" type="text" class="intro-x login__input form-control py-3 block"  
-                                                    placeholder="Enter Category Name" v-model="catInfo.name" :rules="fieldSchema" />
+                                                    placeholder="Enter Category Name" v-model="catInfo.name" />
           </Form>
                                     </div>
                                 </div>
@@ -741,7 +877,7 @@ watch(catID, (newId:string, oldId:string) => {
                       <Form class="w-full">
                                 <ErrorMessage name="editpoolInfoName" class=" text-red-500" />
                         <Field name="editpoolInfoName" type="text" class="intro-x login__input form-control py-3 block"  
-                                    placeholder="Enter Pool Name" v-model="catInfo.name" :rules="fieldSchema" />
+                                    placeholder="Enter Pool Name" v-model="catInfo.name" />
                             </Form>
                 </div>
             </div>
