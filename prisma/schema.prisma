@@ -29,7 +29,7 @@ model Pool {
 
 model ExamGroup {
   id         String       @id @default(uuid())
-  name       String
+  name       String       @unique
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   Exam       Exam[]
@@ -54,7 +54,7 @@ model Contributors {
 
 model Exam {
   id                String              @id @default(uuid())
-  name              String
+  name              String              @unique
   numberOfQuestions Int                 @default(0)
   duration          Float               @default(0)
   testingDate       DateTime
@@ -70,98 +70,97 @@ model Exam {
   TestTakerResponse TestTakerResponse[]
 }
 
-model TestTakers{
-  id        String            @id @default(uuid())
-  name      String
-  username  String  @unique
-  password  String
-  examGroupId  String
-  examGroup  ExamGroup @relation(fields: [examGroupId], references: [id])
-  TestTakerResponse TestTakerResponse [] 
-  TestSession TestSession []
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt 
-  
- 
-}
-
-model Choice{
-  id        String            @id @default(uuid())
-  title     String
-  image     String?
-  questionId String
-  questions         Questions          @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  QuestionAnswer QuestionAnswer []
+model TestTakers {
+  id                String              @id @default(uuid())
+  name              String
+  username          String              @unique
+  password          String
+  examGroupId       String
+  examGroup         ExamGroup           @relation(fields: [examGroupId], references: [id])
   TestTakerResponse TestTakerResponse[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  TestSession       TestSession[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 }
 
-model QuestionAnswer{
-  id        String            @id @default(uuid())
-  questionId String @unique
-  questions  Questions @relation(fields: [questionId], references: [id])
-  choiceId String
-  choice Choice @relation(fields: [choiceId], references: [id])
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-}
-
-model Questions{
-  id        String            @id @default(uuid())
-  title     String
-  image     String?
-  status    QuestionStatus @default(waiting)
-  poolId    String
-  catId     String
-  category  Category @relation(fields: [catId], references: [id])
-  pool      Pool @relation(fields: [poolId], references: [id])
-  examId    String?
-  exam      Exam? @relation(fields: [examId], references: [id])
-  contributorId String
-  Contributors Contributors @relation(fields: [contributorId], references: [id])
-  choices Choice []
-  review Review?
-  QuestionAnswer QuestionAnswer []
+model Choice {
+  id                String              @id @default(uuid())
+  title             String
+  image             String?
+  questionId        String
+  questions         Questions           @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  QuestionAnswer    QuestionAnswer[]
   TestTakerResponse TestTakerResponse[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model QuestionAnswer {
+  id         String    @id @default(uuid())
+  questionId String    @unique
+  questions  Questions @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  choiceId   String
+  choice     Choice    @relation(fields: [choiceId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Questions {
+  id                String              @id @default(uuid())
+  title             String
+  image             String?
+  status            QuestionStatus      @default(waiting)
+  poolId            String
+  catId             String
+  category          Category            @relation(fields: [catId], references: [id])
+  pool              Pool                @relation(fields: [poolId], references: [id])
+  examId            String?
+  exam              Exam?               @relation(fields: [examId], references: [id])
+  contributorId     String
+  Contributors      Contributors        @relation(fields: [contributorId], references: [id])
+  choices           Choice[]
+  review            Review?
+  QuestionAnswer    QuestionAnswer[]
+  TestTakerResponse TestTakerResponse[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 }
 
 model TestTakerResponse {
-  id          String     @id @default(uuid())
+  id          String      @id @default(uuid())
   testTakerId String
-  testTakers TestTakers? @relation(fields: [testTakerId], references: [id])
-  isCorrect   Boolean 
-  questionId String 
-  questions  Questions @relation(fields: [questionId], references: [id])
-  examId    String
-  exam      Exam @relation(fields: [examId], references: [id])
-  choiceId String 
-  choice Choice @relation(fields: [choiceId], references: [id])
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  testTakers  TestTakers? @relation(fields: [testTakerId], references: [id])
+  isCorrect   Boolean
+  questionId  String
+  questions   Questions   @relation(fields: [questionId], references: [id])
+  examId      String
+  exam        Exam        @relation(fields: [examId], references: [id])
+  choiceId    String
+  choice      Choice      @relation(fields: [choiceId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
   @@unique([testTakerId, examId, questionId])
 }
 
 model TestSession {
-  id        String            @id @default(uuid())
-  grade     Int @default(0)
-  isSubmitted Boolean  @default(false)
-  testTakerId String
-  testTakers TestTakers @relation(fields: [testTakerId], references: [id])
-  examId String 
-  exam     Exam @relation(fields: [examId], references: [id])
-  currentQuestion Int @default(0)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  id              String     @id @default(uuid())
+  grade           Int        @default(0)
+  isSubmitted     Boolean    @default(false)
+  testTakerId     String
+  testTakers      TestTakers @relation(fields: [testTakerId], references: [id])
+  examId          String
+  exam            Exam       @relation(fields: [examId], references: [id])
+  currentQuestion Int        @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   @@unique([testTakerId, examId])
 }
 
 model Review {
-  id        String            @id @default(uuid())
-  questionId String @unique
+  id         String       @id @default(uuid())
+  questionId String       @unique
   reviewerId String
   feedback   String?
   isReviewed Boolean      @default(false)
@@ -181,24 +180,26 @@ model Category {
   questions              Questions[]
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
+  @@unique([name, poolId])
 }
 
 model ContributorAssignment {
-  id                  String        @id @default(uuid())
-  catId               String
-  contrId              String
-  category            Category @relation(fields:[catId], references: [id])
-  contributor         Contributors @relation(fields: [contrId], references: [id])
-  questionsRemaining  Int
+  id                 String       @id @default(uuid())
+  catId              String
+  contrId            String
+  category           Category     @relation(fields: [catId], references: [id])
+  contributor        Contributors @relation(fields: [contrId], references: [id])
+  questionsRemaining Int
+
   @@unique([contrId, catId])
 }
 
 enum QuestionStatus {
+  draft
   waiting
   approved
   rejected
   selected
-  draft
 }
 
 enum ExamStatus {

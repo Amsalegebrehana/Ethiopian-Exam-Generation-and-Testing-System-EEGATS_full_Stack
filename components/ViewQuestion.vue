@@ -8,7 +8,7 @@
           <Icon name="eva:close-outline" class="w-8 h-8 text-red-600"></Icon>
         </button>
       </div>
-      <div class="p-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[70em] max-w-[70em] flex h-[50vh] opacity-100 gap-4">
+      <div class="p-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[70em] max-w-[70em] flex h-[50vh] opacity-100 gap-4 text-lg">
         <div class="flex-1 overflow-scroll">
           <div v-html="question.question.title" class="py-5" />
           <div v-for="(choice, index) in question.choices" class="flex">
@@ -19,14 +19,6 @@
             <span class="pt-5 pr-2"> <b> Correct answer: </b> </span>
             <span v-html="question.choices.filter(choice => choice.id === question.answer.choiceId)[0].title" class="pt-5" />
           </div>
-        </div>
-        <div class="py-5 flex-1 flex overflow-scroll">
-            <div v-if="question.review.feedback">
-              {{question.review.feedback}}
-            </div>
-            <div v-else class="m-auto">
-               Review pending
-            </div>
         </div>
       </div>
     </div>

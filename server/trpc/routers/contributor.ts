@@ -4,6 +4,7 @@ import { publicProcedure, router } from "../trpc";
 import { validateEmail } from "~~/utils/emailValidation";
 const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
+import { QuestionStatus } from "@prisma/client";
 export const contributorRouter = router({
 
   
@@ -16,6 +17,7 @@ export const contributorRouter = router({
       const data = await ctx.prisma.questions.findMany({
         where: {
           contributorId: input,
+          status: QuestionStatus.draft,
         }
       })
 
