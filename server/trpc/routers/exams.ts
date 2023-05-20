@@ -82,6 +82,13 @@ export const examRouter = router({
         )
         .mutation(async ({ ctx, input }) => {
            
+            // error handle
+            if(!input.name || !input.examGroupId || !input.poolId || !input.numberOfQuestions || !input.testingDate || !input.duration || !input.categories){
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message:"Please fill all the required fields."
+                });
+            }
             // get all exams with the same exam group id, pool id 
             const previousExams = await ctx.prisma.exam.findMany({
                 select:{
@@ -283,11 +290,18 @@ export const examRouter = router({
 
                     },
                 });
+                // check if exam exists
                 if (!exam) {
-                    throw new Error(`Exam with id ${input.id} not found`);
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: `Exam with id ${input.id} not found`
+                    });
                 }
                 if (exam.testingDate <= new Date()) {
-                    throw new Error('Testing date has already passed');
+                    throw new  TRPCError({
+                        code: "FORBIDDEN",
+                        message: 'Testing date has already passed'
+                    });
                 }
                 // change status if testing date is greater than today
                 return await ctx.prisma.exam.update({
@@ -315,10 +329,16 @@ export const examRouter = router({
                     },
                 });
                 if (!exam) {
-                    throw new Error(`Exam with id ${input.id} not found`);
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: `Exam with id ${input.id} not found`
+                    });
                 }
                 if (exam.testingDate <= new Date()) {
-                    throw new Error('Testing date has already passed');
+                    throw new  TRPCError({
+                        code: "FORBIDDEN",
+                        message: 'Testing date has already passed'
+                    });
                 }
                 // change status if testing date is greater than today
                 return await ctx.prisma.exam.update({
@@ -333,39 +353,6 @@ export const examRouter = router({
             ),
 
             // release exam
-            releaseExam: publicProcedure
-            .input(
-                z.object({
-                    id: z.string(),
-                })
-            )
-            .mutation(async ({ ctx, input }) => {
-
-                const exam = await ctx.prisma.exam.findUnique({
-                    where: {
-                        id: input.id,
-                    },
-                });
-
-                if (!exam) {
-                    throw new Error(`Exam with id ${input.id} not found`);
-                }
-                // check if testing are already taken or not
-                const twoDaysLater = new Date(exam.testingDate.getTime() + 2 * 24 * 60 * 60 * 1000);
-
-                if (new Date()  < twoDaysLater) {
-                    throw new Error('Testing date has not yet passed');
-                }
-                // change status if testing date is greater than today
-                return await ctx.prisma.exam.update({
-                    where: {
-                        id: input.id,
-                    },
-                    data: {
-                        status: "gradeReleased",
-                    },
-                });
-            }
-            ),
+           
          
 });

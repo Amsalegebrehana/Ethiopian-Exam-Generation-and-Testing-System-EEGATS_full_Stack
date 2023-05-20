@@ -19,7 +19,7 @@
                    
                     <div class="flex flex-row w-4/6 mt-3">
                       <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Exam Name</label>
-                      <Form class="w-full">
+                      <Form class="">
                           <ErrorMessage name="addExam" class=" text-red-500" />
                           <div class="flex flex-row rounded-md border">
                               <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
@@ -37,11 +37,11 @@
                   </div>
                   <div class="flex flex-row w-4/6 mt-3 ">
                       <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Exam Group</label>
-                      <div class="flex flex-row rounded-md border w-full">
+                      <div class="flex flex-row rounded-md border">
                           <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                               <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
                           </div>
-                          <DropDownSelect :optionslist="examgroups" v-model="selectedExamGroup" title="Choose Exam Group"  />
+                          <DropDownSelect :optionslist="examgroups" v-model="selectedExamGroup" style="width: 200px;" title=" Exam Group"  />
                       </div>
                   </div>
                   <div class="flex flex-row w-4/6 mt-3 ">
@@ -50,7 +50,10 @@
                           <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                               <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
                           </div>
-                          <DropDownSelect :optionslist="pools" v-model="selectedPool" title="Choose Pools       "  />
+                          <div class="width-20">
+
+                            <DropDownSelect :optionslist="pools" v-model="selectedPool" title="Choose Pools       "  />
+                          </div>
                       </div>
                   </div>
                              
@@ -106,7 +109,7 @@
                 <div class="flex flex-row align-middle w-4/6 mt-3">
 
                     <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium">Exam Date</label>
-                    <Datepicker calendar-class="rounded text-priamry w-full" v-model="testingDate"  />
+                    <Datepicker calendar-class="rounded text-priamry form-control w-full" v-model="testingDate"  />
 
                   </div>  
 
@@ -114,7 +117,7 @@
                     <div class="flex flex-row w-4/6 mt-3 ">
                       <label for="horizontal-form-1" class="my-auto w-2/6  font-medium">Duration</label>
 
-                      <Form class="w-full">
+                      <Form class="">
                       
                         <ErrorMessage name="duration" class="text-red-500" />
                           <div class="flex flex-row rounded-md border">
@@ -131,9 +134,7 @@
                                 
                                   </div>
                           </Form>
-                            
-                        
-
+           
                         </div>
 
             

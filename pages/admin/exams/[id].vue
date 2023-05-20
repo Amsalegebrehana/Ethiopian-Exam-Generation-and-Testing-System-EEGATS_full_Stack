@@ -17,10 +17,7 @@
                     <button v-if="publishBtn" class="btn btn-success shadow-md mt-5 mr-4 text-white" @click="publishExam" >Publish</button>
                     <button v-if="unpublishBtn" class="btn btn-success shadow-md mt-5 mr-4 text-white" @click="unPublishExam" >UnPublish</button>
                     
-                    <button class="btn shadow-md mt-5 mr-4 " 
-                        :class="[!releaseGradeBtn.disabled ? 'btn-primary' : 'bg-gray-200']" 
-                        @click="releaseGrade" 
-                        :disabled="releaseGradeBtn.disabled">Release Grades</button>
+                  
                     
                 </div>
                 <div class="ml-5 card rounded-md shadow-md  p-8">
@@ -100,7 +97,7 @@ const publishExam = async () => {
         unpublishBtn.value = false;
     }
     
-    console.log(updatedExam.status);
+    
 };
 
 // unpublish the published exam if the exam hasn't started yet (change status back to generated)
@@ -118,12 +115,6 @@ const unPublishExam = async () =>{
    
 };
 
-const releaseGrade = async () =>{
-   
-    // change the status to gradedrelease
-    const updatedExam =  await $client.exam.releaseExam.mutate({id:id});
-    releaseGradeBtn.value.disabled = true;
-    
-};
+
 
 </script>
