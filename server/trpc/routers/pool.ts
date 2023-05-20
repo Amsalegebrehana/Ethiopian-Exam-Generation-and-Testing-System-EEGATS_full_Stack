@@ -93,11 +93,72 @@ export const poolRouter = router({
         });
       }
     }),
+    searchPoolsCount: protectedProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if(ctx.session.role === 'admin'){
+        
+          return await ctx.prisma.pool.count({
+            where: {
+              name: {
+                contains: input.search,
+              },
+            },
+          });
+      }}),
+
+    getSearchedPools: protectedProcedure
+    .input(
+      z.object({
+        skip: z.number(),
+        search: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if(ctx.session.role === 'admin'){
+        return await ctx.prisma.pool.findMany({
+          skip: input.skip,
+          take: 6,
+          orderBy: {
+            createdAt: "desc",
+          },
+          where: {
+            name: {
+              contains: input.search,
+            },
+          },
+          include :{
+            _count: {
+              select: {
+                Questions: {
+                  where :{
+                    status : { equals: 'approved'}
+                  }
+                },
+              
+              } ,
+                
+              },
+
+            },
+        });
+      }else{
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
+      }
+    }),
+      
     getPools: protectedProcedure
       .input(
         z.object({
           skip: z.number(),
-          search: z.string().optional(),
+
         })
       )
       .query(async ({ ctx, input }) => {
@@ -108,11 +169,7 @@ export const poolRouter = router({
             orderBy: {
               createdAt: "desc",
             },
-            where: {
-              name: {
-                contains: input.search,
-              },
-            },
+          
             include :{
               _count: {
                 select: {
@@ -143,7 +200,7 @@ export const poolRouter = router({
   addPool: protectedProcedure
     .input(
       z.object({
-        name: z.string(),
+        name: z.string().min(2),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -192,7 +249,7 @@ export const poolRouter = router({
     .input(
       z.object({
         id: z.string(),
-        name: z.string(),
+        name: z.string().min(2),
       })
     )
     .mutation(async ({ ctx, input }) => {

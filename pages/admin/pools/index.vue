@@ -4,18 +4,25 @@ import AdminSideBar from '@/components/admin/AdminSideBar.vue'
 import { Pool } from '.prisma/client';
 import { Field, Form, ErrorMessage } from 'vee-validate';
 import { toFieldValidator } from '@vee-validate/zod';
+import Modal from '@/components/Modal.vue'
 import * as zod from 'zod';
 import { type } from 'os';
 definePageMeta({ middleware: 'is-admin' })
 const { $client } = useNuxtApp()
 const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').min(2, 'Minimum of 2 characters required'));
 const page = ref(1);
+const searchPage = ref(1);
 const searchText  = ref('');
 const {data: count, refresh:fetchCount} = await useAsyncData( ()=> $client.pool.getPoolsCount.query());
-const {data: pools, refresh:fetchPools, pending} = await useAsyncData(()=> $client.pool.getPools.query({search: searchText.value !== '' ? searchText.value : undefined, skip : (page.value - 1) * 6}), {watch: [page, searchText]});
-const paginate = async (newPage: number) => {
-    page.value = newPage;
-    isReloading.value = true;
+const {data: pools, refresh:fetchPools, pending} = await useAsyncData(()=> $client.pool.getPools.query({skip : (page.value - 1) * 6}), 
+{watch: [page, searchText]});
+const {data: searchcount, refresh:fetchSearchCount} = await useAsyncData( ()=> $client.pool.searchPoolsCount.query({search: searchText.value !== '' ? searchText.value : undefined}), {watch: [searchPage, searchText]});
+const {data: searchPools, refresh:fetchSearchPools, pending:pendingSearch} = await useAsyncData(()=> $client.pool.getSearchedPools.query({search: searchText.value !== '' ? searchText.value : undefined, skip : (searchPage.value - 1) * 6}), 
+    {watch: [page, searchText]});
+
+    const paginate = async (newPage: number) => {
+        page.value = newPage;
+        isReloading.value = true;
     try {
         await fetchPools();
         await fetchCount();
@@ -23,15 +30,36 @@ const paginate = async (newPage: number) => {
         isReloading.value = false
     }
 }
+
+const paginateSearch = async (newPage: number) => {
+    searchPage.value = newPage;
+    isReloading.value = true;
+    try {
+        await fetchSearchPools();
+        await fetchSearchCount();
+    } finally {
+        isReloading.value = false
+    }
+}
+const showErrorModal  = ref(false);
 const isReloading = ref(false);
 const showAddModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
+const showSuccessModal = ref(false);
 const isLoading = ref(false);
+const errorText = ref('');
 const poolInfo = ref({
     name: '',
     id: ''
 });
+
+const toggleErrorModal = () => {
+    showErrorModal.value = !showErrorModal.value;
+}
+const toggleSuccessModal = () => {
+    showSuccessModal.value = !showSuccessModal.value;
+}
 const toggleAddModal = () => {
     poolInfo.value.id = '';
     poolInfo.value.name = '';
@@ -39,14 +67,23 @@ const toggleAddModal = () => {
 }
 const handleAddPool = async () => {
     isLoading.value = true;
-    await $client.pool.addPool.mutate({name : poolInfo.value.name});
-    isReloading.value = true;
-    isLoading.value =false;
-    showAddModal.value = false;
-    poolInfo.value.name = '';
-    await fetchPools();
-    await fetchCount();
-    isReloading.value = false;
+    try{
+       const pool = await $client.pool.addPool.mutate({name : poolInfo.value.name});
+       if(pool){
+            isReloading.value = true;
+            isLoading.value =false;
+            showAddModal.value = false;
+            poolInfo.value.name = '';
+            await fetchPools();
+            await fetchCount();
+            isReloading.value = false;
+       }
+    }catch(e:any){
+        isLoading.value = false;
+        errorText.value = "Failed. Please check your internet and try again later.";
+        showErrorModal.value = true;
+    }
+    
 }
 const toggleEditModal = () => {
     poolInfo.value.id = '';
@@ -63,15 +100,22 @@ const EditModal = async (poolId : string, poolName : string) => {
 }
 const handleEditPool = async () => {
     isLoading.value = true;
-    await $client.pool.updatePool.mutate(poolInfo.value);
-    isReloading.value = true;
-    isLoading.value = false;
-    showEditModal.value = false;
-    poolInfo.value.id = '';
-    poolInfo.value.name = '';
-    await fetchPools();
-    await fetchCount();
-    isReloading.value = false;
+    try{
+       const pool = await $client.pool.updatePool.mutate(poolInfo.value);
+       if(pool){
+            isReloading.value = true;
+            isLoading.value =false;
+            showEditModal.value = false;
+            poolInfo.value.name = '';
+            await fetchPools();
+            await fetchCount();
+            isReloading.value = false;
+       }
+    }catch(e:any){
+        isLoading.value = false;
+        errorText.value = "Failed. Please check your internet and try again later.";
+        showErrorModal.value = true;
+    }
 }
 const toggleDeleteModal = () => {
     poolInfo.value.id = '';
@@ -89,18 +133,26 @@ const DeleteModal = async (poolId: string, poolName: string) => {
 const handleDeletePool = async () => {
 
     isLoading.value = true;
-    const res = await $client.pool.deletePool.mutate({id :poolInfo.value.id});
-    if(res === 'Can\'t delete pool.'){
-        alert('Cannot delete pool with active users');
+    try{
+        const res = await $client.pool.deletePool.mutate({id :poolInfo.value.id});
+        if(res === 'Can\'t delete pool.'){
+            errorText.value = "You can't delete with active questions or contributors!";
+            showErrorModal.value = true;
+        }
+        isReloading.value = true;
+        isLoading.value = false;
+        showDeleteModal.value = false;
+        poolInfo.value.id = '';
+        poolInfo.value.name = '';
+        await fetchPools();
+        await fetchCount();
+        isReloading.value = false;
+    }catch(e:any){
+        isLoading.value = false;
+        errorText.value = "Failed. Please check your internet and try again later.";
+        showErrorModal.value = true;
     }
-    isReloading.value = true;
-    isLoading.value = false;
-    showDeleteModal.value = false;
-    poolInfo.value.id = '';
-    poolInfo.value.name = '';
-    await fetchPools();
-    await fetchCount();
-    isReloading.value = false;
+    
 }
 </script>
 
@@ -112,10 +164,9 @@ const handleDeletePool = async () => {
         <AdminSideBar pageName="pools" />
         <div class="w-full mx-6">
 
-
             <h2 class="intro-y text-lg font-medium mt-10">List of Pools</h2>
     
-            <div class="grid grid-cols-12 gap-6 mt-5">
+            <div class="my-5 w-full">
                 <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ">
                     <button  v-on:click="toggleAddModal()" class="btn btn-primary shadow-md mr-auto" data-modal-target="authentication-modal" data-modal-toggle="authentication-modal">Create Pool
                         <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
@@ -130,89 +181,179 @@ const handleDeletePool = async () => {
                         </div>
                     </div>
                 </div>
-          
-                <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                      <div v-if="pools?.length == 0" class="w-full text-center text-lg mt-10 h-full">
-                                    <p>No pools found</p>
-                                </div>
-                            <div v-if="pools?.length !== 0">
-                        
-                    <table class="table table-report -mt-2">
-                        <thead>
-                            <tr>
-                                <th class="whitespace-nowrap"></th>
-                                <th class="whitespace-nowrap">POOL NAME</th>
-                                <th class="text-center whitespace-nowrap">Number of Questions</th>
-                                <th class="text-center whitespace-nowrap">ACTIONS</th>
-                            </tr>
-                        </thead>
-                       
+                <div class="w-full mt-10">
 
-                          
-                            <tbody>
-                                    <tr v-for="pool in pools" :key="pool.id" class="intro-x">
-                                        <td class="w-10">
-                                              <NuxtLink :to="`/admin/pools/${pool.id}`">
-                                            <Icon name="ri:pie-chart-2-fill" class="w-6 h-6"></Icon>
-                                            </NuxtLink>
-                                        </td>
-                                        <td>
-                                            <NuxtLink :to="`/admin/pools/${pool.id}`" class="font-medium whitespace-nowrap">{{
-                                                pool.name
-                                            }}</NuxtLink>
-                                       
-                                        </td>
-                                        <td class="text-center">{{ pool._count.Questions }}</td>
+                    <div v-if="searchText != ''">
+                    
+                      <div class="intro-y col-span-12 overflow-auto lg:overflow-visible w-full">
+                                <div v-if="searchPools?.length == 0" class="w-full text-center text-lg mt-10 h-full">
+                                              <p>No pools found</p>
+                                          </div>
+                                      <div v-if="searchPools?.length !== 0">
+                                  
+                              <table class="table table-report -mt-2">
+                                  <thead>
+                                      <tr>
+                                          <th class="whitespace-nowrap"></th>
+                                          <th class="whitespace-nowrap">POOL NAME</th>
+                                          <th class="text-center whitespace-nowrap">Number of Questions</th>
+                                          <th class="text-center whitespace-nowrap">ACTIONS</th>
+                                      </tr>
+                                  </thead>
                                  
-                                        <td class="table-report__action w-56">
-                                            <div class="flex justify-center items-center">
-                                                <a class="flex items-center mr-6" href="javascript:;" @click="EditModal(pool.id, pool.name)">
-                                                    <Icon name="eva:checkmark-square-outline" class="w-4 h-4 mr-1"></Icon> Edit
-                                                </a>
-                                                <a class="flex items-center text-danger" href="javascript:;" @click="DeleteModal(pool.id, pool.name)">
-                                                    <Icon name="fa6-regular:trash-can" class="w-4 h-4 mr-1"></Icon> Delete
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div class="flex flex-row mt-3">
-                <div class="md:block  text-slate-500">
-                   
-                         Showing {{1 + (page-1)*6}} to {{ page*6 <count! ? page*6:count }} of {{count! }} entries
-                                    </div>
-                                    <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
-                                        <nav class="w-full sm:w-auto sm:mr-auto">
-                                            <ul class="pagination">
-                                                
-                                                <li class="page-item">
-                                                    <button class="page-link" v-on:click="paginate(page-1)" :disabled="page===1">
-                                                        <div class="flex flex-row align-middle justify-center items-center  ">
-                                                            <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
-                                                            <span class="">Previous</span>
-                                                        </div>
-                                                    </button>
-                                                </li>
-                                                <li class="page-item">  
-                                                    <button class="page-link" v-on:click="paginate(page+1)" :disabled="(page) * 6 >= count!">
-                                                        <div class="flex flex-row align-middle justify-center items-center">
-                                                                <span>Next</span>
-                                                                <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
-                                                        </div>
-                                                        </button>
-                                                    </li>
+          
+                                    
+                                      <tbody>
+                                              <tr v-for="pool in searchPools" :key="pool.id" class="intro-x">
+                                                  <td class="w-10">
+                                                        <NuxtLink :to="`/admin/pools/${pool.id}`">
+                                                      <Icon name="ri:pie-chart-2-fill" class="w-6 h-6"></Icon>
+                                                      </NuxtLink>
+                                                  </td>
+                                                  <td>
+                                                      <NuxtLink :to="`/admin/pools/${pool.id}`" class="font-medium whitespace-nowrap">{{
+                                                          pool.name
+                                                      }}</NuxtLink>
+                                                 
+                                                  </td>
+                                                  <td class="text-center">{{ pool._count.Questions }}</td>
                                            
-                                               
-                                                </ul>
-                                        </nav>
-                                      
-                                        </div>
-                            </div>
-                          
-                      
-                            </div> 
-                            </div>
+                                                  <td class="table-report__action w-56">
+                                                      <div class="flex justify-center items-center">
+                                                          <a class="flex items-center mr-6" href="javascript:;" @click="EditModal(pool.id, pool.name)">
+                                                              <Icon name="eva:checkmark-square-outline" class="w-4 h-4 mr-1"></Icon> Edit
+                                                          </a>
+                                                          <a class="flex items-center text-danger" href="javascript:;" @click="DeleteModal(pool.id, pool.name)">
+                                                              <Icon name="fa6-regular:trash-can" class="w-4 h-4 mr-1"></Icon> Delete
+                                                          </a>
+                                                      </div>
+                                                  </td>
+                                              </tr>
+                                          </tbody>
+                                      </table>
+                                      <div class="flex flex-row mt-3">
+                          <div class="md:block  text-slate-500">
+                             
+                                   <!-- Showing {{1 + (page-1)*6}} to {{ page*6 <count! ? page*6 :count }} of {{count! }} entries -->
+                                              </div>
+                                              <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+                                                  <nav class="w-full sm:w-auto sm:mr-auto">
+                                                      <ul class="pagination">
+                                                          
+                                                          <li class="page-item">
+                                                              <button class="page-link" v-on:click="paginateSearch(searchPage-1)" :disabled="searchPage===1">
+                                                                  <div class="flex flex-row align-middle justify-center items-center  ">
+                                                                      <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
+                                                                      <span class="">Previous</span>
+                                                                  </div>
+                                                              </button>
+                                                          </li>
+                                                          <li class="page-item">  
+                                                              <button class="page-link" v-on:click="paginateSearch(searchPage+1)" :disabled="(searchPage) * 6 >= searchcount!">
+                                                                  <div class="flex flex-row align-middle justify-center items-center">
+                                                                          <span>Next</span>
+                                                                          <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
+                                                                  </div>
+                                                                  </button>
+                                                              </li>
+                                                     
+                                                         
+                                                          </ul>
+                                                  </nav>
+                                                
+                                                  </div>
+                                      </div>
+                                    
+                                
+                                      </div> 
+                                      </div>
+                    </div>
+                    <div v-else>
+                      <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                                <div v-if="pools?.length == 0" class="w-full text-center text-lg mt-10 h-full">
+                                              <p>No pools found</p>
+                                          </div>
+                                      <div v-if="pools?.length !== 0">
+                                  
+                              <table class="table table-report -mt-2">
+                                  <thead>
+                                      <tr>
+                                          <th class="whitespace-nowrap"></th>
+                                          <th class="whitespace-nowrap">POOL NAME</th>
+                                          <th class="text-center whitespace-nowrap">Number of Questions</th>
+                                          <th class="text-center whitespace-nowrap">ACTIONS</th>
+                                      </tr>
+                                  </thead>
+                                 
+          
+                                    
+                                      <tbody>
+                                              <tr v-for="pool in pools" :key="pool.id" class="intro-x">
+                                                  <td class="w-10">
+                                                        <NuxtLink :to="`/admin/pools/${pool.id}`">
+                                                      <Icon name="ri:pie-chart-2-fill" class="w-6 h-6"></Icon>
+                                                      </NuxtLink>
+                                                  </td>
+                                                  <td>
+                                                      <NuxtLink :to="`/admin/pools/${pool.id}`" class="font-medium whitespace-nowrap">{{
+                                                          pool.name
+                                                      }}</NuxtLink>
+                                                 
+                                                  </td>
+                                                  <td class="text-center">{{ pool._count.Questions }}</td>
+                                           
+                                                  <td class="table-report__action w-56">
+                                                      <div class="flex justify-center items-center">
+                                                          <a class="flex items-center mr-6" href="javascript:;" @click="EditModal(pool.id, pool.name)">
+                                                              <Icon name="eva:checkmark-square-outline" class="w-4 h-4 mr-1"></Icon> Edit
+                                                          </a>
+                                                          <a class="flex items-center text-danger" href="javascript:;" @click="DeleteModal(pool.id, pool.name)">
+                                                              <Icon name="fa6-regular:trash-can" class="w-4 h-4 mr-1"></Icon> Delete
+                                                          </a>
+                                                      </div>
+                                                  </td>
+                                              </tr>
+                                          </tbody>
+                                      </table>
+                                      <div class="flex flex-row mt-3">
+                          <div class="md:block  text-slate-500">
+                             
+                                   <!-- Showing {{1 + (page-1)*6}} to {{ page*6 <count! ? page*6 :count }} of {{count! }} entries -->
+                                              </div>
+                                              <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+                                                  <nav class="w-full sm:w-auto sm:mr-auto">
+                                                      <ul class="pagination">
+                                                          
+                                                          <li class="page-item">
+                                                              <button class="page-link" v-on:click="paginate(page-1)" :disabled="page===1">
+                                                                  <div class="flex flex-row align-middle justify-center items-center  ">
+                                                                      <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
+                                                                      <span class="">Previous</span>
+                                                                  </div>
+                                                              </button>
+                                                          </li>
+                                                          <li class="page-item">  
+                                                              <button class="page-link" v-on:click="paginate(page+1)" :disabled="(page) * 6 >= count!">
+                                                                  <div class="flex flex-row align-middle justify-center items-center">
+                                                                          <span>Next</span>
+                                                                          <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
+                                                                  </div>
+                                                                  </button>
+                                                              </li>
+                                                     
+                                                         
+                                                          </ul>
+                                                  </nav>
+                                                
+                                                  </div>
+                                      </div>
+                                    
+                                
+                                      </div> 
+                                      </div>
+                    </div>
+                </div>
+              
                           
                      
                        
@@ -405,6 +546,9 @@ const handleDeletePool = async () => {
                                 </div>
                             </div>
                             <div v-if="isReloading" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+
+                            <Modal type="success" :show="showSuccessModal" :toggle="toggleSuccessModal" message="Success!"/>
+                            <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText"/>
                     </div>
 
             </div>

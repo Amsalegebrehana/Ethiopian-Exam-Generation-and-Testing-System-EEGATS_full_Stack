@@ -94,9 +94,7 @@ const nextQ = async () => {
         if (idx.value < examDetails?.value?.numberOfQuestions - 1) {
             idx.value++;
             await loadQuestion();
-        }
-
-        if (idx.value == examDetails?.value?.numberOfQuestions) {
+        } else if (idx.value === examDetails?.value?.numberOfQuestions - 1) {
             showReviewMessage.value = true;
             idx.value = -1;
         }
@@ -182,98 +180,118 @@ const tableData = computed(() => {
 </script>
 
 <template>
-    <div v-if="examDetails && testSession">
+    <TopBar role="testtaker" :id="testTakerId" />
+    <div class="mx-10">
 
-        <div class="flex flex-row">
+        <div v-if="examDetails && testSession">
 
-            <div class="w-9/12">
-                <div v-if="!showReviewMessage">
-                    <div v-if="question && question.loaded">
+            <div class="flex flex-row mt-10 mb-3 mx-3">
+                <Icon name="iconoir:page" class="w-8 h-8 mr-2 ml-10"></Icon>
+                <p class="text-3xl font-md">{{ examDetails.name }}</p>
+            </div>
 
-                        <form>
+            <div class="flex flex-row">
 
-                            <div>
-                                <div v-html="question.value.title" class="p-2"></div>
-                                <img v-if="question.value.image" :src=question.value.image
-                                    style="width: 10em; height: 10em;" />
-                            </div>
+                <div class="w-8/12 ml-16">
+                    <div v-if="!showReviewMessage">
+                        <div v-if="question && question.loaded">
 
-                            <div v-for="choice in question.value.choices" :key="choice.id">
+                            <form>
 
-                                <div class="flex flex-row align-middle my-1">
-                                    <input id="radio_1" type="radio" name="radio" :value="choice.id"
-                                        v-model="question.value.selectedAnswer" @change="question.value.changed = true">
-                                    <label class="pl-2 " for="radio_1">
+                                <div class="p-4">
+                                    <div v-html="question.value.title" class="p-2 text-xl my-2"></div>
+                                    <img v-if="question.value.image" :src=question.value.image class="ml-3"
+                                        style="width: 10em; height: 10em; " />
+                                </div>
+
+                                <div v-for="choice in question.value.choices" :key="choice.id" class="ml-10">
+
+                                    <div class="flex flex-row align-middle my-3">
+                                        <input id="radio_1" type="radio" name="radio" :value="choice.id"
+                                            v-model="question.value.selectedAnswer" @change="question.value.changed = true">
+                                        <label class="pl-2 " for="radio_1">
 
 
-                                        <div v-html="choice.title" class="px-2"></div>
-                                        <img v-if="choice.image" :src=choice.image style="width: 10em; height: 10em;" />
+                                            <div v-html="choice.title" class="px-2 text-lg -mt-1"></div>
+                                            <img v-if="choice.image" :src=choice.image style="width: 10em; height: 10em;" />
 
-                                    </label>
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="flex flex-row my-5 w-10/12 ">
+                                <!-- <div v-if="idx > 0" class="py-2 ml-auto w-1/12">
+                                     <button @click="navigateQ('prev', question.value.changed, question.value.selectedAnswer, question.value.id)" class="btn btn-primary" :disabled="isLoadingRegisterResponse">Previous</button>
+                                 </div> -->
+                                <div v-if="idx < examDetails.numberOfQuestions" class="py-3 ml-auto w-1/12 mb-20">
+                                    <button
+                                        @click="navigateQ('next', question.value.changed, question.value.selectedAnswer, question.value.id)"
+                                        class="btn btn-primary py-2" :disabled="isLoadingRegisterResponse">
+                                        <div v-if="isLoadingRegisterResponse">
+                                            <Icon name="eos-icons:bubble-loading" class="w-6 h-6 text-white"></Icon>
+                                        </div>
+                                        <div v-else class="text-xl">
+                                            Next
+                                        </div>
+                                    </button>
                                 </div>
                             </div>
-                        </form>
-                        <div class="flex flex-row mt-5 w-10/12">
-                            <!-- <div v-if="idx > 0" class="py-2 ml-auto w-1/12">
-                                <button @click="navigateQ('prev', question.value.changed, question.value.selectedAnswer, question.value.id)" class="btn btn-primary" :disabled="isLoadingRegisterResponse">Previous</button>
-                            </div> -->
-                            <div v-if="idx < examDetails.numberOfQuestions" class="py-2 ml-auto w-1/12">
-                                <button
-                                    @click="navigateQ('next', question.value.changed, question.value.selectedAnswer, question.value.id)"
-                                    class="btn btn-primary" :disabled="isLoadingRegisterResponse">
-                                    <div v-if="isLoadingRegisterResponse">
-                                        <Icon name="eos-icons:bubble-loading" class="w-6 h-6 text-white"></Icon>
+                        </div>
+
+                    </div>
+                    <div v-else>
+                        <div
+                            class="text-center mx-auto my-auto justify-center align-text-middle items-center h-screen">
+                            <div class="my-40">
+
+                                <h1 class="text-3xl font-bold ">
+                                    Make sure you have reviewed all questions before submitting the exam.
+                                </h1>
+                                <button @click="handlesubmit" class="btn btn-primary text-xl p-3 mt-10">
+                                    <div v-if="isLoadingSubmitExam">
+                                        <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                     </div>
                                     <div v-else>
-                                        Next
+                                        Submit Exam
                                     </div>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div v-else>
-                    <h1>
-                        Make sure you have reviewed all questions before submitting.
-                    </h1>
-                    <button @click="handlesubmit" class="btn btn-primary">
-                        <div v-if="isLoadingSubmitExam">
-                            <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+                <div class="w-3/12 ">
+                    <div class="w-full">
+                        <p class="font-bold text-2xl text-center py-5">Time Left :- {{ hours }}:{{ minutes }}:{{ seconds }}
+                        </p>
+                    </div>
+                    <div class="w-9/12 mx-20 shadow-lg py-5 rounded-xl">
+                        <div class="bg-primary  text-white text-center text-xl py-5 px-auto rounded-t-xl">
+                            Exam Navigation
                         </div>
-                        <div v-else>
-                            Submit
-                        </div>
-                    </button>
+                        <table class="w-8/12 my-5 mx-auto">
+                            <tbody>
+                                <tr v-for="row in tableData">
+                                    <td v-for="cell in row" class="table-cell">
+                                        <button class="button p-2" @click="setQ(cell - 1)"
+                                            :class="{ 'font-bold bg-primary text-white text-lg': idx + 1 === cell, 'bg-blue-400 text-lg text-white font-bold': questionListStore.getIsQuestionAnswered(cell - 1), 'bg-gray-300 text-lg font-bold': !questionListStore.getIsQuestionAnswered(cell - 1) }">{{
+                                                cell }}</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
                 </div>
-            </div>
-            <div class="3/12">
-                <div>{{ hours }}:{{ minutes }}:{{ seconds }}</div>
-                <table class="w-full">
-                    <tbody>
-                        <tr v-for="row in tableData">
-                            <td v-for="cell in row" class="table-cell">
-                                <button class="button p-2 " @click="setQ(cell - 1)"
-                                    :class="{ 'font-bold bg-primary text-white': idx + 1 === cell, 'bg-blue-100': questionListStore.getIsQuestionAnswered(cell - 1) }">{{
-                                        cell }}</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+
 
 
             </div>
-
-
-
         </div>
-
-
-
-
     </div>
 
     <div v-if="showInstructionModal"
-        class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex ">
+        class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
         <div class="relative w-screen h-screen my-6 mx-auto max-w-10xl">
             <!--content-->
             <div
@@ -309,15 +327,16 @@ const tableData = computed(() => {
                 <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b space-x-6">
 
                     <div v-if="testSession">
-                        <button @click="handleResumeSession()"
-                            class="bg-primary rounded-xl text-white py-3 px-4 text-center">
-                            <div v-if="resuming || creatingSession">
-                                <Icon name="eos-icons:bubble-loading" class="w-6 h-6 text-white"></Icon>
-                            </div>
-                            <div v-else>
+                        <div v-if="!(resuming || creatingSession)">
+                            <button @click="handleResumeSession()"
+                                class="bg-primary rounded-xl text-white py-3 px-4 text-center">
+
+
                                 Resume Exam
-                            </div>
-                        </button>
+
+                            </button>
+
+                        </div>
 
                     </div>
                     <div v-else>
@@ -406,5 +425,5 @@ const tableData = computed(() => {
 
             </div>
         </div>
-    </div>
+</div>
 <div v-if="!online || showErrorText" class="opacity-20 fixed inset-0 z-40 bg-black"></div></template>

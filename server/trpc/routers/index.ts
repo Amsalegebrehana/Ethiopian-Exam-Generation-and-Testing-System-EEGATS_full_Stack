@@ -9,6 +9,7 @@ import {testTakerRouter} from './testTaker'
 import { reviewsRouter } from './reviews'
 import { category } from './category';
 import {examRouter} from './exams';
+import { analyticsRouter } from './analytics';
 
 
 export const appRouter = router({
@@ -21,6 +22,7 @@ export const appRouter = router({
     review: reviewsRouter,
     category :  category,
     exam: examRouter,
+    analytics: analyticsRouter,
   
     
 });
