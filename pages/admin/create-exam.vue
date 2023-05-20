@@ -119,7 +119,7 @@
 
                       <Form class="">
                       
-                        <ErrorMessage name="duration" class="text-red-500" />
+                        <ErrorMessage name="examDuration" class="text-red-500" />
                           <div class="flex flex-row rounded-md border">
                               <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                                   <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
@@ -127,10 +127,12 @@
                                 <Field 
                                     class=" form-control py-3 border-none w-full  font-medium text-black-900"
                                   
-                                    name="duration" 
+                                    name="examDuration" 
                                     type="number" 
-                                    v-model="duration"
-                                    :rules="numberfieldSchema" />
+                                    v-model.number="duration"
+                            
+                                    
+                                    />
                                 
                                   </div>
                           </Form>
@@ -149,16 +151,11 @@
 
               </div>
 
-               <!--alert for successfully created exam  -->
-              <div v-if="isExamCreated" class="flex items-center alert alert-success text-white text-sm font-bold px-4 py-3 mb-2 rounded-lg mt-4 ml-2" role="alert">
-            
-                  <span class="truncate">Exam successfully created.</span>
-              </div>
+             
+              <Modal type="success" :show="isExamCreated"  message="Exam successfully created!"/>
+              <Modal type="error" :show="!isExamCreated && returnedErrorMessage.length > 0" :toggle="toggleErrorModal" :message="returnedErrorMessage"/>
               <!--alert for error message  -->
-              <div v-if="!isExamCreated && errorMessage.length >0" class="flex items-center alert alert-danger text-white text-sm font-bold px-4 py-3 mb-2 rounded-lg mt-4 ml-2" role="alert">
             
-                  <span class="truncate">{{ errorMessage }}</span>
-              </div>
                 </div>
        
               </div>
@@ -178,7 +175,7 @@ import { Field, Form, ErrorMessage } from 'vee-validate';
 import * as zod from 'zod';
 import { toFieldValidator } from '@vee-validate/zod';
 import { ref, computed, watch } from 'vue';
-
+import Modal from '@/components/Modal.vue'
 
 
 definePageMeta({ middleware: 'is-admin' })
@@ -210,10 +207,17 @@ const duration = ref(0);
 const isExamCreated = ref(false);
 
 // error message
-const errorMessage = ref('');
+const returnedErrorMessage = ref('');
 
+
+// modal
+const toggleErrorModal = () => {
+    // set errorMessage length to 0
+    returnedErrorMessage.value = "";
+}
+
+ 
 // 
-
 // fetch exam groups from db
 const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
 
@@ -334,8 +338,6 @@ const createExam = async () => {
       
     });
 
-    
-
     const exam = {
         name: examName.value,
         examGroupId: selectedExamGroup.value,
@@ -344,7 +346,7 @@ const createExam = async () => {
         testingDate: testingDate.value,
         duration: duration.value,
         categories: selectedCategories.value
-    }
+    };
   
     try {
         const createdExam = await $client.exam.createExam.mutate(exam);
@@ -362,12 +364,10 @@ const createExam = async () => {
     catch (error : any ) {
 
       isLoading.value = false;
-      errorMessage.value =  error.message;
+      returnedErrorMessage.value =  error.message;
+     
 
     }
-
-  
-    
 
 }
 </script>
