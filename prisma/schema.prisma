@@ -58,6 +58,7 @@ model Exam {
   numberOfQuestions Int                 @default(0)
   duration          Float               @default(0)
   testingDate       DateTime
+  examReleaseDate   DateTime
   status            ExamStatus
   poolId            String
   examGroupId       String

@@ -31,7 +31,7 @@
                         <h2 class="text-lg pb-10">Exam Total Number of questions: {{ exam.numberOfQuestions }}</h2>
                         <h2 class="text-lg pb-10">Duration: {{ exam.duration}} mins </h2>
                         <h2 class="text-lg pb-10">Testing date: {{ exam.testingDate}} </h2>
-                        
+                        <h2 class="text-lg pb-10">Exam Release date: {{ exam.examReleaseDate}} </h2>
                     </div>
 
 

@@ -12,16 +12,16 @@
                 </NuxtLink>
                 <h2 class="intro-y text-lg font-medium ">Create Exam</h2>
               </div>
-            
-                   <div class="ml-5">
+             
+                   <div class="ml-5 mt-5 shadow  p-10">
 
                   
                    
                     <div class="flex flex-row w-4/6 mt-3">
-                      <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Exam Name</label>
+                      <label for="horizontal-form-1 " class="my-auto w-2/6 font-medium text-lg">Exam Name</label>
                       <Form class="">
                           <ErrorMessage name="addExam" class=" text-red-500" />
-                          <div class="flex flex-row rounded-md border">
+                          <div class="flex flex-row rounded-md border hover:-translate-y-0.5 hover:border-blue-700">
                               <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                                   <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
                               </div>
@@ -36,8 +36,8 @@
                           <!-- <input id="horizontal-form-1" type="text" class="w-full py-2 px-2" placeholder="Enter Exam Name" v-model="examName" required> -->
                   </div>
                   <div class="flex flex-row w-4/6 mt-3 ">
-                      <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Exam Group</label>
-                      <div class="flex flex-row rounded-md border">
+                      <label for="horizontal-form-1" class="my-auto w-2/6 font-medium text-lg">Exam Group</label>
+                      <div class="flex flex-row rounded-md border hover:-translate-y-0.5 hover:border-blue-700">
                           <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                               <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
                           </div>
@@ -45,14 +45,14 @@
                       </div>
                   </div>
                   <div class="flex flex-row w-4/6 mt-3 ">
-                      <label for="horizontal-form-1" class="my-auto w-2/6 font-medium">Question Pool</label>
-                      <div class="flex flex-row rounded-md border ">
+                      <label for="horizontal-form-1" class="my-auto w-2/6 font-medium text-lg">Question Pool</label>
+                      <div class="flex flex-row rounded-md border hover:-translate-y-0.5 hover:border-blue-700" >
                           <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                               <Icon name="tabler:checkup-list" class="w-4 h-4 my-auto"></Icon>
                           </div>
                           <div class="width-20">
 
-                            <DropDownSelect :optionslist="pools" v-model="selectedPool" title="Choose Pools       "  />
+                            <DropDownSelect :optionslist="pools" v-model="selectedPool" title="Choose Pools "  />
                           </div>
                       </div>
                   </div>
@@ -60,12 +60,12 @@
                    
                           <!-- Categories -->
                   <div class="flex flex-row align-middle w-full mt-3">
-                          <label for="horizontal-form-1" class="my-auto align-middle w-2/6 font-medium">Categories</label>
+                          <label for="horizontal-form-1" class="my-auto align-middle w-2/6 font-medium text-lg">Categories</label>
                   </div>
                   <div>
 
                 <!-- categories dynamic ui -->
-                <div class="flex flex-row w-4/6 mt-3 ">
+                <div class="flex flex-row w-4/6 mt-3 ml-4">
                         <table class="table">
                       <thead>
                         <tr>
@@ -77,18 +77,18 @@
                       <tbody>
                         <tr v-for="(selectedCategory, index) in selectedCategories" :key="index">
                           <td>
-                            <select v-model="selectedCategory.categoryName" class="select" :selected="selectedCategory.categoryName" required>
+                            <select v-model="selectedCategory.categoryName" class="select hover:-translate-y-0.5 " :selected="selectedCategory.categoryName" required>
                               <option v-for="option in availableOptions" :value="option">{{ option }}</option>
                               <option :value="selectedCategory.categoryName" selected>{{ selectedCategory.categoryName }}</option>
                             </select>
                           </td>
                           <td>
-                            <input type="number" v-model="selectedCategory.numberOfQuestionPerCategory" class="input"  required  min="1" :max="setMax(selectedCategory.categoryName)" />
+                            <input type="number " v-model="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
                             <input type="hidden" :value="selectedCategory.selectedId=categoryNameId[selectedCategory.categoryName]" />
                           </td>
                           <td>
                               
-                            <button class="btn btn-primary shadow-md"  @click="removeCategory(index)">
+                            <button class="btn btn-outline-danger shadow-md text-danger"  @click="removeCategory(index)">
                                 <Icon name="material-symbols:close" ></Icon>
                             </button>
                           
@@ -100,27 +100,41 @@
                         </tr>
                       </tbody>
                     </table>
-                      </div>
-                    <button class="btn btn-primary shadow-md mt-5 " @click="addCategory">Add Category</button>
-                 <!-- end categories dynamic ui -->
-                  </div>
+                </div>
+                    
+                
+                <!-- end categories dynamic ui -->
+              </div>
+              <div class="flex justify-center">
+
+                <button class="btn btn-outline-success shadow-md mt-5 ml-8 text-primary  hover:-translate-y-0.5 transition"  @click="addCategory"> 
+                   <Icon name="material-symbols:add" ></Icon>
+                    Add Category</button>
+              </div>
                  <!-- Tesing Date-->
                                
-                <div class="flex flex-row align-middle w-4/6 mt-3">
+                  <div class="flex flex-row align-middle w-4/6 mt-3">
 
-                    <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium">Exam Date</label>
-                    <Datepicker calendar-class="rounded text-priamry form-control w-full" v-model="testingDate"  />
+                      <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium text-lg">Exam Date</label>
+                      <Datepicker calendar-class="rounded text-priamry form-control w-full hover:-translate-y-0.5 hover:border-blue-700" v-model="testingDate"  />
 
                   </div>  
+                    <!-- Test Release date -->
+                                       
+                    <div class="flex flex-row align-middle w-4/6 mt-3">
 
+                        <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium text-lg">Grade Release Date</label>
+                        <Datepicker calendar-class="rounded text-priamry form-control w-full" v-model="examReleaseDate"  />
+
+                    </div>  
                     <!-- Duration -->
                     <div class="flex flex-row w-4/6 mt-3 ">
-                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium">Duration</label>
+                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium text-lg">Duration</label>
 
-                      <Form class="">
+                      <Form >
                       
                         <ErrorMessage name="examDuration" class="text-red-500" />
-                          <div class="flex flex-row rounded-md border">
+                          <div class="flex flex-row rounded-md border hover:-translate-y-0.5 hover:border-blue-700">
                               <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
                                   <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
                               </div>
@@ -129,10 +143,7 @@
                                   
                                     name="examDuration" 
                                     type="number" 
-                                    v-model.number="duration"
-                            
-                                    
-                                    />
+                                    v-model.number="duration" />
                                 
                                   </div>
                           </Form>
@@ -145,15 +156,16 @@
                 <div class="flex justify-center">
   
                   <button v-if="!isLoading" class="btn btn-primary shadow-md mt-5 w-100 px-5 py-3" type="submit" @click="createExam">Create Exam </button>
-                  <button v-if="isLoading" class="btn btn-primary shadow-md mt-5 w-100" >
-                    <i  class="fa fa-spinner fa-spin"></i>
+                  <button v-if="isLoading" class="btn btn-primary shadow-md mt-5 w-100 " disabled >
+                    <svg class="motion-reduce:hidden animate-spin ..." viewBox="0 0 24 24"><!-- ... --></svg>
+                        loading...
                 </button>
 
               </div>
 
              
               <Modal type="success" :show="isExamCreated"  message="Exam successfully created!"/>
-              <Modal type="error" :show="!isExamCreated && returnedErrorMessage.length > 0" :toggle="toggleErrorModal" :message="returnedErrorMessage"/>
+              <Modal type="error" :show="!isExamCreated && returnedErrorMessage.length > 0" :toggle="toggleErrorModal" :message="returnedErrorMessage "/>
               <!--alert for error message  -->
             
                 </div>
@@ -199,6 +211,8 @@ const totalNumberOfQuestions = ref(0);
 
 // testing date of exam
 const testingDate = ref('');
+// exam release date
+const examReleaseDate = ref('');
 
 // duration of exam
 const duration = ref(0);
@@ -344,6 +358,7 @@ const createExam = async () => {
         poolId: selectedPool.value,
         numberOfQuestions : totalNumberOfQuestions.value,
         testingDate: testingDate.value,
+        examReleaseDate: examReleaseDate.value,
         duration: duration.value,
         categories: selectedCategories.value
     };

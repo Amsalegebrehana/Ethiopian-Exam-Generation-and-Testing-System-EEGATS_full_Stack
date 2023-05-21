@@ -74,6 +74,7 @@ export const examRouter = router({
                 numberOfQuestions: z.number(),
                 testingDate: z.date(),
                 duration: z.number(),
+                examReleaseDate: z.date(),
                 categories: z.array(z.object({
                     selectedId: z.string(),
                     numberOfQuestionPerCategory: z.number(),
@@ -83,7 +84,7 @@ export const examRouter = router({
         .mutation(async ({ ctx, input }) => {
            
             // error handle
-            if(!input.name || !input.examGroupId || !input.poolId || !input.numberOfQuestions || !input.testingDate || !input.duration || !input.categories){
+            if(!input.name || !input.examGroupId || !input.poolId || !input.numberOfQuestions || !input.testingDate || !input.examReleaseDate || !input.duration || !input.categories){
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message:"Please fill all the required fields."
@@ -135,7 +136,14 @@ export const examRouter = router({
                     message:"The time slot you picked has another exam scheduled please try to pick another time."
                 });
             }
+            // check if the  exam release date is after the testing date
+            if(input.examReleaseDate < input.testingDate){
 
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message:"The exam release date should be after the testing date."
+                });
+            }
            else {  
                 // create exam
                 const newExam = await ctx.prisma.exam.create({
@@ -145,6 +153,7 @@ export const examRouter = router({
                         poolId: input.poolId,
                         numberOfQuestions: input.numberOfQuestions,
                         testingDate: input.testingDate,
+                        examReleaseDate: input.examReleaseDate,
                         duration: input.duration,
                         status: "generated",
                     },
