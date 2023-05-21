@@ -31,7 +31,7 @@
                         <h2 class="text-lg pb-10">Exam Total Number of questions: {{ exam.numberOfQuestions }}</h2>
                         <h2 class="text-lg pb-10">Duration: {{ exam.duration}} mins </h2>
                         <h2 class="text-lg pb-10">Testing date: {{ exam.testingDate}} </h2>
-                        
+                        <h2 class="text-lg pb-10">Exam Release date: {{ exam.examReleaseDate}} </h2>
                     </div>
 
 
@@ -57,8 +57,7 @@ const id = route.params.id as string;
 // fetch exam by id
 const exam = await $client.exam.getExam.query({id:id});
 
-// disable release grade btn if exam is not published
-const releaseGradeBtn = ref({ disabled: true });
+
 // unpublish the published exam if the exam hasn't started yet (change status to generated)
 
 const publishBtn = ref(true);
@@ -68,7 +67,7 @@ const unpublishBtn = ref(false);
 const twoDaysLater = new Date(exam.testingDate.getTime() + 2 * 24 * 60 * 60 * 1000);
 
 // if exam grade is released then no publish exam
-if (exam.status === 'gradeReleased' || exam.status === 'published' && twoDaysLater < new Date()) {
+if ( exam.status === 'published' && twoDaysLater < new Date()) {
     publishBtn.value = false;
 
 }
@@ -77,10 +76,7 @@ if (exam.status === 'published' && exam.testingDate > new Date()) {
     unpublishBtn.value = true;
     publishBtn.value = false;
 }
-// if the exam is published and the testing date is two days later then release grade btn is enabled
-if (exam.status === 'published' && twoDaysLater < new Date()) {
-    releaseGradeBtn.value.disabled = false;
-}
+
 
 
 // publish the generated exam if the exam hasn't started yet (change status to published)
