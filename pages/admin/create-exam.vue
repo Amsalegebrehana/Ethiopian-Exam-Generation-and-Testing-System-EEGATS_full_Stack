@@ -10,13 +10,13 @@
                 <NuxtLink :to="`/admin/exams`">
                 <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
                 </NuxtLink>
-                <h2 class="intro-y text-lg font-medium ">Create Exam</h2>
+                <h2 class="intro-y text-lg font-bold mb-4">Create Exam</h2>
               </div>
-             
-                   <div class="ml-5 mt-5 shadow  p-10">
+              <div class="shadow p-4 ">
 
-                  
-                   
+              
+                   <div class="ml-5 mt-5 pl-24 pt-5 ">
+
                     <div class="flex flex-row w-4/6 mt-3">
                       <label for="horizontal-form-1 " class="my-auto w-2/6 font-medium text-lg">Exam Name</label>
                       <Form class="">
@@ -33,8 +33,8 @@
                                 
                                   </div>
                           </Form>
-                          <!-- <input id="horizontal-form-1" type="text" class="w-full py-2 px-2" placeholder="Enter Exam Name" v-model="examName" required> -->
-                  </div>
+                         
+                        </div>
                   <div class="flex flex-row w-4/6 mt-3 ">
                       <label for="horizontal-form-1" class="my-auto w-2/6 font-medium text-lg">Exam Group</label>
                       <div class="flex flex-row rounded-md border hover:-translate-y-0.5 hover:border-blue-700">
@@ -152,7 +152,7 @@
 
             
                 </div>
-              </div>
+            
                 <div class="flex justify-center">
   
                   <button v-if="!isLoading" class="btn btn-primary shadow-md mt-5 w-100 px-5 py-3" type="submit" @click="createExam">Create Exam </button>
@@ -162,7 +162,8 @@
                 </button>
 
               </div>
-
+            </div>
+          </div>
              
               <Modal type="success" :show="isExamCreated"  message="Exam successfully created!"/>
               <Modal type="error" :show="!isExamCreated && returnedErrorMessage.length > 0" :toggle="toggleErrorModal" :message="returnedErrorMessage "/>
