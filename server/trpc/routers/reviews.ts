@@ -5,13 +5,20 @@ export const reviewsRouter = router({
     getReviewsCount: publicProcedure
         .input(
             z.object({
-                reviewerId: z.string()
+                reviewerId: z.string(),
+                search: z.string().optional(),
             })
         )
         .query(async ({ ctx, input }) => {
             return await ctx.prisma.review.count({
                 where: {
-                    reviewerId: input.reviewerId
+                    questions: {
+                        title: {
+                            contains: input.search,
+                        }
+                    },
+                    reviewerId: input.reviewerId,
+                    isReviewed: false
                 },
             });
         }),
