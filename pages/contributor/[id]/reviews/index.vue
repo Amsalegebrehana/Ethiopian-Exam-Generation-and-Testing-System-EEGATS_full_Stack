@@ -52,15 +52,8 @@ const isReloading = ref(false);
       <ContributorSideBar pageName="reviews" :contrId="contrId" />
       <div class="w-full mx-6">
 
-
-        <!-- <h2 class="intro-y text-lg font-medium mt-10">Questions to review</h2> -->
-
         <div class="grid grid-cols-12 gap-6 mt-5">
           <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ">
-            <!-- <button v-on:click="toggleAddModal()" class="btn btn-primary shadow-md mr-auto"
-              data-modal-target="authentication-modal" data-modal-toggle="authentication-modal">Create Pool
-              <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
-            </button> -->
             <h2 class="intro-y text-lg font-medium mt-6">Questions to review</h2>
             <div class=" ml-auto mt-7 sm:mt-0 ">
               <div class="w-56 relative text-slate-500">
@@ -113,7 +106,6 @@ const isReloading = ref(false);
                           'text-success': review.isReviewed,
                         }">
                           <a class="flex items-center mr-6" href="javascript:;">
-                            <!-- EditModal(pool.id, pool.name) -->
                             <Icon name="eva:checkmark-square-outline" class="w-4 h-4 mr-1"></Icon>
                             {{
                               review.isReviewed ? "Reviewed" : "Pending"
@@ -126,8 +118,6 @@ const isReloading = ref(false);
                 </table>
                 <div class="flex flex-row mt-3">
                   <div class="md:block  text-slate-500">
-
-                    <!-- Showing {{ 1 + (page - 1) * 6 }} to {{ page * 6 < count! ? page * 6 : count }} of {{ count! }} entries -->
                   </div>
                   <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                     <nav class="w-full sm:w-auto sm:mr-auto">
@@ -207,7 +197,6 @@ const isReloading = ref(false);
                           'text-success': review.isReviewed,
                         }">
                           <a class="flex items-center mr-6" href="javascript:;">
-                            <!-- EditModal(pool.id, pool.name) -->
                             <Icon name="eva:checkmark-square-outline" class="w-4 h-4 mr-1"></Icon>
                             {{
                               review.isReviewed ? "Reviewed" : "Pending"
@@ -220,8 +209,6 @@ const isReloading = ref(false);
                 </table>
                 <div class="flex flex-row mt-3">
                   <div class="md:block  text-slate-500">
-
-                    <!-- Showing {{ 1 + (page - 1) * 6 }} to {{ page * 6 < count! ? page * 6 : count }} of {{ count! }} entries -->
                   </div>
                   <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                     <nav class="w-full sm:w-auto sm:mr-auto">
