@@ -1,17 +1,28 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { addMinutes } from "date-fns";
 
 // import isOverlapping  from 'date-fns';
 import { areIntervalsOverlapping } from 'date-fns'
 import { TRPCError } from "@trpc/server";
-import { da } from "date-fns/locale";
+
 
 export const examRouter = router({
 
-    getExamsCount: publicProcedure.query(async ({ ctx }) => {
-      return await ctx.prisma.exam.count();
-    }),
+    getExamsCount: protectedProcedure
+        .query(async ({ ctx }) => {
+            if (ctx.session.role === "admin") {
+
+                return await ctx.prisma.exam.count();
+
+            } else {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "UNAUTHORIZED ACCESS.",
+                });
+            }
+        }),
+     
     getExamIntervals: publicProcedure 
         .input(
             z.object({
@@ -43,7 +54,32 @@ export const examRouter = router({
             });
             return examsDateIntervals;
         }),
-    getExams: publicProcedure
+
+        // search exams count
+     searchExamsCount: protectedProcedure
+        .input(
+            z.object({
+                search: z.string().optional(),
+            })
+        )
+        .query(async ({ ctx, input }) => {
+            if (ctx.session.role === "admin") {
+                return await ctx.prisma.exam.count({
+                    where: {
+                        name: {
+                            contains: input.search,
+                        },
+                    },
+                });
+            } else {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "UNAUTHORIZED ACCESS.",
+                });
+            }
+        }),
+        //  exams searched
+        getSearchedExams : protectedProcedure
         .input(
             z.object({
                 skip: z.number(),
@@ -51,18 +87,59 @@ export const examRouter = router({
             })
         )
         .query(async ({ ctx, input }) => {
-            return await ctx.prisma.exam.findMany({
-                skip: input.skip,
-                take: 6,
-                orderBy: {
-                    createdAt: "desc",
-                },
-                where: {
-                    name: {
-                        contains: input.search,
-                       },
-                },
-            });
+            if (ctx.session.role === "admin") {
+                return await ctx.prisma.exam.findMany({
+                    skip: input.skip,
+                    take: 6,
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                    where: {
+                        name: {
+                            contains: input.search,
+                        },
+                    },
+                });
+            } else {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "UNAUTHORIZED ACCESS.",
+                });
+            }
+        }),
+
+        // get exams
+
+    getExams: protectedProcedure
+        .input(
+            z.object({
+                skip: z.number(),
+                search: z.string().optional(),
+            })
+        )
+        .query(async ({ ctx, input }) => {
+            if (ctx.session.role === "admin") {
+                
+                return await ctx.prisma.exam.findMany({
+                    skip: input.skip,
+                    take: 6,
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                    where: {
+                        name: {
+                            contains: input.search,
+                        },
+                    },
+                });
+            } else {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+            
+                });
+            }
+
         }),
         // create exam
     createExam: publicProcedure
