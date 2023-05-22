@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Modal from '@/components/Modal.vue'
+import { Console } from 'console';
 
 definePageMeta({ middleware: 'is-contributor' })
 const route = useRoute();
@@ -8,7 +10,9 @@ const reviewId = route.params.rid as string;
 const { data, refresh: fetchReview } = await useAsyncData(() => $client.review.getQuestionForReview.query({ reviewId }));
 const isLoading = ref(false);
 const question = data.value?.questions;
-const selected = ref(0);
+const showErrorModal = ref(false);
+const showSuccessModal = ref(false);
+const errorText = ref("");
 
 const reviewMetrics = ref([
     { "id": 1, "text": "Is this the first time you're seeing this question? ", "select": "" },
@@ -23,11 +27,31 @@ const reviewMetrics = ref([
 ]);
 
 
+const toggleErrorModal = () => {
+    showErrorModal.value = !showErrorModal.value;
+}
+
+const toggleSuccessModal = () => {
+    showSuccessModal.value = !showSuccessModal.value;
+    navigateTo(`/contributor/${contrId}/reviews`);
+}
 
 const submitFeedback = async () => {
-    isLoading.value = true
+    isLoading.value = true;
+
     const isApproved = ref(true);
     reviewMetrics.value.forEach(metric => {
+
+        if (metric.select === "") {
+            console.log("got an error");
+            console.log(metric.id);
+            errorText.value = "Please choose an option for all the metrics!";
+            showErrorModal.value = true;
+            isLoading.value = false;
+            process.exit();
+        }
+
+
         if (metric.id != 3 && metric.id != 7) {
             if (Boolean(metric.select) == false) {
                 isApproved.value = false;
@@ -38,7 +62,8 @@ const submitFeedback = async () => {
     const res = await $client.review.registerFeedback.mutate({ feedback: "", reviewId: reviewId, final: isApproved.value });
     if (res) {
         isLoading.value = false;
-        navigateTo(`/contributor/${contrId}/reviews`); 
+        showSuccessModal.value = true;
+        // navigateTo(`/contributor/${contrId}/reviews`);
     } else {
         //error handling
     }
@@ -117,7 +142,8 @@ const submitFeedback = async () => {
                         </li>
                     </ol>
                     <div class="w-5/12 flex flex-row">
-                        <button :disabled="isLoading" @click="submitFeedback()" class="btn btn-primary shadow-md my-6 ml-auto">
+                        <button :disabled="isLoading" @click="submitFeedback()"
+                            class="btn btn-primary shadow-md my-6 ml-auto">
                             <div v-if="isLoading">
                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                             </div>
@@ -128,6 +154,8 @@ const submitFeedback = async () => {
                     </div>
 
                 </div>
+                <Modal type="success" :show="showSuccessModal" :toggle="toggleSuccessModal" message="Success!" />
+                <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
 
             </div>
         </div>
