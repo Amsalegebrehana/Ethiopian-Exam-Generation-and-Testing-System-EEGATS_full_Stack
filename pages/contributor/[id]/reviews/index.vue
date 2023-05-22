@@ -40,6 +40,13 @@ const paginateSearch = async (newPage: number) => {
 
 const isReloading = ref(false);
 
+const resetSearch = () => {
+  if (searchText.value === "") {
+    searchPage.value = 1;
+    page.value = 1;
+  }
+}
+
 </script>
 
 
@@ -57,7 +64,7 @@ const isReloading = ref(false);
             <h2 class="intro-y text-lg font-medium mt-6">Questions to review</h2>
             <div class=" ml-auto mt-7 sm:mt-0 ">
               <div class="w-56 relative text-slate-500">
-                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." v-model="searchText" />
+                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." v-model="searchText" @change="resetSearch"/>
                 <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
 
               </div>
@@ -156,6 +163,7 @@ const isReloading = ref(false);
 
           </div>
           <div v-else>
+             
               <div v-if="reviews?.length == 0" class="w-full text-center text-lg mt-10 h-full">
                 <p>No questions to review found</p>
               </div>
