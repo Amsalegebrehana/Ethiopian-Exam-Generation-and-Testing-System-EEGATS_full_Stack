@@ -12,8 +12,8 @@ const page = ref(1);
 const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId }));
 const { data: reviews, refresh: fetchReviews, pending } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
 
-const { data: searchcount, refresh: fetchSearchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
-const { data: searchPools, refresh: fetchSearchReviews, pending: pendingSearch } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
+const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
+const { data: searchReviews, refresh: fetchSearchReviews, pending: pendingSearch } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
   { watch: [page, searchText] });
 
 const paginate = async (newPage: number) => {
@@ -65,16 +65,16 @@ const isReloading = ref(false);
           </div>
           <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
           <div v-if="searchText != ''">
-              <div v-if="reviews?.length == 0" class="w-full text-center text-lg mt-10 h-full">
+              <div v-if="searchReviews?.length == 0" class="w-full text-center text-lg mt-10 h-full">
                 <p>No questions to review found</p>
               </div>
-              <div v-if="reviews?.length !== 0">
+              <div v-if="searchReviews?.length !== 0">
 
                 <table class="table table-report -mt-2">
                   <thead>
                     <tr>
                       <th class="whitespace-nowrap"></th>
-                      <th class="whitespace-nowrap">POOL NAME</th>
+                      <th class="whitespace-nowrap">REVIEWS</th>
                       <th class="text-center whitespace-nowrap">STATUS</th>
                     </tr>
                   </thead>
@@ -82,7 +82,7 @@ const isReloading = ref(false);
 
 
                   <tbody>
-                    <tr v-for="review in reviews" :key="review.id" class="intro-x">
+                    <tr v-for="review in searchReviews" :key="review.id" class="intro-x">
                       <td class="w-10">
                         <NuxtLink :class="{ disabled: true }" :to="`/contributor/${contrId}/reviews/${review.id}`">
                           <button :disabled="review.isReviewed">
@@ -133,7 +133,7 @@ const isReloading = ref(false);
                           </button>
                         </li>
                         <li class="page-item">
-                          <button class="page-link" v-on:click="paginateSearch(searchPage + 1)" :disabled="(searchPage) * 6 >= count!">
+                          <button class="page-link" v-on:click="paginateSearch(searchPage + 1)" :disabled="(searchPage) * 6 >= searchCount!">
                             <div class="flex flex-row align-middle justify-center items-center">
                               <span>Next</span>
                               <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle">
@@ -165,7 +165,7 @@ const isReloading = ref(false);
                   <thead>
                     <tr>
                       <th class="whitespace-nowrap"></th>
-                      <th class="whitespace-nowrap">POOL NAME</th>
+                      <th class="whitespace-nowrap">REVIEWS</th>
                       <th class="text-center whitespace-nowrap">STATUS</th>
                     </tr>
                   </thead>
