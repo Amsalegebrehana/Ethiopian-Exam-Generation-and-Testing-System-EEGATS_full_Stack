@@ -1,6 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'is-contributor' })
 //TODO :form validation and upload widget fixing
+import ConfirmationModal from "@/components/ConfirmationModal.vue";
+
 const { $client } = useNuxtApp()
 const supabaseUrl = "https://ixzzkpsnlfushkyptszh.supabase.co";
 
@@ -22,6 +24,7 @@ const questionInfo = ref({
 })
 const isSubmitLoading = ref(false);
 const isSaveLoading = ref(false);
+const isModalVisible = ref(false);
 const correctAnswer = ref('');
 const step = ref(1);
 const nextStep = () => {
@@ -48,7 +51,7 @@ const handleSave = async () => {
         contrId: contrId
     })
     isSaveLoading.value = false;
-    navigateTo(`/contributor/${contrId}/questions`)
+    isModalVisible.value = true;
 }
 
 const handleSubmit = async () => {
@@ -70,7 +73,11 @@ const handleSubmit = async () => {
     })
     await $client.question.submitQuestion.mutate(question!.id);
     isSubmitLoading.value = false;
-    navigateTo(`/contributor/${contrId}/questions`)
+    isModalVisible.value = true;
+}
+
+const reload = () => {
+    location.reload();
 }
 
 const getSrc = (filepath: string) => {
@@ -85,6 +92,38 @@ const getSrc = (filepath: string) => {
         <div class="flex">
 
             <ContributorSideBar pageName="questions" :contrId="contrId" />
+            <div v-if="isModalVisible"
+                class="absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
+                <div class="py-5 px-3 flex-col bg-white rounded-xl">
+                    <div
+                        class="px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] flex h-[17vh] opacity-100 gap-4">
+                        <div class="px-3 flex-col">
+                            <Icon name="eva:checkmark-square-outline" class="w-12 h-12 text-green-600"></Icon>
+                            <DialogTitle as="h3" class="text-xl font-semibold leading-6 text-gray-900">
+                                Success!
+                            </DialogTitle>
+                            <p v-if="true" class="py-2 text-lg text-gray-500">
+                                Your question is currently being reviewed. You can add more questions
+                                or go back to view all the questions you've added so far.
+                            </p>
+                            <p v-else class="py-3 text-lg text-black-500">
+                                Your work has been saved as a draft and is now accessible from your "Questions" tab.
+                            </p>
+                            <div class="sm:flex sm:flex-row-reverse gap-3">
+                                <button @click="reload" class="btn btn-primary">
+                                    Add Question
+                                </button>
+                                <NuxtLink :to="`/contributor/${contrId}/questions/`"
+                                    class="font-medium whitespace-nowrap">
+                                    <button @click="" class="btn btn-primary">
+                                        View Questions
+                                    </button>
+                                </NuxtLink>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="w-10/12 mx-6 ">
 
                 <div class="flex flex-row  align-middle mt-10">
@@ -358,10 +397,6 @@ const getSrc = (filepath: string) => {
 
 
                     <!-- <CaeherEditor v-model="data" /> -->
-
-
-
-
 
                 </div>
                 <!-- END: Form Layout -->
