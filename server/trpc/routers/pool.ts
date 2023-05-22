@@ -44,7 +44,6 @@ export const poolRouter = router({
           },
           where: {
             poolId: { equals: input.poolId },
-            isActive : { equals: true },
             name: {
               contains: input.search,
             },

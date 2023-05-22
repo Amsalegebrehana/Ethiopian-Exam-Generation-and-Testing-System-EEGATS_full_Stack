@@ -88,6 +88,7 @@ const showEditModal = ref(false);
 const showAddModal = ref(false);
 const showConfirmationModal = ref(false);
 const showConf = ref(false);
+const showActivateModal = ref(false);
 
 const toggleInviteModal = () => {
     contributorEmail.value = '';
@@ -258,6 +259,19 @@ const DeleteContModal = async (contrId: string, contrName: string) => {
 
 }
 
+const toggleActivateModal = () => {
+    contrInfo.value.id = '';
+    contrInfo.value.name = '';
+    showActivateModal.value = !showActivateModal.value;
+}
+
+const ActivateContModal = async (contrId: string, contrName: string) => {
+    contrInfo.value.id = contrId;
+    contrInfo.value.name = contrName;
+    showActivateModal.value = !showActivateModal.value;
+
+}
+
 const DeleteCatModal = async (catId: string, catName: string) => {
 
     catInfo.value.id = catId;
@@ -285,6 +299,7 @@ const handleDisableContributor = async () => {
     isReloading.value = true;
     isLoading.value = false;
     showDeleteContModal.value = false;
+    showActivateModal.value = false;
     contrInfo.value.id = '';
     contrInfo.value.name = '';
     await fetchContributors();
@@ -517,10 +532,19 @@ watch(catID, (newId:string, oldId:string) => {
                                                 <a class="flex items-center mr-6" href="javascript:;" @click="AssignModal(contributor.id, contributor.reviewsMade)">
                                                     <Icon name="material-symbols:assignment-add-outline" class="w-4 h-4 mr-1"></Icon> Assign
                                                 </a>
+
+                                                <div v-if="contributor.isActive === true">
+                                                    <a class="flex items-center text-danger" href="javascript:;" @click="DeleteContModal(contributor.id, contributor.name)">
+                                                        <Icon name="fluent-mdl2:cancel" class="w-4 h-4 mr-1"></Icon> Disable
+                                                    </a>
+                                                </div>
+                                                <div v-else-if="contributor.isActive === false">
+                                                    <a class="flex items-center text-green-600" href="javascript:;" @click="ActivateContModal(contributor.id, contributor.name)">
+                                                        <Icon name="mdi:account-check" class="w-4 h-4 mr-1"></Icon> Activate
+                                                    </a>
+                                                </div>
                                                 
-                                                <a class="flex items-center text-danger" href="javascript:;" @click="DeleteContModal(contributor.id, contributor.name)">
-                                                    <Icon name="fluent-mdl2:cancel" class="w-4 h-4 mr-1"></Icon> Remove
-                                                </a>
+                                                
                                             </div>
                                         </td>
                                     </tr>
@@ -942,6 +966,53 @@ watch(catID, (newId:string, oldId:string) => {
 
                              
 
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="showActivateModal"
+                            class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+                            <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
+                                <!--content-->
+                                <div
+                                    class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                                    <!--header-->
+                                    <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
+                                        <!-- <h3 class="text-3xl font-semibold">
+                                            Modal Title
+                                        </h3> -->
+                                        <button
+                                            class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                                            type="button" v-on:click="toggleActivateModal()">
+                                            <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
+                                        </button>
+                                    </div>
+                                    <!--body-->
+                                    <div class="relative p-6 flex-auto">
+                                        
+                                        <div class="flex flex-row items-center space-x-4 mx-auto">
+                                             <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                                            <p class=" font-bold text-lg text-center">Are you sure you want to activate {{ contrInfo.name }}'s contributor account?'</p>
+                                        </div>
+                                    </div>
+                                    <!--footer-->
+                                    <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b space-x-6">
+                                        <button @click="toggleActivateModal()"
+                                               class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
+                                               :class="{'hidden': isLoading}" :disabled="isLoading">
+                                              Cancel
+                                           </button>
+
+                                        <button @click="handleDisableContributor()"
+                                            class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading">
+                                           <div v-if="isLoading || pending">
+                                                <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+                                            </div>
+                                            <div v-else>
+                                                Activate
+                                            </div>
+                                        </button>
                                     </div>
                                 </div>
                             </div>

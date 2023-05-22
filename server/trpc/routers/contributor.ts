@@ -208,12 +208,18 @@ export const contributorRouter = router({
     })
   )
   .mutation(async ({ ctx, input }) => {
+    const contributor = await ctx.prisma.contributors.findUnique({
+      where:{
+        id: input.id
+      }
+    });
+
     const data = await ctx.prisma.contributors.update({
       where: {
         id: input.id,
       },
       data: {
-        isActive: false,
+        isActive: !contributor?.isActive
       },
     });
     return data;
