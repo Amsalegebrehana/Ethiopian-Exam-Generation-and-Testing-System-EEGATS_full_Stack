@@ -218,6 +218,7 @@ export const contributorRouter = router({
     });
     return data;
   }),
+  
   getContributorId : publicProcedure
   .input(z.object({
     email : z.string()
@@ -239,9 +240,9 @@ export const contributorRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const emailCheck = validateEmail(input.email);
-      if(emailCheck == false){
-        return "Invalid Email!";
-      }
+        if(emailCheck == false){
+          return "Invalid Email!";
+        }
       const pool = await ctx.prisma.pool.findUnique({
         where: {
           id: input.poolId,
@@ -252,16 +253,21 @@ export const contributorRouter = router({
           email: input.email,
         }
       });
-      if(user?.poolId === input.poolId){
+
+      if(user && user.poolId!==input.poolId){
+        return "Already assigned";
+      }
+
+      if(user?.poolId === input.poolId && user.isActive === true){
         return 'Already a member of this pool'
       }
+
       if(user){
         await ctx.prisma.contributors.update({
           where: {
             email: input.email,
           },
           data: {
-            poolId: input.poolId,
             isActive: true,
           }
         }).then((data) => {
@@ -285,33 +291,31 @@ export const contributorRouter = router({
       return true;
     }),
 
-    checkContributorAssignmnet: publicProcedure
-      .input(
-        z.object({
-          email: z.string(),
-          poolId: z.string()
-        })
-      )
-      .query(async({ctx,input})=>{
-        const emailCheck = validateEmail(input.email);
-        if(emailCheck == false){
-          return "Invalid Email!";
-        }
-        const contributor = await ctx.prisma.contributors.findUnique({
-          where:{
-            email:input.email
-          }
-        });
+    // checkContributorAssignmnet: publicProcedure
+    //   .input(
+    //     z.object({
+    //       email: z.string(),
+    //       poolId: z.string()
+    //     })
+    //   )
+    //   .query(async({ctx,input})=>{
+    //     const emailCheck = validateEmail(input.email);
+    //     if(emailCheck == false){
+    //       return "Invalid Email!";
+    //     }
+    //     const contributor = await ctx.prisma.contributors.findUnique({
+    //       where:{
+    //         email:input.email
+    //       }
+    //     });
 
-        if(contributor && contributor.poolId===input.poolId){
-          return "Already a member of this pool";
-        }
+    //     if(contributor && contributor.poolId===input.poolId){
+    //       return "Already a member of this pool";
+    //     }
 
-        if(contributor && contributor.poolId!==input.poolId){
-          return true;
-        }
-        return false;
-      }),
+        
+    //     return false;
+    //   }),
 
     assignQuestion: publicProcedure
       .input(

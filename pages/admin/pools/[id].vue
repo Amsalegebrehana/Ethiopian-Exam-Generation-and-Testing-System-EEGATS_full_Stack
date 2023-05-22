@@ -86,7 +86,8 @@ const showDeleteContModal = ref(false);
 const showDeleteCatModal = ref(false);
 const showEditModal = ref(false);
 const showAddModal = ref(false);
-
+const showConfirmationModal = ref(false);
+const showConf = ref(false);
 
 const toggleInviteModal = () => {
     contributorEmail.value = '';
@@ -94,22 +95,36 @@ const toggleInviteModal = () => {
     showInviteModal.value = !showInviteModal.value;
 }
 
+// const toggleConfirmationModal = () => {
+//     showConf.value = true;
+//     showConfirmationModal.value = !showConfirmationModal.value;
+// }
+
+// const deleteConfirmationModal = () =>{
+//     showConf.value = false;
+//     showInv.value = false;
+//     contributorEmail.value = '';
+
+// }
+
 // const handleCheckContributorPool = async()=>{
 //     isLoading.value = true;
 //     const res = await $client.contributor.checkContributorAssignmnet.query({ email: contributorEmail.value, poolId: poolId! });
-//     if(res == "Invalid Email!"){
-//         isEmailInvalid.value = true;
-//         contributorEmail.value = "";
-//     }
+//     isLoading.value = false;
+//     showConf.value=false;
+//     showInv.value=false;
+//     isEmailInvalid.value = false;
+//     isInviteDup.value = false;
+    
 
-//     if(res == 'Already a member of this pool'){
-//         isInviteDup.value = true;
-//         contributorEmail.value = '';
-//     }
+//     // if(res === true){
+//     //     toggleConfirmationModal();
+        
+//     // }
 
-//     if(res === true){
-//         isAssignedtoAnotherPool.value = true;
-//     }
+//     // if(res === false){
+//     //     handleInviteContributor();
+//     // }
 
 // }
 
@@ -117,21 +132,29 @@ const handleInviteContributor = async () => {
     isLoading.value = true;
     const res = await $client.contributor.inviteContributor.mutate({ email: contributorEmail.value, poolId: poolId! });
     isLoading.value = false;
-    showInv.value = false;
-    isEmailInvalid.value = false;
-    isInviteDup.value = false;
+    showConf.value=false;
+    showInv.value=false;
     isInviteSuccess.value = false;
+
     if(res == "Invalid Email!"){
         isEmailInvalid.value = true;
         contributorEmail.value = "";
     }
+
+    if(res == "Already assigned"){
+        isAssignedtoAnotherPool.value = true;
+        contributorEmail.value = "";
+    }
+
     if(res == 'Already a member of this pool'){
         isInviteDup.value = true;
         contributorEmail.value = '';
     }
+
     if (res === true) {
         isInviteSuccess.value = true;
         contributorEmail.value = '';
+
     }
 }
 
@@ -494,6 +517,7 @@ watch(catID, (newId:string, oldId:string) => {
                                                 <a class="flex items-center mr-6" href="javascript:;" @click="AssignModal(contributor.id, contributor.reviewsMade)">
                                                     <Icon name="material-symbols:assignment-add-outline" class="w-4 h-4 mr-1"></Icon> Assign
                                                 </a>
+                                                
                                                 <a class="flex items-center text-danger" href="javascript:;" @click="DeleteContModal(contributor.id, contributor.name)">
                                                     <Icon name="fluent-mdl2:cancel" class="w-4 h-4 mr-1"></Icon> Remove
                                                 </a>
@@ -591,6 +615,13 @@ watch(catID, (newId:string, oldId:string) => {
                     </div>
                     </div>
 
+                    <div v-else-if="isAssignedtoAnotherPool && !showInv">
+                    <div class="flex flex-row items-center space-x-4 mx-auto">
+                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                        <p class=" font-bold text-lg text-center">Contributor is already assigned to another pool!</p>
+                    </div>
+                    </div>
+
                     <div v-if="!isInviteSuccess && !showInv">
                         <div class="flex flex-row items-center space-x-4 mx-auto">
                             <!-- <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon> -->
@@ -639,6 +670,12 @@ watch(catID, (newId:string, oldId:string) => {
         </div>
         <div v-if="showInviteModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
 </div>
+
+<div>
+
+<div v-if="showInviteModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+</div>
+
 
 <div v-if="showAssignModal"
                         class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
