@@ -7,9 +7,7 @@
                     class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none items-center">
                     <!--header-->
                     <div class="flex items-end ml-auto justify-between p-5 border-solid border-slate-200 rounded-t">
-                        <!-- <h3 class="text-3xl font-semibold">
-                                                Modal Title
-                                            </h3> -->
+                     
                         <button
                             class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
                             type="button" @click="toggle">
