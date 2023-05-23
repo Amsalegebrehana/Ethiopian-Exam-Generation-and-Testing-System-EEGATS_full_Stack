@@ -4,28 +4,28 @@ import { TRPCError } from "@trpc/server";
 
 export const poolRouter = router({
   getPoolContributorsCount: protectedProcedure
-  .input(
-    z.object({
-     poolId: z.string(),
-    })
-  )
-  .query(async ({ ctx , input}) => {
-    if(ctx.session.role === 'admin'){
+    .input(
+      z.object({
+        poolId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.role === 'admin') {
 
-      return await ctx.prisma.contributors.count({
-        where: {
-          poolId: { equals: input.poolId },
-        }
-      });
-    } else{
-      throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'UNAUTHORIZED ACCESS.',
-  
-      });
-    }
+        return await ctx.prisma.contributors.count({
+          where: {
+            poolId: { equals: input.poolId },
+          }
+        });
+      } else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
 
-  }),
+        });
+      }
+
+    }),
   getPoolContributors: protectedProcedure
     .input(
       z.object({
@@ -35,7 +35,7 @@ export const poolRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if(ctx.session.role === 'admin'){
+      if (ctx.session.role === 'admin') {
         const contributors = await ctx.prisma.contributors.findMany({
           skip: input.skip,
           take: 6,
@@ -44,74 +44,63 @@ export const poolRouter = router({
           },
           where: {
             poolId: { equals: input.poolId },
-            isActive : { equals: true },
+            isActive: { equals: true },
             name: {
               contains: input.search,
             },
           },
-          include:{
+          include: {
             contributorAssignments: {
-              where:{
-                questionsRemaining:{
-                  gt:0
+              where: {
+                questionsRemaining: {
+                  gt: 0
                 }
               }
             }
-  
+
           }
-        }).then((contributors)=>{
-          contributors.map((contributor)=>{
-            let sumOfQuestions=0;
-            contributor.contributorAssignments.forEach((contr)=>{
-              sumOfQuestions+=contr.questionsRemaining;
+        }).then((contributors) => {
+          contributors.map((contributor) => {
+            let sumOfQuestions = 0;
+            contributor.contributorAssignments.forEach((contr) => {
+              sumOfQuestions += contr.questionsRemaining;
             });
-            contributor.reviewsMade = sumOfQuestions; 
+            contributor.reviewsMade = sumOfQuestions;
             //REVIEWS MADE HAS BEEN CHANGED TO TOTAL QUESTIONS ASSIGNED
           });
-  
+
           return contributors;
         });
         return contributors;
-      
-      } else{
+
+      } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'UNAUTHORIZED ACCESS.',
-    
+
         });
       }
     }),
-    getPoolsCount: protectedProcedure.query(async ({ ctx }) => {
-      if(ctx.session.role === 'admin'){
-      
-        return await ctx.prisma.pool.count();
-      } else{
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'UNAUTHORIZED ACCESS.',
-    
-        });
-      }
-    }),
-    searchPoolsCount: protectedProcedure
+  getPoolsCount: protectedProcedure
     .input(
       z.object({
         search: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      if(ctx.session.role === 'admin'){
-        
-          return await ctx.prisma.pool.count({
-            where: {
-              name: {
-                contains: input.search,
-              },
-            },
-          });
-      }}),
+      if (ctx.session.role === 'admin') {
 
-    getSearchedPools: protectedProcedure
+        return await ctx.prisma.pool.count({
+          where: {
+            name: {
+              contains: input.search,
+            },
+          },
+        });
+      }
+    }),
+
+  getPools: protectedProcedure
     .input(
       z.object({
         skip: z.number(),
@@ -119,7 +108,7 @@ export const poolRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if(ctx.session.role === 'admin'){
+      if (ctx.session.role === 'admin') {
         return await ctx.prisma.pool.findMany({
           skip: input.skip,
           take: 6,
@@ -131,71 +120,28 @@ export const poolRouter = router({
               contains: input.search,
             },
           },
-          include :{
+          include: {
             _count: {
               select: {
                 Questions: {
-                  where :{
-                    status : { equals: 'approved'}
+                  where: {
+                    status: { equals: 'approved' }
                   }
                 },
-              
-              } ,
-                
+
               },
 
             },
+
+          },
         });
-      }else{
+      } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'UNAUTHORIZED ACCESS.',
         })
       }
     }),
-      
-    getPools: protectedProcedure
-      .input(
-        z.object({
-          skip: z.number(),
-
-        })
-      )
-      .query(async ({ ctx, input }) => {
-        if(ctx.session.role === 'admin'){
-          return await ctx.prisma.pool.findMany({
-            skip: input.skip,
-            take: 6,
-            orderBy: {
-              createdAt: "desc",
-            },
-          
-            include :{
-              _count: {
-                select: {
-                  Questions: {
-                    where :{
-                      status : { equals: 'approved'}
-                    }
-                  },
-                
-                } ,
-                  
-                },
-  
-              },
-          });
-        }else{
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'UNAUTHORIZED ACCESS.',
-      
-          });
-        }
-        
-    
-      }),
-
 
   addPool: protectedProcedure
     .input(
@@ -204,19 +150,19 @@ export const poolRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if(ctx.session.role === 'admin'){
+      if (ctx.session.role === 'admin') {
         const data = await ctx.prisma.pool.create({
           data: {
             name: input.name,
           },
         });
         return data;
-      
-      } else{
+
+      } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'UNAUTHORIZED ACCESS.',
-    
+
         });
       }
     }),
@@ -228,19 +174,19 @@ export const poolRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if(ctx.session.role === 'admin'){
-      
+      if (ctx.session.role === 'admin') {
+
         const data = await ctx.prisma.pool.findUnique({
           where: {
             id: input.id,
           },
         });
         return data;
-      } else{
+      } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'UNAUTHORIZED ACCESS.',
-    
+
         });
       }
     }),
@@ -253,8 +199,8 @@ export const poolRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if(ctx.session.role === 'admin'){
-      
+      if (ctx.session.role === 'admin') {
+
         const data = await ctx.prisma.pool.update({
           where: {
             id: input.id,
@@ -264,11 +210,11 @@ export const poolRouter = router({
           },
         });
         return data;
-      } else{
+      } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'UNAUTHORIZED ACCESS.',
-    
+
         });
       }
     }),
@@ -280,9 +226,9 @@ export const poolRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if(ctx.session.role === 'admin'){
-        try{
-  
+      if (ctx.session.role === 'admin') {
+        try {
+
           const data = await ctx.prisma.pool.delete({
             where: {
               id: input.id,
@@ -290,38 +236,38 @@ export const poolRouter = router({
           });
           return data;
         }
-        catch(e){
-          return  'Can\'t delete pool.';
+        catch (e) {
+          return 'Can\'t delete pool.';
         }
-      
-      } else{
+
+      } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'UNAUTHORIZED ACCESS.',
-    
+
         });
       }
     }),
-    getPoolsWithCategories: protectedProcedure
-      .input(
-        z.object({
-         
+  getPoolsWithCategories: protectedProcedure
+    .input(
+      z.object({
+
       })
     )
     .query(async ({ ctx, input }) => {
-      if(ctx.session.role === 'admin'){
+      if (ctx.session.role === 'admin') {
 
         const data = await ctx.prisma.pool.findMany({
-          select:{
-            id:true,
-            name:true,
-            Category:{
-              select:{
-                id:true,
-                name:true,
-                questions:{
-                  where:{
-                    status:{equals:'approved'}
+          select: {
+            id: true,
+            name: true,
+            Category: {
+              select: {
+                id: true,
+                name: true,
+                questions: {
+                  where: {
+                    status: { equals: 'approved' }
                   }
                 }
               }
@@ -329,14 +275,14 @@ export const poolRouter = router({
           }
         });
         return data;
-      } else{
+      } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'UNAUTHORIZED ACCESS.',
-    
+
         });
       }
     }),
 
-      
+
 });
