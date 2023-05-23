@@ -43,7 +43,8 @@ export const testTakerRouter = router({
     }),
     getExamsCount: publicProcedure
     .input(z.object({
-      testTakerId : z.string()
+      testTakerId : z.string(),
+      search: z.string().optional(),
     }))
     .query(async ({ ctx , input}) => {
       const testTaker = await ctx.prisma.testTakers.findUnique({
