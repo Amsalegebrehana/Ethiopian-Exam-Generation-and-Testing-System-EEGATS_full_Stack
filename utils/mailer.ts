@@ -29,7 +29,7 @@ export async function sendNewInvite({
     html: `<p>Greetings,<br></p> <p>You have been invited to contribute and review questions for the Ethiopian Exam Generation and Testing System's ${pool} pool.<br></p><p> Create your contributor account by clicking <a href="${url}">HERE</a></p>`,
   });
 
-  console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+  // console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
 }
 export async function sendReturnEmail({
   email,
@@ -58,7 +58,7 @@ export async function sendReturnEmail({
     html: `<p>Greetings,<br></p> <p>You have been invited to contribute and review questions for the Ethiopian Exam Generation and Testing System's ${pool} pool.<br></p><p>Log into your account by clicking <a href="${url}">HERE</a></p>`,
   });
 
-  console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+  // console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
 }
 
 export async function sendNotificationEmail({
