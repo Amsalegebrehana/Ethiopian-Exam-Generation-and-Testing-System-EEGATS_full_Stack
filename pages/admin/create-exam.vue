@@ -83,7 +83,7 @@
                             </select>
                           </td>
                           <td>
-                            <input type="number " v-model="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
+                            <input type="number " v-model.number="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
                             <input type="hidden" :value="selectedCategory.selectedId=categoryNameId[selectedCategory.categoryName]" />
                           </td>
                           <td>
@@ -181,9 +181,9 @@
 
 import AdminTopBar from '~~/components/TopBar.vue'
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
-import DropDownSelect from '~~/components/DropDownSelect.vue';
-import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
+import Datepicker from '@vuepic/vue-datepicker';
+import DropDownSelect from '~~/components/DropDownSelect.vue';
 import { Field, Form, ErrorMessage } from 'vee-validate';
 import * as zod from 'zod';
 import { toFieldValidator } from '@vee-validate/zod';
@@ -381,8 +381,6 @@ const createExam = async () => {
 
       isLoading.value = false;
       returnedErrorMessage.value =  error.message;
-     
-
     }
 
 }
