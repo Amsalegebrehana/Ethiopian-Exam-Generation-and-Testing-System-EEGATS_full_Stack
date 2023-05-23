@@ -1,11 +1,12 @@
 import { array, z } from "zod";
-import { sendNewInvite, sendReturnEmail, sendNotificationEmail } from "~~/utils/mailer";
+import { sendStatusNotificationEmail, sendNewInvite, sendReturnEmail, sendNotificationEmail } from "~~/utils/mailer";
 import { protectedProcedure, router } from "../trpc";
 import { validateEmail } from "~~/utils/emailValidation";
 const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
 import { QuestionStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { category } from "./category";
 export const contributorRouter = router({
 
   getContributorQuestions: protectedProcedure
@@ -280,18 +281,37 @@ export const contributorRouter = router({
         const contributor = await ctx.prisma.contributors.findUnique({
           where: {
             id: input.id
+          },
+          include:{
+            pool:true
           }
         });
 
-        const data = await ctx.prisma.contributors.update({
+        let status = '';
+        if(contributor?.isActive === true){
+          status = 'Inactive';
+        }
+        else{
+          status = 'Active';
+        }
+        await ctx.prisma.contributors.update({
           where: {
             id: input.id,
           },
           data: {
             isActive: !contributor?.isActive
           },
-        });
-        return data;
+          }).then((data) =>{
+            if(contributor){
+              sendStatusNotificationEmail({
+                url: `${auth.origin}`,
+                email: contributor.email,
+                pool: contributor.pool.name,
+                status: status
+              })
+            }
+          });
+        
       }
       else {
         throw new TRPCError({
@@ -356,32 +376,15 @@ export const contributorRouter = router({
         if (user?.poolId === input.poolId && user.isActive === true) {
           return 'Already a member of this pool'
         }
-
-        if (user) {
-          await ctx.prisma.contributors.update({
-            where: {
-              email: input.email,
-            },
-            data: {
-              isActive: true,
-            }
-          }).then((data) => {
-            if (pool) {
-              sendReturnEmail({
-                url: `${auth.origin}`,
-                email: input.email,
-                pool: pool?.name,
-              });
-            }
+        if(pool){
+          sendNewInvite({
+            url: `${auth.origin}/contributor/register?poolId=${input.poolId}`,
+            email: input.email,
+            pool: pool?.name,
           });
-        } else {
-          if (pool) {
-            sendNewInvite({
-              url: `${auth.origin}/contributor/register?poolId=${input.poolId}`,
-              email: input.email,
-              pool: pool?.name,
-            });
-          }
+        }
+        else{
+          return "Pool not found!";
         }
         return true;
       }
