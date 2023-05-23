@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Console } from 'console';
+import Modal from '@/components/Modal.vue';
+
 
 
 definePageMeta({ middleware: 'is-contributor' })
@@ -7,7 +9,10 @@ const { $client } = useNuxtApp()
 const route = useRoute();
 const contrId = route.params.id as string;
 const searchText = ref('');
+const errorText = ref('');
 const searchPage = ref(1);
+const showErrorModal = ref(false);
+const isReloading = ref(false);
 const page = ref(1);
 
 
@@ -23,7 +28,10 @@ const paginate = async (newPage: number) => {
   isReloading.value = true;
   try {
     await fetchReviews();
-    await fetchCount();
+    await fetchCount()
+  } catch (e: any) {
+    errorText.value = e.message;
+    showErrorModal.value = true;
   } finally {
     isReloading.value = false
   }
@@ -36,12 +44,15 @@ const paginateSearch = async (newPage: number) => {
   try {
     await fetchSearchReviews();
     await fetchSearchCount();
+  } catch (e: any) {
+    errorText.value = e.message;
+    showErrorModal.value = true;
   } finally {
     isReloading.value = false
   }
 }
 
-const isReloading = ref(false);
+
 
 const resetSearch = () => {
   if (searchText.value === "") {
@@ -50,6 +61,9 @@ const resetSearch = () => {
   }
 }
 
+const toggleErrorModal = () => {
+  showErrorModal.value = !showErrorModal.value;
+}
 
 
 
@@ -261,6 +275,9 @@ const resetSearch = () => {
             </div>
           </div>
         </div>
+
+        <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
+
       </div>
     </div>
   </div>

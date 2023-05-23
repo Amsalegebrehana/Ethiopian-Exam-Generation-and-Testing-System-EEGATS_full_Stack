@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Modal from '@/components/Modal.vue'
+import Modal from '@/components/Modal.vue';
 import { Console } from 'console';
 
 definePageMeta({ middleware: 'is-contributor' })
@@ -57,13 +57,18 @@ const submitFeedback = async () => {
         }
     });
 
-    const res = await $client.review.registerFeedback.mutate({ feedback: "", reviewId: reviewId, final: isApproved.value });
-    if (res) {
+    try {
+        const res = await $client.review.registerFeedback.mutate({ feedback: "", reviewId: reviewId, final: isApproved.value });
+        if (res) {
+            isLoading.value = false;
+            showSuccessModal.value = true;
+        } else {
+        }
+
+    } catch (e: any) {
         isLoading.value = false;
-        showSuccessModal.value = true;
-        // navigateTo(`/contributor/${contrId}/reviews`);
-    } else {
-        //error handling
+        errorText.value = e.message;
+        showErrorModal.value = true;
     }
 
 }
