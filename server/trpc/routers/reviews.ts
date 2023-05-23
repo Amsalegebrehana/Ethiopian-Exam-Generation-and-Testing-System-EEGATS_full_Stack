@@ -1,5 +1,8 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
+import nodemailer from "nodemailer";
+const { auth } = useRuntimeConfig();
+
 
 const filter = (text: string) => {
     const length = 100;
@@ -10,6 +13,36 @@ const filter = (text: string) => {
     return new_content;
 };
 
+
+
+export async function sendNotification({
+    email,
+    url,
+    pool
+}: {
+    email: string;
+    url: string;
+    pool: string;
+}) {
+    const testAccount = await nodemailer.createTestAccount();
+
+    const transporter = nodemailer.createTransport({
+
+        service: "gmail",
+        auth: {
+            user: "invite.eegts@gmail.com",
+            pass: process.env.MAILER_PASSWORD,
+        },
+    });
+
+    const info = await transporter.sendMail({
+        from: ' <no-reply@eegts.com>',
+        to: email,
+        subject: "Contribute at EEGTS",
+        html: `<p>Greetings,<br></p> <p>You have been assigned to contribute more questions for the Ethiopian Exam Generation and Testing System's ${pool} pool.<br></p><p>Log into your account by clicking <a href="${url}">HERE</a></p>`,
+    });
+
+}
 
 
 export const reviewsRouter = router({
@@ -67,7 +100,7 @@ export const reviewsRouter = router({
                     }
                 }
             }).then((reviews) => {
-                reviews.forEach(review => { 
+                reviews.forEach(review => {
                     review.questions.title = filter(review.questions.title);
                 });
                 return reviews;
@@ -182,6 +215,20 @@ export const reviewsRouter = router({
                             }
                         }
                     });
+                    const contributor = await ctx.prisma.contributors.findUnique({
+                        where: {
+                            id: question.contributorId
+                        }
+                    });
+
+                    const pool = await ctx.prisma.pool.findUnique({
+                        where: {
+                            id: contributor?.poolId,
+                        },
+                    });
+
+                    sendNotification({ email: contributor!.id, pool: pool!.name, url: `${auth.origin}/contributor/login`});
+
                     return data;
                 }
             });
