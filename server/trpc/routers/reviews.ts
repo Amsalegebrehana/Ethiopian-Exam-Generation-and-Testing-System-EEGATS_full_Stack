@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, router } from "../trpc";
 import nodemailer from "nodemailer";
 const { auth } = useRuntimeConfig();
+import { TRPCError } from "@trpc/server";
+
 
 
 const filter = (text: string) => {
@@ -46,7 +48,7 @@ export async function sendNotification({
 
 
 export const reviewsRouter = router({
-    getReviewsCount: publicProcedure
+    getReviewsCount: protectedProcedure
         .input(
             z.object({
                 reviewerId: z.string(),
@@ -54,6 +56,27 @@ export const reviewsRouter = router({
             })
         )
         .query(async ({ ctx, input }) => {
+            
+            // restrict if not contributor
+            if (ctx.session.role !== "contributor") {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+
+                });
+                process.exit();
+            }
+
+            // restrict if not the right contributor trys to access
+            if (ctx.session.uid !== input.reviewerId) {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+
+                });
+                process.exit();
+            }
+
             return await ctx.prisma.review.count({
                 where: {
                     questions: {
@@ -66,7 +89,7 @@ export const reviewsRouter = router({
                 },
             });
         }),
-    getReviews: publicProcedure
+    getReviews: protectedProcedure
         .input(
             z.object({
                 skip: z.number(),
@@ -75,6 +98,26 @@ export const reviewsRouter = router({
             })
         )
         .query(async ({ ctx, input }) => {
+
+            // restrict if not contributor
+            if (ctx.session.role !== "contributor") {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+
+                });
+                process.exit();
+            }
+
+            // restrict if not the right contributor trys to access
+            if (ctx.session.uid !== input.reviewerId) {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+
+                });
+                process.exit();
+            }
 
             return await ctx.prisma.review.findMany({
                 skip: input.skip,
@@ -106,7 +149,7 @@ export const reviewsRouter = router({
                 return reviews;
             });
         }),
-    getReview: publicProcedure
+    getReview: protectedProcedure
         .input(
             z.object({
                 id: z.string(),
@@ -121,13 +164,39 @@ export const reviewsRouter = router({
             return data;
         }),
 
-    getQuestionForReview: publicProcedure
+    getQuestionForReview: protectedProcedure
         .input(
             z.object({
                 reviewId: z.string(),
             })
         )
         .query(async ({ ctx, input }) => {
+            // restrict if not contributor
+            if (ctx.session.role !== "contributor") {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+
+                });
+                process.exit();
+            }
+
+            const review = await ctx.prisma.review.findUnique({
+                where: {
+                    id: input.reviewId,
+                }
+            });
+
+            // restrict if not the right contributor trys to access
+            if (ctx.session.uid !== review?.reviewerId) {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+
+                });
+                process.exit();
+            }
+
             const data = await ctx.prisma.review.findFirst({
                 where: {
                     id: input.reviewId,
@@ -162,7 +231,7 @@ export const reviewsRouter = router({
             return data;
         }),
 
-    registerFeedback: publicProcedure
+    registerFeedback: protectedProcedure
         .input(
             z.object({
                 reviewId: z.string(),
@@ -171,6 +240,34 @@ export const reviewsRouter = router({
             })
         )
         .mutation(async ({ ctx, input }) => {
+
+            // restrict if not contributor
+            if (ctx.session.role !== "contributor") {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+
+                });
+                process.exit();
+            }
+
+            const review = await ctx.prisma.review.findUnique({
+                where: {
+                    id: input.reviewId,
+                }
+            });
+
+            // restrict if not the right contributor trys to access
+            if (ctx.session.uid !== review?.reviewerId) {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+
+                });
+                process.exit();
+            }
+
+
             const data = await ctx.prisma.review.update({
                 where: {
                     id: input.reviewId,
@@ -227,7 +324,7 @@ export const reviewsRouter = router({
                         },
                     });
 
-                    sendNotification({ email: contributor!.id, pool: pool!.name, url: `${auth.origin}/contributor/login`});
+                    sendNotification({ email: contributor!.id, pool: pool!.name, url: `${auth.origin}/contributor/login` });
 
                     return data;
                 }
