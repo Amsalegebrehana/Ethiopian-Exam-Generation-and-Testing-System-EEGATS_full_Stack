@@ -17,7 +17,7 @@ const errorText = ref("");
 const reviewMetrics = ref([
     { "id": 1, "text": "Is this the first time you're seeing this question? ", "select": "" },
     { "id": 2, "text": "Is the chosen answer correct? ", "select": "" },
-    { "id": 3, "text": "Does the qustion encourage critical thinking or problem-solving skills? ", "select": "" },
+    { "id": 3, "text": "Does the question encourage critical thinking or problem-solving skills? ", "select": "" },
     { "id": 4, "text": "Is the question coherent or clear enough? ", "select": "" },
     { "id": 5, "text": "Are the choices clear enough? ", "select": "" },
     { "id": 6, "text": "Is the question's difficulty suitable? ", "select": "" },
@@ -43,8 +43,6 @@ const submitFeedback = async () => {
     reviewMetrics.value.forEach(metric => {
 
         if (metric.select === "") {
-            console.log("got an error");
-            console.log(metric.id);
             errorText.value = "Please choose an option for all the metrics!";
             showErrorModal.value = true;
             isLoading.value = false;

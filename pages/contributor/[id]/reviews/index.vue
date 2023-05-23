@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Console } from 'console';
+
 
 definePageMeta({ middleware: 'is-contributor' })
 const { $client } = useNuxtApp()
@@ -27,6 +29,7 @@ const paginate = async (newPage: number) => {
   }
 }
 
+
 const paginateSearch = async (newPage: number) => {
   searchPage.value = newPage;
   isReloading.value = true;
@@ -47,6 +50,9 @@ const resetSearch = () => {
   }
 }
 
+
+
+
 </script>
 
 
@@ -64,14 +70,15 @@ const resetSearch = () => {
             <h2 class="intro-y text-lg font-medium mt-6">Questions to review</h2>
             <div class=" ml-auto mt-7 sm:mt-0 ">
               <div class="w-56 relative text-slate-500">
-                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." v-model="searchText" @change="resetSearch"/>
+                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." v-model="searchText"
+                  @change="resetSearch" />
                 <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
 
               </div>
             </div>
           </div>
           <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-          <div v-if="searchText != ''">
+            <div v-if="searchText != ''">
               <div v-if="searchReviews?.length == 0" class="w-full text-center text-lg mt-10 h-full">
                 <p>No questions to review found</p>
               </div>
@@ -101,8 +108,7 @@ const resetSearch = () => {
                         <NuxtLink :to="`/contributor/${contrId}/reviews/${review.id}`"
                           class="font-medium whitespace-nowrap">
                           <button :disabled="review.isReviewed">
-                            <div v-html="review.questions.title
-                              "></div>
+                            <div v-html="review.questions.title"></div>
                           </button>
                         </NuxtLink>
 
@@ -131,7 +137,8 @@ const resetSearch = () => {
                       <ul class="pagination">
 
                         <li class="page-item">
-                          <button class="page-link" v-on:click="paginateSearch(searchPage - 1)" :disabled="searchPage === 1">
+                          <button class="page-link" v-on:click="paginateSearch(searchPage - 1)"
+                            :disabled="searchPage === 1">
                             <div class="flex flex-row align-middle justify-center items-center  ">
                               <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle">
                               </Icon>
@@ -140,7 +147,8 @@ const resetSearch = () => {
                           </button>
                         </li>
                         <li class="page-item">
-                          <button class="page-link" v-on:click="paginateSearch(searchPage + 1)" :disabled="(searchPage) * 6 >= searchCount!">
+                          <button class="page-link" v-on:click="paginateSearch(searchPage + 1)"
+                            :disabled="(searchPage) * 6 >= searchCount!">
                             <div class="flex flex-row align-middle justify-center items-center">
                               <span>Next</span>
                               <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle">
@@ -161,9 +169,9 @@ const resetSearch = () => {
 
 
 
-          </div>
-          <div v-else>
-             
+            </div>
+            <div v-else>
+
               <div v-if="reviews?.length == 0" class="w-full text-center text-lg mt-10 h-full">
                 <p>No questions to review found</p>
               </div>

@@ -1,6 +1,17 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 
+const filter = (text: string) => {
+    const length = 100;
+    const clamp = '...';
+    text = text.slice(3, -4);
+    var new_content = text.length > length ? text.slice(0, length) + clamp : text;
+    new_content = '<p>' + new_content + '</p>';
+    return new_content;
+};
+
+
+
 export const reviewsRouter = router({
     getReviewsCount: publicProcedure
         .input(
@@ -55,22 +66,12 @@ export const reviewsRouter = router({
                         }
                     }
                 }
+            }).then((reviews) => {
+                reviews.forEach(review => { 
+                    review.questions.title = filter(review.questions.title);
+                });
+                return reviews;
             });
-            //   console.log("backend")
-            //   const new_reviews: any[] | PromiseLike<any[]> = []
-            //   reviews.forEach(async review => {
-            //       const question = await ctx.prisma.questions.findUnique({where:{id: review.questionId}})
-            //       const curr = {
-            //           "review": review,
-            //           "questionTitle": question?.title
-            //       }
-            //       new_reviews.push(curr);
-            //       console.log(new_reviews);
-
-            //   });
-            //   console.log("passed")
-            //   console.log(new_reviews);
-            //   return new_reviews;
         }),
     getReview: publicProcedure
         .input(
