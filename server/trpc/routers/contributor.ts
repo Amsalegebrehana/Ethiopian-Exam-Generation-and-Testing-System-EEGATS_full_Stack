@@ -392,28 +392,37 @@ export const contributorRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      console.log(input.poolId);
-      const pwd = await bcrypt.hash(input.password, 10)
-      const res = await ctx.prisma.pool.findUnique({
-        where: {
-          id: input.poolId,
+      const email = await ctx.prisma.contributors.findUnique({
+        where:{
+          email: input.email
         }
-      }).then(async (data) => {
-        if(data){
-          const res= await ctx.prisma.contributors.create({
+      });
+      if (email){
+        return "Exists";
+      }
+      else{
+        const pwd = await bcrypt.hash(input.password, 10)
+        const pool = await ctx.prisma.pool.findUnique({
+          where: {
+            id: input.poolId,
+          }
+        });
+        if(pool !==null){
+          const res= ctx.prisma.contributors.create({
             data: {
               name: input.name,
               password: pwd,
               email: input.email,
-              poolId: data?.id,
+              poolId: pool?.id,
             },
           });
           return res;
-        }
-          
-      });
-      return res;
-      
+          }
+          else{
+            return "Pool not found";
+          }
+      }
+    
     }),
     
     getCategoryForAssignment: publicProcedure
