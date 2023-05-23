@@ -22,14 +22,14 @@
                             <div class="input-group-text">
                                 <Icon name="material-symbols:alternate-email" class="w-4 h-4"></Icon>
                             </div>
-                            <input  type="text" name="email"  class="form-control bg-slate-100" placeholder="Admission ID"  v-model="admissionID">
+                            <input  type="text" name="email"  class="form-control bg-slate-100" placeholder="Admission ID"  v-model="admissionID" autocomplete="new-password">
                         
                         </div>
                
                    <span class="mt-10 text-red-500">{{ errors.password }}</span>
                         <div class="input-group mt-2  w-96" >
                             <div class="input-group-text"><Icon name="material-symbols:alternate-email" class="w-4 h-4"></Icon></div>
-                            <input :type="showPassword ? 'text' : 'password'" class="form-control bg-slate-100" placeholder="Password"  v-model="password" :class="{ 'has-error': errors.password != undefined }"   >
+                            <input :type="showPassword ? 'text' : 'password'" class="form-control bg-slate-100" placeholder="Password"  v-model="password" :class="{ 'has-error': errors.password != undefined }"  autocomplete="new-password" >
                         
                             <div v-on:click="togglePassword()" class="input-group-text">
                                 <Icon v-if="showPassword" name="ri:eye-line" class="w-4 h-4 text-slate-500"></Icon>
@@ -47,7 +47,12 @@
          
                 
                         <button class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center mt-8">
-                            Sign In
+                            <div v-if="isLoading">
+                                            <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+                                        </div>
+                                        <div v-else>
+                                            Sign In
+                                        </div>
                         </button>
               
                 </div>
@@ -65,7 +70,7 @@ import { toFormValidator } from '@vee-validate/zod';
 import * as zod from 'zod';
 definePageMeta({ auth: false })
 const { $client } = useNuxtApp()
-
+const isLoading = ref(false);
 const validationSchema = toFormValidator(
     zod.object({
         admissionID: zod.string().nonempty('This is required'),
@@ -93,6 +98,7 @@ const onSubmit = handleSubmit(values => {
 });
 const { signIn } = useSession()
 const mySignInHandler = async ({ username, password, role }) => {
+    isLoading.value = true;
     const {data: tesTakerId} = await useAsyncData( ()=> $client.testtaker.getTestTakerId.query({username}));
     const { error, url } = await signIn('credentials', { username, password, role, redirect: false, callbackUrl: `http://localhost:3000/testtaker/${tesTakerId._rawValue}/exams/` })
     if (error) {
@@ -100,6 +106,7 @@ const mySignInHandler = async ({ username, password, role }) => {
     } else {
         return navigateTo(url, { external: true })
     }
+    isLoading.value = false;
 }
 
 </script>

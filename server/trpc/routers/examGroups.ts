@@ -1,15 +1,35 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 import https from 'https';
 import fs from 'fs'
 import bcrypt from "bcrypt";
 import { parse } from 'csv-parse';
+import { TRPCError } from "@trpc/server";
+
+// reuseble get exam group by Id here
+
+const getExamGroupById = async (ctx: { session: { role: string; }; prisma: { examGroup: { findUnique: (arg0: { where: { id: any; }; }) => any; }; }; }, id: any) => {
+  //  retrieve the exam group by ID
+  if (ctx.session.role === "admin") {
+    const data = await ctx.prisma.examGroup.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    return data;
+  } else {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "UNAUTHORIZED ACCESS.",
+    });
+  }
+}
 
 export const examGroupRouter = router({
     getExamGroupCount: publicProcedure.query(async ({ ctx }) => {
       return await ctx.prisma.examGroup.count();
     }),
-    getExamGroups: publicProcedure
+    getExamGroups: protectedProcedure
       .input(
         z.object({
           skip: z.number(),
@@ -17,58 +37,84 @@ export const examGroupRouter = router({
         })
       )
       .query(async ({ ctx, input }) => {
-        return await ctx.prisma.examGroup.findMany({
-          include:{
-            _count:{
-                select:{
-                    Exam:true
+        if (ctx.session.role === "admin"){
+            return await ctx.prisma.examGroup.findMany({
+            include:{
+                _count:{
+                    select:{
+                        Exam:true
+                    }
                 }
-            }
-          },
-          skip: input.skip,
-          take: 6,
-          orderBy: {
-            createdAt: "desc",
-          },
-          where: {
-            name: {
-              contains: input.search,
             },
-          },
-        });
+            skip: input.skip,
+            take: 6,
+            orderBy: {
+                createdAt: "desc",
+            },
+            where: {
+                name: {
+                contains: input.search,
+                },
+            },
+            });
+            } else {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "UNAUTHORIZED ACCESS.",
+                });
+            }
+       
       }),
 
-      addExamGroup: publicProcedure
+      addExamGroup: protectedProcedure
         .input(
             z.object({
                 name: z.string(),
             })
         )
         .mutation(async ({ ctx, input }) => {
+            if (ctx.session.role === "admin") {
             const data = await ctx.prisma.examGroup.create({
                 data: {
                     name: input.name,
                 },
             });
             return data;
+        }else{
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "UNAUTHORIZED ACCESS.",
+            });
+        }
         }),
 
-        getExamGroup: publicProcedure
+        getExamGroup: protectedProcedure
             .input(
                 z.object({
                     id: z.string(),
                 })
             )
             .query(async ({ ctx, input }) => {
-                const data = await ctx.prisma.examGroup.findUnique({
-                    where: {
-                        id: input.id,
-                    },
-                });
-                return data;
+                if (ctx.session.role === "admin"){
+
+                    const examGroup = await getExamGroupById(ctx, input.id);
+                    if(!examGroup){
+                        throw new TRPCError({
+                            code: "NOT_FOUND",
+                            message: "Exam group does not exist.",
+                        });
+                    }
+                    return examGroup;
+                }
+                else{
+                    throw new TRPCError({
+                        code: "UNAUTHORIZED",
+                        message: "UNAUTHORIZED ACCESS.",
+                    });
+                }
         }),
 
-        updateExamGroup: publicProcedure
+        updateExamGroup: protectedProcedure
             .input(
                 z.object({
                     id: z.string(),
@@ -76,30 +122,69 @@ export const examGroupRouter = router({
                 })
             )
             .mutation(async ({ ctx, input }) => {
-                const data = await ctx.prisma.examGroup.update({
-                    where: {
-                        id: input.id,
-                    },
-                    data: {
-                        name: input.name,
-                    },
-                });
-                return data;
+                if(ctx.session.role === "admin"){
+                    const examGroup = await getExamGroupById(ctx, input.id);
+
+                    if(!examGroup){
+                        throw new TRPCError({
+                            code: "NOT_FOUND",
+                            message: "Exam group does not exist.",
+                        });
+                    }
+
+                    const data = await ctx.prisma.examGroup.update({
+                        where: {
+                            id: input.id,
+                        },
+                        data: {
+                            name: input.name,
+                        },
+                    });
+                    return data;
+                }
+                else{
+                    throw new TRPCError({
+                        code: "UNAUTHORIZED",
+                        message: "UNAUTHORIZED ACCESS.",
+                    });
+                }
         }),
 
-        deleteExamGroup: publicProcedure
+        deleteExamGroup : protectedProcedure
             .input(
                 z.object({
                     id: z.string(),
                 })
             )
             .mutation(async ({ ctx, input }) => {
-                const data = await ctx.prisma.examGroup.delete({
-                    where: {
-                        id: input.id,
-                    },
-                });
-                return data;
+                if(ctx.session.role === "admin"){
+                    // call the get by id function
+                    const examGroup = await getExamGroupById(ctx, input.id);
+                    if(!examGroup){
+                        throw new TRPCError({
+                            code: "NOT_FOUND",
+                            message: "Exam group does not exist.",
+                        });
+                    }
+                    if(!examGroup){
+                        throw new TRPCError({
+                            code: "NOT_FOUND",
+                            message: "Exam group does not exist.",
+                        });
+                    }
+                    const data = await ctx.prisma.examGroup.delete({
+                        where: {
+                            id: input.id,
+                        },
+                    });
+                    return data;
+                }
+                else{
+                    throw new TRPCError({
+                        code: "UNAUTHORIZED",
+                        message: "UNAUTHORIZED ACCESS.",
+                    });
+                }
             }),
 
         generateCredentials : publicProcedure
@@ -156,20 +241,29 @@ export const examGroupRouter = router({
             return finished;
            
         }), 
-        getExamGroupTestTakers: publicProcedure
+        getExamGroupTestTakers: protectedProcedure
             .input(
                 z.object({
                     id: z.string(),
                 })
             )
             .query(async ({ ctx, input }) => {
-                return await ctx.prisma.testTakers.findMany({
-                    where: {
-                        examGroup: {
-                            id: input.id,
+
+                if(ctx.session.role === "admin"){
+                    return await ctx.prisma.testTakers.findMany({
+                        where: {
+                            examGroup: {
+                                id: input.id,
+                            },
                         },
-                    },
-                });
+                    });
+                }
+                else{
+                    throw new TRPCError({
+                        code: "UNAUTHORIZED",
+                        message: "UNAUTHORIZED ACCESS.",
+                    });
+                }
             }),
             });
         
