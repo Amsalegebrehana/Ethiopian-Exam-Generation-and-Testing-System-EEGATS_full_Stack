@@ -60,6 +60,7 @@
     "csv-parse": "^5.3.6",
     "csv-parser": "^3.0.0",
     "csv-writer": "^1.6.0",
+    "date-fns": "^2.30.0",
     "esbuild": "^0.17.14",
     "headlessui": "^0.0.0",
     "lint-fix": "^0.24.0",

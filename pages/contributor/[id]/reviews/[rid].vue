@@ -8,17 +8,18 @@ const reviewId = route.params.rid as string;
 const { data, refresh: fetchReview } = await useAsyncData(() => $client.review.getQuestionForReview.query({ reviewId }));
 const isLoading = ref(false);
 const question = data.value?.questions;
+const selected = ref(0);
 
 const reviewMetrics = ref([
-    { "id": 1, "text": "Is this the first time you're seeing this question? ", "select": false },
-    { "id": 2, "text": "Is the chosen answer correct? ", "select": false },
-    { "id": 3, "text": "Does the qustion encourage critical thinking or problem-solving skills? ", "select": false },
-    { "id": 4, "text": "Is the question coherent or clear enough? ", "select": false },
-    { "id": 5, "text": "Are the choices clear enough? ", "select": false },
-    { "id": 6, "text": "Is the question's difficulty suitable? ", "select": false },
-    { "id": 7, "text": "Is the question engaging and interesting for the test taker? ", "select": false },
-    { "id": 8, "text": "Is the question in the category intended? ", "select": false },
-    { "id": 9, "text": "Is the question from the intended subject? ", "select": false },
+    { "id": 1, "text": "Is this the first time you're seeing this question? ", "select": "" },
+    { "id": 2, "text": "Is the chosen answer correct? ", "select": "" },
+    { "id": 3, "text": "Does the qustion encourage critical thinking or problem-solving skills? ", "select": "" },
+    { "id": 4, "text": "Is the question coherent or clear enough? ", "select": "" },
+    { "id": 5, "text": "Are the choices clear enough? ", "select": "" },
+    { "id": 6, "text": "Is the question's difficulty suitable? ", "select": "" },
+    { "id": 7, "text": "Is the question engaging and interesting for the test taker? ", "select": "" },
+    { "id": 8, "text": "Is the question in the category intended? ", "select": "" },
+    { "id": 9, "text": "Is the question from the intended subject? ", "select": "" },
 ]);
 
 
@@ -28,7 +29,7 @@ const submitFeedback = async () => {
     const isApproved = ref(true);
     reviewMetrics.value.forEach(metric => {
         if (metric.id != 3 && metric.id != 7) {
-            if (metric.select == false) {
+            if (Boolean(metric.select) == false) {
                 isApproved.value = false;
             }
         }
@@ -89,7 +90,6 @@ const submitFeedback = async () => {
                 </div>
 
                 <div>
-                    {{ reviewMetrics }}
                     <h2 class="intro-y text-lg font-medium ">Review:-</h2>
                     <ol>
                         <li v-for="metric in reviewMetrics">

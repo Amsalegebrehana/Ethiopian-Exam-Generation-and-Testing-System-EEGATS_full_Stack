@@ -16,11 +16,11 @@
                         </button>
                         </NuxtLink>
                         <div class="hidden md:block mx-auto text-slate-500">
-                            Showing 1 to 10 of {{ exams.length }} entries
+                           
                         </div>
                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                             <div class="w-56 relative text-slate-500">
-                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." />
+                                <input type="text" class="form-control w-56 box pr-10" v-model="searchInput" placeholder="Search..." />
                                 <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
             
                             </div>
@@ -40,7 +40,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="exam in exams" :key="exam.id" class="intro-x">
+                                                <tr v-for="exam in filteredExams" :key="exam.id" class="intro-x">
                                                     <td class="w-10">
                                                         <NuxtLink :to="`/admin/exams/${exam.id}`">
                                                         <Icon name="iconoir:page" class="w-6 h-6"></Icon>
@@ -53,101 +53,67 @@
                             
                                                     </td>
                                                     <td class="text-center">{{ exam.numberOfQuestions }}</td>
-                                                    <td class="w-24">
+                                                    <td class="w-40">
                                                                 <div class="flex items-center justify-center" :class="{
                                                                     'text-success': exam.status === 'generated',
-                                                                    'text-danger': exam.status === 'published',
+                                                                    'text-primary': exam.status === 'published',
+                                                                    'text-danger': exam.status === 'gradeReleased',
                                                                 }">
                                                                     <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon>
-                                                                    {{ exam.status === 'generated' ? "generated" : "published" }}
+                                                                         {{ examStatus(exam.status) }}
                                                                 </div>
                                                             </td>
-                                                            <td class="">{{ exam.testingDate }}</td>
+                                                            <td class="">{{ testingDateformat(exam.testingDate) }}</td>
                                                     <td class="table-report__action w-40">
                                                         <div class="flex justify-center items-center">
                                                             <a class="flex items-center mr-3" href="javascript:;">
                                                                 <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon> Edit
                                                             </a>
-                                                            <a class="flex items-center text-danger" href="javascript:;"
-                                                                >
-                                                                <Icon name="fa6-regular:trash-can" class="w-4 h-4"></Icon> Delete
-                                                            </a>
+                                                         
                                                         </div>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div>
-                                    <!-- END: Data List -->
-                    <!-- BEGIN: Pagination -->
-                    <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
-                        <nav class="w-full sm:w-auto sm:mr-auto">
-                            <ul class="pagination">
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-double-left" class="h-4 w-4"></Icon>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-left" class="h-4 w-4"></Icon>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">...</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">1</a>
-                                </li>
-                                <li class="page-item active">
-                                    <a class="page-link" href="#">2</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">3</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">...</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-right" class="h-4 w-4"></Icon>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-double-right" class="h-4 w-4"></Icon>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                        <select class="w-20 form-select box mt-3 sm:mt-0">
-                            <option>10</option>
-                            <option>25</option>
-                            <option>35</option>
-                            <option>50</option>
-                        </select>
                     </div>
+                                    <!-- END: Data List -->
+                   
+                     </div>
+                      <!-- BEGIN: Pagination -->
+                    <div class="flex flex-row mt-3">
+                      <div class="md:block  text-slate-500">
+                   
+                         Showing   {{ searchInput ? 1 :skipval  + 1 }} to {{ searchInput ? filteredExams.length : Math.min( skipval + 6, examCount )}} of {{ (filteredExams.length < examCount) && searchInput ?  filteredExams.length : examCount}} entries
+                        </div>
+                        <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+                            <nav class="w-full sm:w-auto sm:mr-auto">
+                                <ul class="pagination">
+                                    
+                                    <li class="page-item">
+                                        <button class="page-link" v-on:click="prevPaginate()"  :disabled="skipval === 1 || skipval === 0" >
+                                            <div class="flex flex-row align-middle justify-center items-center  ">
+                                                <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
+                                                <span class="">Previous</span>
+                                            </div>
+                                        </button>
+                                    </li>
+                                    <li class="page-item">  
+                                        <button class="page-link" v-on:click="nextPaginate()" :disabled="(skipval) + 6 >= examCount">
+                                            <div class="flex flex-row align-middle justify-center items-center">
+                                                    <span>Next</span>
+                                                    <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
+                                            </div>
+                                            </button>
+                                        </li>
+                                
+                                    
+                                    </ul>
+                            </nav>
+                            
+                            </div>
+                     </div>
                     <!-- END: Pagination -->
-                </div>
-                <!-- BEGIN: Delete Confirmation Modal -->
-                <!-- <Modal :show="deleteConfirmationModal" @hidden="deleteConfirmationModal = false">
-                            <ModalBody class="p-0">
-                                <div class="p-5 text-center">
-                                    <XCircleIcon class="w-16 h-16 text-danger mx-auto mt-3" />
-                                    <div class="text-3xl mt-5">Are you sure?</div>
-                                    <div class="text-slate-500 mt-2">
-                                        Do you really want to delete these records? <br />This process cannot
-                                        be undone.
-                                    </div>
-                                </div>
-                                <div class="px-5 pb-8 text-center">
-                                    <button type="button" @click="deleteConfirmationModal = false" class="btn btn-outline-secondary w-24 mr-1">
-                                        Cancel
-                                    </button>
-                                    <button type="button" class="btn btn-danger w-24">Delete</button>
-                                </div>
-                            </ModalBody>
-                        </Modal> -->
+               
             </div>
         </div>
     </div>
@@ -162,7 +128,71 @@ import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 definePageMeta({ middleware: 'is-admin' });
 const { $client } = useNuxtApp();
 
-const exams = await $client.exam.getExams.query({skip:0 });
+// skip value for pagination
+const skipval = ref(0);
+const searchInput = ref('');
+
+// get exam count
+const examCount = await $client.exam.getExamsCount.query();
+
+// get exams
+let exams = await $client.exam.getExams.query({skip:skipval.value});
+// prev paginate
+
+const prevPaginate = () => {
+  skipval.value = skipval.value - 6;
+};
+
+// next paginate
+const nextPaginate = () => {
+  skipval.value = skipval.value + 6;
+};
+
+const filteredExams = ref(exams);
+// watch skip value change
+watch(skipval, async (newVal, oldVal) => {
+  // update exams with new skip value
+
+  exams = await $client.exam.getExams.query({skip: newVal});
+  filteredExams.value = exams;
+});
+
+
+// filter exam by search input
+const filterExams = (name: any) => {
+  // filter exams by name if it includes or starts with the search input
+  return exams.filter((exam: any) => {
+    return exam.name.toLowerCase().includes(name.toLowerCase()) ||
+      exam.name.toLowerCase().startsWith(name.toLowerCase());
+  });
+  
+}
+
+// watch search input change
+watch(searchInput, (value) => {
+ 
+    filteredExams.value = filterExams(value);
+ 
+})
+
+// exam status text
+const examStatus = (status: string) => {
+  if (status === 'generated') {
+    return 'Generated';
+  } else if (status === 'published') {
+    return 'Published';
+  } else if (status === 'gradeReleased') {
+    return 'Grade Released';
+  } else {
+    return 'UnPublished';
+  }
+  
+}
+// testing date  short format
+const testingDateformat = (date: string) => {
+    
+    return new Date(date).toLocaleDateString();
+}
 
 
 </script>
