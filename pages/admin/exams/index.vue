@@ -59,20 +59,25 @@
                                                     <td class="text-center">{{ exam.numberOfQuestions }}</td>
                                                     <td class="w-40">
                                                                 <div class="flex items-center justify-center" :class="{
-                                                                    'text-success': exam.status === 'generated',
+                                                                    'text-warning': exam.status === 'generated',
                                                                     'text-primary': exam.status === 'published',
-                                                                    'text-danger': exam.status === 'gradeReleased',
+                                                                    'text-success': exam.status === 'gradeReleased',
+                                                                    'text-danger': exam.status === 'unPublished'
                                                                 }">
-                                                                    <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon>
-                                                                         {{ examStatus(exam.status) }}
+                                                                    <Icon v-if="exam.status === 'published'" name="ic:baseline-published-with-changes" class="w-4 h-4"></Icon>
+                                                                    <Icon v-else-if="exam.status === 'gradeReleased'" name="material-symbols:new-releases" class="w-4 h-4"></Icon>
+                                                                    <Icon v-else-if="exam.status === 'generated'" name="ri:ai-generate" class="w-4 h-4"></Icon>
+                                                                    <Icon v-else name="material-symbols:unpublished-outline" class="w-4 h-4"></Icon>
+                                                                         
+                                                                    {{ examStatus(exam.status) }}
                                                                 </div>
                                                             </td>
                                                             <td class="">{{ testingDateformat(exam.testingDate) }}</td>
                                                     <td class="table-report__action w-40">
                                                         <div class="flex justify-center items-center">
-                                                            <a class="flex items-center mr-3" href="javascript:;">
-                                                                <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon> Edit
-                                                            </a>
+                                                            <button class="text-success flex items-center mr-3"  @click="editExam(exam)">
+                                                                <Icon name="material-symbols:edit-outline" class="w-4 h-4"></Icon> Edit
+                                                            </button>
                                                          
                                                         </div>
                                                     </td>
@@ -117,9 +122,10 @@
                             </div>
                      </div>
                     <!-- END: Pagination -->
-               
+                    <EditExamModal :open="openModal" @close="handleModalClose" :exam="examToEdit" @update:exam="handleUpdate"/>
+                    
+                </div>
             </div>
-        </div>
     </div>
 </template>
 
@@ -128,6 +134,7 @@
 
 import AdminTopBar from '~~/components/TopBar.vue'
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
+import EditExamModal from '~~/components/admin/EditExamModal.vue';
 
 definePageMeta({ middleware: 'is-admin' });
 const { $client } = useNuxtApp();
@@ -139,7 +146,12 @@ const isReloading = ref(false);
 const page = ref(1);
 const searchPage = ref(1);
 const searchText  = ref('');
+// OPEN MODAL
+const openModal = ref(false);
+// exam to be edited
+const examToEdit = ref({});
 // get exam count
+
 // const examCount = await $client.exam.getExamsCount.query();
 
 // get exams
@@ -173,25 +185,28 @@ const paginateSearch = async (newPage: number) => {
         isReloading.value = false
     }
 }
-const prevPaginate = () => {
-  skipval.value = skipval.value - 6;
+const editExam = async (exam : Object) => {
+    
+    openModal.value = true;
+    examToEdit.value = exam;
+
+}
+// close modal
+// Function to handle the modal close event
+const handleModalClose = () => {
+  openModal.value = false; // Update the 'openModal' ref to close the modal
 };
-
-// next paginate
-const nextPaginate = () => {
-  skipval.value = skipval.value + 6;
-};
-
-const filteredExams = ref(exams);
-// watch skip value change
-
 // exam status text
 const examStatus = (status: string) => {
  if (status === 'published') {
     return 'Published';
   } else if (status === 'gradeReleased') {
     return 'Grade Released';
-  } else {
+  }
+  else if (status === 'generated') {
+    return 'Generated';
+  }
+   else {
     return 'UnPublished';
   }
   
@@ -200,6 +215,17 @@ const examStatus = (status: string) => {
 const testingDateformat = (date: string) => {
     
     return new Date(date).toLocaleDateString();
+}
+// update exam
+const handleUpdate = async (updatedExam: Object) => {
+    // iterate through the searchExams array and update the exam
+    await searchExams.value.forEach((exam: Object) => {
+        if (exam.id === updatedExam.id) {
+            exam.testingDate = updatedExam.testingDate;
+            exam.examDuration = updatedExam.examDuration;
+            exam.examReleaseDate = updatedExam.examReleaseDate;
+        }
+    });
 }
 
 

@@ -5,6 +5,7 @@ import { addMinutes, min } from "date-fns";
 // import isOverlapping  from 'date-fns';
 import { areIntervalsOverlapping } from 'date-fns'
 import { TRPCError } from "@trpc/server";
+import { th } from "date-fns/locale";
 
 // reuseble get exam group by Id here
 
@@ -26,6 +27,51 @@ const getExamById = async (ctx: { session: { role: string; }; prisma: { exam: { 
   }
   
 
+
+//   DRY testing date overlaps check function for create and update exam
+const checkIntervalsOverlap = async(ctx: { prisma: { exam: { findMany: (arg0: { select: { testingDate: boolean; duration: boolean; }; where: { examGroup: { id: any; }; }; }) => any; }; }; }, input: { examGroupId: any; testingDate:  Date; duration: number; })=>{
+    
+       // get all exams with the same exam group id, pool id 
+       const previousExams = await ctx.prisma.exam.findMany({
+        select:{
+            testingDate: true,
+            duration: true,
+            
+        },
+        where: {
+            examGroup: {
+                id: input.examGroupId,
+            },
+        },
+    });
+
+    // exams start is testing date and end date is testing date + duration simplified  object
+    const previousExamsDateIntervals = previousExams.map((preExam: { testingDate: { getTime: () => number; }; duration: number; }) => {
+        return {
+            start: preExam.testingDate,
+            end: new Date(preExam.testingDate.getTime() + preExam.duration * 60000),
+        };
+    });
+    
+    // check if the new exam testing date overlaps with any of the previous exams
+    const isTestingDateInInterval = previousExamsDateIntervals.some((interval: { start: string | number | Date; end: string | number | Date; }) =>
+        
+        areIntervalsOverlapping(
+                {
+                    start: new Date (input.testingDate), 
+                    end: new Date ( input.testingDate.getTime() + input.duration * 60000)
+                },
+
+                {
+                    start: new Date(interval.start), 
+                    end: new Date (interval.end)
+                }
+            )
+    );
+
+    return isTestingDateInInterval;
+}
+// Exam  router starts here
 export const examRouter = router({
 
     getExamsCount: protectedProcedure
@@ -187,47 +233,12 @@ export const examRouter = router({
                         message:"Please fill all the required fields."
                     });
                 }
-                // get all exams with the same exam group id, pool id 
-                const previousExams = await ctx.prisma.exam.findMany({
-                    select:{
-                        testingDate: true,
-                        duration: true,
-                        
-                    },
-                    where: {
-                        examGroup: {
-                            id: input.examGroupId,
-                        },
-                    },
-                });
-            
-                // previous exams start is testing date and end date is testing date + duration
-
-                const previousExamsDateIntervals = previousExams.map((preExam) => {
-                    return {
-                        start: preExam.testingDate,
-                        end: new Date(preExam.testingDate.getTime() + preExam.duration * 60000),
-                    };
-                });
                 
                 // check if the new exam testing date overlaps with any of the previous exams
-                const isTestingDateInInterval = previousExamsDateIntervals.some((interval) =>
-                    
-                    areIntervalsOverlapping(
-                            {
-                                start: new Date (input.testingDate), 
-                                end: new Date ( input.testingDate.getTime() + input.duration * 60000)
-                            },
-
-                            {
-                                start: new Date(interval.start), 
-                                end: new Date (interval.end)
-                            }
-                        )
-                );
+                const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input);
         
                 // check if the new exam testing date + duration is in the interval of any previous exams
-                if (isTestingDateInInterval) {
+                if ( isTestingDateInInterval) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
                         message:"The time slot you picked has another exam scheduled please try to pick another time."
@@ -408,7 +419,75 @@ export const examRouter = router({
                 })
             }
             }),
-            publishExam: protectedProcedure
+        // update exam
+        updateExam: protectedProcedure
+            .input(
+                z.object({
+                    id: z.string(),
+                    testingDate: z.date(),
+                    duration: z.number(),
+                    examReleaseDate: z.date(),
+                    examGroupId: z.string(),
+                })
+            )
+            .mutation(async ({ ctx, input }) => {
+                if (ctx.session.role === "admin") {
+                    // get exam by id
+                    const exam = await getExamById(ctx, input.id);
+                    // check if exam exists
+                    if (!exam) {
+                        throw new TRPCError({
+                            code: "NOT_FOUND",
+                            message: `Exam with id ${input.id} not found`
+                        });
+                    }
+                    // check if the new exam testing date overlaps with any of the previous exams
+                     
+                    const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input);
+                
+                        // check if the new exam testing date + duration is in the interval of any previous exams
+                        if ( isTestingDateInInterval) {
+                            throw new TRPCError({
+                                code: "BAD_REQUEST",
+                                message:"The time slot you picked has another exam scheduled please try to pick another time."
+                            });
+                        }
+                        // check if the  exam release date is after the testing date
+                        if(input.examReleaseDate < input.testingDate){
+
+                            throw new TRPCError({
+                                code: "BAD_REQUEST",
+                                message:"The exam release date should be after the testing date."
+                            });
+                        }
+                    // check if the new exam testing date is after the exam release date
+                    if(input.examReleaseDate < input.testingDate){
+                           throw new TRPCError({
+                            code: "BAD_REQUEST",
+                            message:"The exam release date should be after the testing date."
+                           });
+                    }
+                    // update exam
+                    return await ctx.prisma.exam.update({
+                        where: {
+                            id: input.id,
+                        },
+                        data: {
+                            testingDate: input.testingDate,
+                            duration: input.duration,
+                            examReleaseDate: input.examReleaseDate,
+                        },
+                    });
+            } else {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'UNAUTHORIZED ACCESS.',
+                });
+            }
+        }),
+
+        // publish exam
+        publishExam: protectedProcedure
             .input(
                 z.object({
                     id: z.string(),

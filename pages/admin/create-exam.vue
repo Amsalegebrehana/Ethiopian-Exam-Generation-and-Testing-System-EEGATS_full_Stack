@@ -381,8 +381,6 @@ const createExam = async () => {
 
       isLoading.value = false;
       returnedErrorMessage.value =  error.message;
-     
-
     }
 
 }
