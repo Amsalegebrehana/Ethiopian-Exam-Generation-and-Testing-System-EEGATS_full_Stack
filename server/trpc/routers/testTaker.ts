@@ -416,7 +416,10 @@ export const testTakerRouter = router({
               return data;
             }
           } else {
-            // throw new Error('Exam not found');
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `Exam not found`
+          });
           }
 
         } else {
@@ -480,6 +483,11 @@ export const testTakerRouter = router({
         }
 
 
+      }else{
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
       }
     }),
   registerResponse: protectedProcedure
@@ -577,6 +585,11 @@ export const testTakerRouter = router({
         }
 
 
+      }else{
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
       }}),
   submitExam: protectedProcedure
     .input(z.object({
@@ -649,6 +662,11 @@ export const testTakerRouter = router({
         }
 
 
+      }else{
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
       }
 
 
