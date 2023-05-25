@@ -74,7 +74,7 @@ const resetSearch = () => {
                     </div>
                 </div>
                 </div>
-                <div class="w-full mt-10 bg-green-200">
+                <div class="w-full mt-10">
 
                         <div v-if="searchText != ''">
                             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
