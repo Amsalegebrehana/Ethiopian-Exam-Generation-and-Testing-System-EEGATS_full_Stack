@@ -6,7 +6,11 @@ const supabaseUrl = "https://ixzzkpsnlfushkyptszh.supabase.co";
 
 const route = useRoute();
 const contrId = route.params.id as string;
+const qid = route.params.qid as string;
 const { data: categories, pending } = await useAsyncData(() => $client.contributor.getAssignedCategories.query({ contrId }));
+
+const questionDetail = await $client.question.getQuestion.query(qid);
+
 const questionInfo = ref({
     title: '',
     titleImage: '',
@@ -20,8 +24,21 @@ const questionInfo = ref({
     choiceFourImage: '',
     categoryId: ''
 })
-const isSubmitLoading = ref(false);
-const isSaveLoading = ref(false);
+
+questionInfo.value.title = questionDetail.question!.title == null? "" : questionDetail.question!.title;
+questionInfo.value.titleImage = questionDetail.question!.image == null? "" : questionDetail.question!.image;
+questionInfo.value.choiceTwo = questionDetail.choices[0].title;
+questionInfo.value.choiceOne = questionDetail.choices[1].title;
+questionInfo.value.choiceThree = questionDetail.choices[2].title;
+questionInfo.value.choiceFour = questionDetail.choices[3].title;
+questionInfo.value.choiceOneImage = questionDetail.choices[0].image == null? "" : questionDetail.choices[0].image;
+questionInfo.value.choiceTwoImage = questionDetail.choices[1].image == null? "" : questionDetail.choices[1].image;
+questionInfo.value.choiceThreeImage = questionDetail.choices[2].image == null? "" : questionDetail.choices[2].image;
+questionInfo.value.choiceFourImage = questionDetail.choices[3].image == null? "" : questionDetail.choices[3].image;
+questionInfo.value.categoryId = questionDetail.question!.catId;
+
+
+const isLoading = ref(false);
 const correctAnswer = ref('');
 const step = ref(1);
 const nextStep = () => {
@@ -30,49 +47,33 @@ const nextStep = () => {
 const prevStep = () => {
     step.value--;
 }
-const handleSave = async () => {
-    isSaveLoading.value = true;
-    const question = await $client.question.addQuestion.mutate({
+const handlesubmit = async () => {
+    isLoading.value = true;
+    await $client.question.updateQuestion.mutate({
+        questionId: questionDetail.question!.id,
         questionTitle: questionInfo.value.title,
         questionImage: questionInfo.value.titleImage,
+        choiceOneId: questionDetail.choices[0].id,
         choiceOneTitle: questionInfo.value.choiceOne,
+        choiceTwoId: questionDetail.choices[1].id,
         choiceTwoTitle: questionInfo.value.choiceTwo,
+        choiceThreeId: questionDetail.choices[2].id,
         choiceThreeTitle: questionInfo.value.choiceThree,
+        choiceFourId: questionDetail.choices[3].id,
         choiceFourTitle: questionInfo.value.choiceFour,
         choiceOneImage: questionInfo.value.choiceOneImage,
         choiceTwoImage: questionInfo.value.choiceTwoImage,
         choiceThreeImage: questionInfo.value.choiceThreeImage,
         choiceFourImage: questionInfo.value.choiceFourImage,
+        correctChoiceId: questionDetail.answer!.id,
         correctChoice: correctAnswer.value,
         catId: questionInfo.value.categoryId,
-        contrId: contrId
     })
-    isSaveLoading.value = false;
+    isLoading.value = false;
     navigateTo(`/contributor/${contrId}/questions`)
-}
 
-const handleSubmit = async () => {
-    isSubmitLoading.value = true;
-    const question = await $client.question.addQuestion.mutate({
-        questionTitle: questionInfo.value.title,
-        questionImage: questionInfo.value.titleImage,
-        choiceOneTitle: questionInfo.value.choiceOne,
-        choiceTwoTitle: questionInfo.value.choiceTwo,
-        choiceThreeTitle: questionInfo.value.choiceThree,
-        choiceFourTitle: questionInfo.value.choiceFour,
-        choiceOneImage: questionInfo.value.choiceOneImage,
-        choiceTwoImage: questionInfo.value.choiceTwoImage,
-        choiceThreeImage: questionInfo.value.choiceThreeImage,
-        choiceFourImage: questionInfo.value.choiceFourImage,
-        correctChoice: correctAnswer.value,
-        catId: questionInfo.value.categoryId,
-        contrId: contrId
-    })
-    await $client.question.submitQuestion.mutate(question!.id);
-    isSubmitLoading.value = false;
-    navigateTo(`/contributor/${contrId}/questions`)
-}
 
+}
 const getSrc = (filepath: string) => {
     return supabaseUrl + '/storage/v1/object/public/eegts-images/' + filepath
 }
@@ -91,7 +92,7 @@ const getSrc = (filepath: string) => {
                     <NuxtLink :to="`/contributor/${contrId}/questions`">
                         <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
                     </NuxtLink>
-                    <h2 class="intro-y text-lg font-medium ">Add Question</h2>
+                    <h2 class="intro-y text-lg font-medium ">Edit Question</h2>
 
                 </div>
                 <!-- BEGIN: Form Layout -->
@@ -106,19 +107,19 @@ const getSrc = (filepath: string) => {
                                 }">1</span>
                             <div class=" text-base lg:mt-3 ml-3 lg:mx-auto text-slate-600 dark:text-slate-400"
                                 :class="{ 'font-medium': step === 1 }">
-                                Create Question
+                                Edit Question
                             </div>
                         </div>
                         <div class="intro-x lg:text-center flex items-center mt-5 lg:mt-0 lg:block flex-1 z-10">
                             <span class="w-10 h-10 rounded-full btn" :class="{
-                                    'btn btn-primary': step >= 2 && step <= 5,
-                                    'text-slate-500 bg-slate-100': step < 2 || step > 5
-                                }">
+                                'btn btn-primary': step >= 2 && step <= 5,
+                                'text-slate-500 bg-slate-100': step < 2 || step > 5
+                            }">
                                 2
                             </span>
                             <div class=" text-base lg:mt-3 ml-3 lg:mx-auto text-slate-600 dark:text-slate-400"
                                 :class="{ 'font-medium': step >= 2 || step <= 5 }">
-                                Add Choices
+                                Edit Choices
                             </div>
                         </div>
                         <div class="intro-x lg:text-center flex items-center mt-5 lg:mt-0 lg:block flex-1 z-10">
@@ -130,13 +131,11 @@ const getSrc = (filepath: string) => {
                             </span>
                             <div class=" text-base lg:mt-3 ml-3 lg:mx-auto text-slate-600 dark:text-slate-400"
                                 :class="{ 'font-medium': step === 6 }">
-                                Select Correct Answer
+                                Edit Correct Answer
                             </div>
                         </div>
 
                     </div>
-
-
 
                     <div class="mt-10 py-5 px-5">
                         <div v-if="step === 1">
@@ -178,9 +177,7 @@ const getSrc = (filepath: string) => {
                                     <div class="py-2 ml-auto w-1/12 mr-40">
 
                                         <button @click="nextStep" class="btn btn-primary"
-                                            :disabled="!((questionInfo.title.length > 10 || questionInfo.titleImage.length > 1) && questionInfo.categoryId)">
-                                            Next
-                                        </button>
+                                            :disabled="!((questionInfo.title.length > 10 || questionInfo.titleImage.length > 1) && questionInfo.categoryId)">Next</button>
                                     </div>
                                 </div>
                                 <div v-else class=" text-center mt-20">
@@ -319,6 +316,8 @@ const getSrc = (filepath: string) => {
                                     <input id="radio_1" type="radio" name="radio" v-model="correctAnswer"
                                         value="choiceFour">
                                     <label class="pl-2 " for="radio_1">
+
+
                                         <div v-html="questionInfo.choiceFour" class="px-2"></div>
                                         <img v-if="questionInfo.choiceFourImage" :src=getSrc(questionInfo.choiceFourImage)
                                             style="width: 10em; height: 10em;" />
@@ -329,23 +328,13 @@ const getSrc = (filepath: string) => {
                             </div>
 
 
-                            <div class="flex justify-between">
-                                <button @click="prevStep" class="flex-start btn btn-primary"
-                                    :disabled="isSubmitLoading || isSaveLoading">
-                                    Previous
-                                </button>
-                                <div v-if="correctAnswer.length > 2" class="flex-end flex gap-4">
-                                    <button @click="handleSave()" class="btn btn-primary">
-                                        <div v-if="isSaveLoading">
-                                            <Icon name="eos-icons:bubble-loading" class="w-20 h-6"></Icon>
-                                        </div>
-                                        <div v-else>
-                                            Save as draft
-                                        </div>
-                                    </button>
-                                    <button @click="handleSubmit()" class="btn btn-primary">
-                                        <div v-if="isSubmitLoading">
-                                            <Icon name="eos-icons:bubble-loading" class="w-20 h-6"></Icon>
+                            <div class="flex flex-row mt-5 ">
+
+                                <button @click="prevStep" class="btn btn-primary" :disabled="isLoading">Previous</button>
+                                <div v-if="correctAnswer.length > 2" class="py-2 ml-auto w-1/12">
+                                    <button @click="handlesubmit" class="btn btn-primary">
+                                        <div v-if="isLoading">
+                                            <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                         </div>
                                         <div v-else>
                                             Submit

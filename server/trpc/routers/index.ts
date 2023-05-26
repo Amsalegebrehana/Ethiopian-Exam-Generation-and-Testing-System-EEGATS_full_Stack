@@ -5,9 +5,11 @@ import { examGroupRouter } from './examGroups';
 import { contributorRouter } from './contributor'
 import { poolRouter } from './pool';
 import {questionRouter} from './question'
-import {testTakerRouter} from './testtaker'
+import {testTakerRouter} from './testTaker'
+import { reviewsRouter } from './reviews'
 import { category } from './category';
 import {examRouter} from './exams';
+import { analyticsRouter } from './analytics';
 
 
 export const appRouter = router({
@@ -16,9 +18,11 @@ export const appRouter = router({
     examGroup: examGroupRouter,
     contributor: contributorRouter,
     question :questionRouter,
-    testtaker : testTakerRouter,
+    testtaker: testTakerRouter,
+    review: reviewsRouter,
     category :  category,
     exam: examRouter,
+    analytics: analyticsRouter,
   
     
 });

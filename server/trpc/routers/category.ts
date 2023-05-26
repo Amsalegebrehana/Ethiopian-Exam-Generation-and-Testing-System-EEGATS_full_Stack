@@ -2,10 +2,19 @@ import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 
 export const category = router({
-    getCategoryCount: publicProcedure.query(async ({ctx}) =>{
-        return await ctx.prisma.category.count();
-    }),
-
+    getCategoryCount: publicProcedure
+        .input(
+            z.object({
+             poolId: z.string(),
+            })
+          )
+          .query(async ({ ctx , input}) => {
+            return await ctx.prisma.category.count({
+              where: {
+                poolId: { equals: input.poolId },
+              }
+            });
+        }),
     addCategory: publicProcedure
         .input(
             z.object({
@@ -59,6 +68,18 @@ export const category = router({
                     },
                     poolId:input.poolId
                 },
+                include :{
+                    _count: {
+                      select: {
+                        questions: {
+                          where :{
+                            status : { equals: 'approved'}
+                          }
+                        },
+                      }, 
+                      },
+        
+                    },
             });
             return data;
         }),

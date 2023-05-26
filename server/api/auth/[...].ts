@@ -14,6 +14,9 @@ const confirmPasswordHash = (plainPassword: string, hashedPassword: string) => {
 };
 
 export default NuxtAuthHandler({
+  session: {
+    maxAge : 1 * 24 * 60 * 60, // 1 day
+  },
   secret: authSecret,
   pages: {
     // Change the default behavior to use `/login` as the path for the sign-in page
