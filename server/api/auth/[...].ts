@@ -107,7 +107,7 @@ export default NuxtAuthHandler({
                 },
               });
               if (contributorUser !== null && contributorUser?.isActive) {
-                if (contributorUser?.failedAttempts > 3) {
+                if (contributorUser?.failedAttempts >= 3) {
                   throw new Error("Multiple failed attempts, you account has been locked, please contact system admin");
                 }
                 const res = await confirmPasswordHash(
@@ -154,7 +154,7 @@ export default NuxtAuthHandler({
                 },
               });
               if (testTakerUser !== null) {
-                if (testTakerUser?.failedAttempts > 3) {
+                if (testTakerUser?.failedAttempts >= 3) {
                   throw new Error("Multiple failed attempts, you account has been locked, please contact system admin");
                 }
                 const res = await confirmPasswordHash(

@@ -1,13 +1,43 @@
 import { array, z } from "zod";
 import {  sendNewInvite, sendReturnEmail, sendNotificationEmail } from "~~/utils/mailer";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { validateEmail } from "~~/utils/emailValidation";
 const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
 import { QuestionStatus } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { rand } from "@vueuse/core";
 export const contributorRouter = router({
 
-  
+  adminResetPassword : protectedProcedure.
+  input(
+    z.object({
+      id: z.string(),
+    })
+  ).mutation(
+    async ({ctx, input}) => {
+      if (ctx.session.role === 'admin') {
+        const pwd = Math.random().toString(36).slice(-8);
+        const hashed = await bcrypt.hash(pwd, 10)
+        const data = await ctx.prisma.contributors.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            password: hashed,
+            failedAttempts: 0
+          },
+        });
+        return pwd;
+      } else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
+      }
+      
+    }
+  ),
   getContributorQuestions: publicProcedure
   .input(
     z.string()
