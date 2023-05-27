@@ -205,6 +205,7 @@ model ContributorInvite {
   pool      Pool     @relation(fields: [poolId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@unique([email, poolId])
 }
 
 enum QuestionStatus {
