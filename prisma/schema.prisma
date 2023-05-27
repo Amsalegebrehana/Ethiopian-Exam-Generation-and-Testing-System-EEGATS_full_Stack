@@ -16,15 +16,16 @@ model Admin {
 }
 
 model Pool {
-  id                String         @id @default(uuid())
-  name              String         @unique
-  numberOfQuestions Int            @default(0)
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  id                String              @id @default(uuid())
+  name              String              @unique
+  numberOfQuestions Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
   Category          Category[]
   Contributors      Contributors[]
   Exam              Exam[]
   Questions         Questions[]
+  Invites           ContributorInvite[]
 }
 
 model ExamGroup {
@@ -43,6 +44,7 @@ model Contributors {
   password               String
   poolId                 String
   isActive               Boolean                 @default(true)
+  failedAttempts         Int                     @default(0)
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   reviewsMade            Int                     @default(0)
@@ -75,6 +77,7 @@ model TestTakers {
   id                String              @id @default(uuid())
   name              String
   username          String              @unique
+  failedAttempts    Int                 @default(0)
   password          String
   examGroupId       String
   examGroup         ExamGroup           @relation(fields: [examGroupId], references: [id])
@@ -193,6 +196,15 @@ model ContributorAssignment {
   questionsRemaining Int
 
   @@unique([contrId, catId])
+}
+
+model ContributorInvite {
+  id        String   @id @default(uuid())
+  email     String
+  poolId    String
+  pool      Pool     @relation(fields: [poolId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum QuestionStatus {

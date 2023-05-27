@@ -15,7 +15,7 @@ const confirmPasswordHash = (plainPassword: string, hashedPassword: string) => {
 
 export default NuxtAuthHandler({
   session: {
-    maxAge : 1 * 24 * 60 * 60, // 1 day
+    maxAge: 1 * 24 * 60 * 60, // 1 day
   },
   secret: authSecret,
   pages: {
@@ -30,8 +30,8 @@ export default NuxtAuthHandler({
         token.jwt = user ? (user as any).access_token || "" : "";
         token.id = user ? user.id || "" : "";
         token.role = user ? (user as any).role || "" : "";
-        typeof window !== 'undefined' ? localStorage.setItem("userId", token.id as string ) : null;
-        
+        typeof window !== 'undefined' ? localStorage.setItem("userId", token.id as string) : null;
+
       }
       return Promise.resolve(token);
     },
@@ -70,13 +70,6 @@ export default NuxtAuthHandler({
         },
       },
       async authorize(credentials: any) {
-        // console.warn(
-        //   "ATTENTION: You should replace this with your real providers or credential provider logic! The current setup is not safe"
-        // );
-        // You need to provide your own logic here that takes the credentials
-        // submitted and returns either a object representing a user or value
-        // that is false/null if the credentials are invalid.
-        // NOTE: THE BELOW LOGIC IS NOT SAFE OR PROPER FOR AUTHENTICATION!
         if (credentials != null) {
           // Any object returned will be saved in `user` property of the JWT
           if (credentials?.role === "admin") {
@@ -100,10 +93,10 @@ export default NuxtAuthHandler({
                 if (res === true) {
                   return user;
                 } else {
-                  return null;
+                  throw new Error("Invalid credentials");
                 }
               } else {
-                return null;
+                throw new Error("Invalid credentials");
               }
             }
           } else if (credentials?.role === "contributor") {
@@ -114,6 +107,9 @@ export default NuxtAuthHandler({
                 },
               });
               if (contributorUser !== null && contributorUser?.isActive) {
+                if (contributorUser?.failedAttempts > 3) {
+                  throw new Error("Multiple failed attempts, you account has been locked, please contact system admin");
+                }
                 const res = await confirmPasswordHash(
                   credentials.password,
                   contributorUser.password
@@ -124,12 +120,30 @@ export default NuxtAuthHandler({
                   role: "contributor",
                 };
                 if (res === true) {
+                  await prisma.contributors.update({
+                    where: {
+                      id: contributorUser.id,
+                    },
+                    data: {
+                      failedAttempts: 0
+                    }
+                  });
                   return user;
                 } else {
-                  return null;
+                  await prisma.contributors.update({
+                    where: {
+                      id: contributorUser.id,
+                    },
+                    data: {
+                      failedAttempts: {
+                        increment: 1,
+                      }
+                    }
+                  });
+                  throw new Error("Invalid credentials");
                 }
               } else {
-                return null;
+                throw new Error("Invalid credentials");
               }
             }
           } else {
@@ -140,6 +154,9 @@ export default NuxtAuthHandler({
                 },
               });
               if (testTakerUser !== null) {
+                if (testTakerUser?.failedAttempts > 3) {
+                  throw new Error("Multiple failed attempts, you account has been locked, please contact system admin");
+                }
                 const res = await confirmPasswordHash(
                   credentials.password,
                   testTakerUser.password
@@ -150,12 +167,30 @@ export default NuxtAuthHandler({
                   role: "testtaker",
                 };
                 if (res === true) {
+                  await prisma.testTakers.update({
+                    where: {
+                      id: testTakerUser.id,
+                    },
+                    data: {
+                      failedAttempts: 0
+                    }
+                  });
                   return user;
                 } else {
-                  return null;
+                  await prisma.testTakers.update({
+                    where: {
+                      id: testTakerUser.id,
+                    },
+                    data: {
+                      failedAttempts: {
+                        increment: 1,
+                      }
+                    }
+                  });
+                  throw new Error("Invalid credentials");
                 }
               } else {
-                return null;
+                throw new Error("Invalid credentials");
               }
             }
           }
