@@ -320,7 +320,7 @@ getTestTakers: protectedProcedure
             }else{
               throw new TRPCError({
                 code: 'INTERNAL_SERVER_ERROR',
-                message: 'Error in creting test session',
+                message: 'Error in creating test session',
           
               });
             }
