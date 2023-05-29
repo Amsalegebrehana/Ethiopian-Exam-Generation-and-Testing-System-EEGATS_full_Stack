@@ -14,31 +14,22 @@ const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() =
 const { data: searchExams, refresh: fetchSearchExams, pending: pendingSearch } = await useAsyncData(() => $client.testtaker.getExams.query({ testTakerId, search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
   { watch: [page, searchText] });
 
-  const paginateSearch = async (newPage: number) => {
-  searchPage.value = newPage;
-  isReloading.value = true;
-  try {
-    await fetchSearchExams();
-    await fetchSearchCount();
-  } finally {
-    isReloading.value = false
-  }
-}
-
-
-const resetSearch = () => {
-  if (searchText.value === "") {
-    searchPage.value = 1;
-    page.value = 1;
-  }
-}
-
 const paginate = async (newPage: number) => {
     page.value = newPage;
     isReloading.value = true;
     try {
         await fetchExams();
         await fetchCount();
+    } finally {
+        isReloading.value = false
+    }
+}
+const paginateSearch = async (newPage: number) => {
+    searchPage.value = newPage;
+    isReloading.value = true;
+    try {
+        await fetchSearchExams();
+        await fetchSearchCount();
     } finally {
         isReloading.value = false
     }
@@ -52,7 +43,13 @@ const GradeModal = async (name : string, score : number) => {
 gradeInfo.value.name = name;
 gradeInfo.value.score = score;
 showGradeModal.value = !showGradeModal.value;
+}
 
+const resetSearch = () => {
+    if (searchText.value === "") {
+        searchPage.value = 1;
+        page.value = 1;
+    }
 }
 </script>
 <template>
@@ -202,7 +199,7 @@ showGradeModal.value = !showGradeModal.value;
                                                     </button>
                                                 </li>
                                                 <li class="page-item">  
-                                                    <button class="page-link" v-on:click="paginateSearch(searchPage+1)" :disabled="(searchPage) * 6 >= count!">
+                                                    <button class="page-link" v-on:click="paginateSearch(searchPage+1)" :disabled="(searchPage) * 6 >= searchCount!">
                                                         <div class="flex flex-row align-middle justify-center items-center">
                                                                 <span>Next</span>
                                                                 <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
@@ -368,6 +365,10 @@ showGradeModal.value = !showGradeModal.value;
             </div>
               
                             </div>
+                        </div>
+                    </div>
+          
+                
                           
                      
                        
@@ -411,7 +412,6 @@ showGradeModal.value = !showGradeModal.value;
                   
                 </div>
               
-            </div>
-        </div>
+            
     
 </template>
