@@ -56,6 +56,7 @@
     "@types/csv-parse": "^1.2.2",
     "@types/shuffle-seed": "^1.1.0",
     "@vee-validate/zod": "^4.7.4",
+    "@vuejs-community/vue-filter-truncate": "^1.1.0",
     "bcrypt": "^5.1.0",
     "chart.js": "^4.3.0",
     "csv-parse": "^5.3.6",
