@@ -2,11 +2,12 @@ import { array, z } from "zod";
 import { sendStatusNotificationEmail, sendNewInvite, sendReturnEmail, sendNotificationEmail } from "~~/utils/mailer";
 import { protectedProcedure, router } from "../trpc";
 import { validateEmail } from "~~/utils/emailValidation";
-const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
 import { QuestionStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import { category } from "./category";
+
+const { auth } = useRuntimeConfig();
+
 export const contributorRouter = router({
 
   getContributorQuestions: protectedProcedure
@@ -21,7 +22,7 @@ export const contributorRouter = router({
               contributorId: input,
               status: QuestionStatus.draft,
             }
-          })
+          });
 
           return data;
         }
@@ -46,7 +47,7 @@ export const contributorRouter = router({
             where: {
               contributorId: input,
             }
-          })
+          });
 
           return data;
         }
@@ -355,47 +356,69 @@ export const contributorRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.role === 'admin') {
         const emailCheck = validateEmail(input.email);
-        if (emailCheck == false) {
-          return "Invalid Email!";
-        }
-        const pool = await ctx.prisma.pool.findUnique({
-          where: {
-            id: input.poolId,
-          }
-        })
-        const user = await ctx.prisma.contributors.findUnique({
-          where: {
-            email: input.email,
-          }
-        });
-
-        if (user && user.poolId !== input.poolId) {
-          return "Already assigned";
-        }
-
-        if (user?.poolId === input.poolId && user.isActive === true) {
-          return 'Already a member of this pool'
-        }
-        if(pool){
-          sendNewInvite({
-            url: `${auth.origin}/contributor/register?poolId=${input.poolId}`,
-            email: input.email,
-            pool: pool?.name,
+        if (emailCheck == true) {
+          const pool = await ctx.prisma.pool.findUnique({
+            where: {
+              id: input.poolId,
+            }
+          })
+          const user = await ctx.prisma.contributors.findUnique({
+            where: {
+              email: input.email,
+            }
           });
+  
+          if (user && user.poolId !== input.poolId) {
+            throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Already assigned',
+              });
+  
+          }
+  
+          if (user?.poolId === input.poolId && user.isActive === true) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Already a member of this pool',
+              });
+          }
+          if(pool){
+            console.log(":wokfe")
+            try{
+              sendNewInvite({
+                  url: `${auth.origin}/contributor/register?poolId=${input.poolId}`,
+                  email: input.email,
+                  pool: pool?.name,
+              })
+            }
+            catch(err){
+              console.log("Error: ", err);
+            }
+            
+          }
+          else{
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Pool not found',
+              });
+          }
+          return true;
+        }
+        else {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Invalid Email!',
+            });
+          }  
         }
         else{
-          return "Pool not found!";
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'UNAUTHORIZED ACCESS.',
+  
+          });
         }
-        return true;
-      }
-      else {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'UNAUTHORIZED ACCESS.',
-
-        });
-      }
-
+        
     }),
 
   assignQuestion: protectedProcedure
@@ -484,7 +507,11 @@ export const contributorRouter = router({
           }
         });
         if (email) {
-          return "Exists";
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Exists',
+  
+          });;
         }
         else {
           const pwd = await bcrypt.hash(input.password, 10)
@@ -505,7 +532,11 @@ export const contributorRouter = router({
             return res;
           }
           else {
-            return "Pool not found";
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Pool not found',
+    
+            });
           }
         }
       }

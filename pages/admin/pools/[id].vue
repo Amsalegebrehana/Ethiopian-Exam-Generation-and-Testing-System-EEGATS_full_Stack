@@ -68,6 +68,8 @@ const checkCatID = (object: any) => {
    return false;
 } 
 
+const showErrorModal  = ref(false);
+const showSuccessModal = ref(false);
 const isLoadingAssign = ref(false);
 const isReloadingAssign = ref(false);
 const isContModal = ref(false);
@@ -96,67 +98,51 @@ const toggleInviteModal = () => {
     showInviteModal.value = !showInviteModal.value;
 }
 
-// const toggleConfirmationModal = () => {
-//     showConf.value = true;
-//     showConfirmationModal.value = !showConfirmationModal.value;
-// }
-
-// const deleteConfirmationModal = () =>{
-//     showConf.value = false;
-//     showInv.value = false;
-//     contributorEmail.value = '';
-
-// }
-
-// const handleCheckContributorPool = async()=>{
-//     isLoading.value = true;
-//     const res = await $client.contributor.checkContributorAssignmnet.query({ email: contributorEmail.value, poolId: poolId! });
-//     isLoading.value = false;
-//     showConf.value=false;
-//     showInv.value=false;
-//     isEmailInvalid.value = false;
-//     isInviteDup.value = false;
-    
-
-//     // if(res === true){
-//     //     toggleConfirmationModal();
-        
-//     // }
-
-//     // if(res === false){
-//     //     handleInviteContributor();
-//     // }
-
-// }
-
 const handleInviteContributor = async () => {
     isLoading.value = true;
-    const res = await $client.contributor.inviteContributor.mutate({ email: contributorEmail.value, poolId: poolId! });
-    isLoading.value = false;
     showConf.value=false;
     showInv.value=false;
     isInviteSuccess.value = false;
+    isEmailInvalid.value = false;
+    isAssignedtoAnotherPool.value = false;
+    isInviteDup.value = false;
+    try{
+        const res = await $client.contributor.inviteContributor.mutate({ email: contributorEmail.value, poolId: poolId! });
+        isLoading.value = false;
+        
+        if (res) {
+            isInviteSuccess.value = true;
+            contributorEmail.value = '';
 
-    if(res == "Invalid Email!"){
-        isEmailInvalid.value = true;
-        contributorEmail.value = "";
+        }
     }
+    catch(error: any){
+        isLoading.value = false;
+        if(error.message === "Invalid Email!"){
+            isEmailInvalid.value = true;
+            contributorEmail.value = "";
+            
+            }
 
-    if(res == "Already assigned"){
-        isAssignedtoAnotherPool.value = true;
-        contributorEmail.value = "";
+        else if(error.message === "Already assigned"){
+            isAssignedtoAnotherPool.value = true;
+            contributorEmail.value = "";
+        }
+
+        else if(error.message === 'Already a member of this pool'){
+            isInviteDup.value = true;
+            contributorEmail.value = '';
+        }
+
     }
+  
+}
 
-    if(res == 'Already a member of this pool'){
-        isInviteDup.value = true;
-        contributorEmail.value = '';
-    }
-
-    if (res === true) {
-        isInviteSuccess.value = true;
-        contributorEmail.value = '';
-
-    }
+const toggleErrorModal = () => {
+    showErrorModal.value = !showErrorModal.value;
+}
+const toggleSuccessModal = () => {
+    showSuccessModal.value = !showSuccessModal.value;
 }
 
 const toggleAssignModal = () => {
@@ -619,37 +605,29 @@ watch(catID, (newId:string, oldId:string) => {
                         </button>
                     </div>
                     <div v-if="isInviteSuccess && !showInv">
-
                         <div class="flex flex-row items-center space-x-4 mx-auto">
                             <Icon name="clarity:success-standard-line" class="w-20 h-20 text-green-600"></Icon>
                             <p class=" font-bold text-lg text-center">Invite successfully sent!</p>
                         </div>
                     </div>
-                    <div v-if="isInviteDup && !showInv">
-                    <div class="flex flex-row items-center space-x-4 mx-auto">
-                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
-                        <p class=" font-bold text-lg text-center">Already a member of this pool!</p>
-                    </div>
+                    <div v-else-if="isInviteDup && !showInv">
+                        <div class="flex flex-row items-center space-x-4 mx-auto">
+                            <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                            <p class=" font-bold text-lg text-center">Already a member of this pool! Please try again!</p>
+                        </div>
                     </div>
 
                     <div v-else-if="isEmailInvalid && !showInv">
-                    <div class="flex flex-row items-center space-x-4 mx-auto">
-                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
-                        <p class=" font-bold text-lg text-center">Invalid Email!</p>
-                    </div>
+                        <div class="flex flex-row items-center space-x-4 mx-auto">
+                            <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                            <p class=" font-bold text-lg text-center">Invalid Email! Please try again!</p>
+                        </div>
                     </div>
 
                     <div v-else-if="isAssignedtoAnotherPool && !showInv">
-                    <div class="flex flex-row items-center space-x-4 mx-auto">
-                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
-                        <p class=" font-bold text-lg text-center">Contributor is already assigned to another pool!</p>
-                    </div>
-                    </div>
-
-                    <div v-if="!isInviteSuccess && !showInv">
                         <div class="flex flex-row items-center space-x-4 mx-auto">
-                            <!-- <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon> -->
-                            <p class=" font-bold text-lg text-center">Failed to send invite, please try again</p>
+                            <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                            <p class=" font-bold text-lg text-center p-4">Contributor is already assigned to another pool! Please try again!</p>
                         </div>
                     </div>
                     
