@@ -1,9 +1,39 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc";
+import bcrypt from "bcrypt";
+import { publicProcedure, protectedProcedure, router } from "../trpc";
 import shuffleSeed from 'shuffle-seed';
 import { TRPCError } from "@trpc/server";
 
 export const testTakerRouter = router({
+  adminResetPassword : protectedProcedure.
+  input(
+    z.object({
+      id: z.string(),
+    })
+  ).mutation(
+    async ({ctx, input}) => {
+      if (ctx.session.role === 'admin') {
+        const pwd = Math.random().toString(36).slice(-8);
+        const hashed = await bcrypt.hash(pwd, 10)
+        const data = await ctx.prisma.testTakers.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            password: hashed,
+            failedAttempts: 0,
+          },
+        });
+        return pwd;
+      } else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
+      }
+      
+    }
+  ),
     getTestTakersCount: publicProcedure.query(async ({ ctx }) => {
       return await ctx.prisma.testTakers.count();
     }),
