@@ -9,6 +9,36 @@ import { TRPCError } from "@trpc/server";
 const { auth } = useRuntimeConfig();
 
 export const contributorRouter = router({
+  
+  adminResetPassword: protectedProcedure.
+    input(
+      z.object({
+        id: z.string(),
+      })
+    ).mutation(
+      async ({ ctx, input }) => {
+        if (ctx.session.role === 'admin') {
+          const pwd = Math.random().toString(36).slice(-8);
+          const hashed = await bcrypt.hash(pwd, 10)
+          const data = await ctx.prisma.contributors.update({
+            where: {
+              id: input.id,
+            },
+            data: {
+              password: hashed,
+              failedAttempts: 0
+            },
+          });
+          return pwd;
+        } else {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'UNAUTHORIZED ACCESS.',
+          })
+        }
+
+      }
+    ),
 
   getContributorQuestions: protectedProcedure
     .input(

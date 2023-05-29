@@ -49,25 +49,36 @@ const register = () => {
 
 }
 const createContributor = async () => {
-    alreadyExists.value = false;
-    if (poolId) {
-        const data = await $client.contributor.registerContributor.mutate({
-            email: userInfo.value.email,
-            password: userInfo.value.password,
-            name: userInfo.value.firstName + ' ' + userInfo.value.lastName,
-            poolId: poolId as string,
-        });
+    try {
+        alreadyExists.value = false;
+        if (poolId) {
+            const data = await $client.contributor.registerContributor.mutate({
+                email: userInfo.value.email,
+                password: userInfo.value.password,
+                name: userInfo.value.firstName + ' ' + userInfo.value.lastName,
+                poolId: poolId as string,
+            });
 
-        if (data === "Exists") {
+            if (data) {
+                alreadyExists.value = false;
+                isLoading.value = false;
+                navigateTo('/contributor/login');
+            }
+        }else{
+            throw new Error('Invalid Link, Unauthorized!');
+        }
+    } catch (e: any) {
+        isLoading.value = false;
+        if (e.message === "Exists") {
             alreadyExists.value = true;
-            isLoading.value = false;
         }
 
-        else if (data) {
-            alreadyExists.value = false;
-            isLoading.value = false;
-            navigateTo('/contributor/login');
+        if(e.message === "UNAUTHORIZED ACCESS." || e.message === 'Invalid Link, Unauthorized!'){
+            formError.value = "UNAUTHORIZED ACCESS."
+        }else{
+            formError.value = "Something went wrong, please try again";
         }
+       
     }
 
 }
@@ -127,7 +138,7 @@ const createContributor = async () => {
                             </div>
 
                             <div class="py-3 flex flex-row ">
-                                <span class="font-bold py-3 pr-2 w-24">Password</span>
+                                <span class="  align-middle font-bold py-3 pr-2 w-24 ">Password</span>
                                 <div class="input-group w-6/12">
 
                                     <Field name="password" :type="showPassword ? 'text' : 'password'"
