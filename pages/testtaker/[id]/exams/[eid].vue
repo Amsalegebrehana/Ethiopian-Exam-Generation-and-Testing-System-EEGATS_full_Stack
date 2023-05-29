@@ -24,6 +24,9 @@ const showErrorText = ref(false);
 const { $client } = useNuxtApp();
 const { data: examDetails, pending: examDetailsPending } = await useAsyncData(() => $client.testtaker.getExamDetails.query({ testTakerId, examId }));
 const { data: testSession, pending: testSessionPending } = await useAsyncData(() => $client.testtaker.getTestSession.query({ testTakerId, examId }));
+if(testSession.value !== null &&  testSession.value.isSubmitted){
+    navigateTo(`/testtaker/${testTakerId}/exams`)
+}
 const idx = ref(testSession?.value?.currentQuestion ?? 0);
 const question = ref();
 const timeLeft = ref();
@@ -256,7 +259,7 @@ const tableData = computed(() => {
                                 <h1 class="text-3xl font-bold ">
                                     Make sure you have reviewed all questions before submitting the exam.
                                 </h1>
-                                <button @click="handlesubmit" class="btn btn-primary text-xl p-3 mt-10">
+                                <button @click="handlesubmit" class="btn btn-primary text-xl p-3 mt-10" :disabled="isLoadingSubmitExam">
                                     <div v-if="isLoadingSubmitExam">
                                         <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                     </div>
