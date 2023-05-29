@@ -125,8 +125,7 @@ const route = useRoute();
 const testTakerId = route.params.id as string;
 
 const { data: testTakerResults } = await useAsyncData(() => $client.analytics.getTestTakerResults.query({ testTakerId }));
-// const {data: testTakerResults} = await useAsyncData(()=> $client.analytics.getTestTakerExamAnalysis.query({testTakerId, examId : testTakerResults?[0]?.id}));
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement)
+
 
 
 </script>
