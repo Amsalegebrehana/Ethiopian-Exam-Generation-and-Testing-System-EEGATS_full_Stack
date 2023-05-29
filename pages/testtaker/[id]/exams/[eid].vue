@@ -113,9 +113,18 @@ const regiseterResponse = async (choiceId: string, questionId: string) => {
 }
 const handleStartExam = async () => {
     creatingSession.value = true;
-    await $client.testtaker.createTestSession.mutate({ testTakerId, examId });
-    creatingSession.value = false;
-    handleResumeSession();
+    try{
+        const res =  await $client.testtaker.createTestSession.mutate({ testTakerId, examId });
+        if(res){
+            testSession.value = res;
+            creatingSession.value = false;
+            handleResumeSession();
+        }
+    }catch(e){
+        console.log(e);
+        creatingSession.value = false;
+       showErrorText.value = true; 
+    }
 }
 const handleResumeSession = async () => {
     resuming.value = true;
@@ -169,7 +178,7 @@ const tableData = computed(() => {
         const row = [];
         for (let j = 0; j < 5; j++) {
             if (number <= numEntries) {
-                row.push(number);
+                row.push(number.toString().padStart(numEntries.toString().length, '0') );
                 number++;
             }
         }
@@ -275,8 +284,8 @@ const tableData = computed(() => {
                             <tbody>
                                 <tr v-for="row in tableData">
                                     <td v-for="cell in row" class="table-cell">
-                                        <button class="button p-2" @click="setQ(cell - 1)"
-                                            :class="{ 'font-bold bg-primary text-white text-lg': idx + 1 === cell, 'bg-blue-400 text-lg text-white font-bold': questionListStore.getIsQuestionAnswered(cell - 1), 'bg-gray-300 text-lg font-bold': !questionListStore.getIsQuestionAnswered(cell - 1) }">{{
+                                        <button class="button p-2" @click="setQ(parseInt(cell) - 1)"
+                                            :class="{ 'font-bold bg-primary text-white text-lg': idx + 1 === parseInt(cell), 'bg-blue-400 text-lg text-white font-bold': questionListStore.getIsQuestionAnswered(parseInt(cell) - 1), 'bg-gray-300 text-lg font-bold': !questionListStore.getIsQuestionAnswered(parseInt(cell) - 1) }">{{
                                                 cell }}</button>
                                     </td>
                                 </tr>

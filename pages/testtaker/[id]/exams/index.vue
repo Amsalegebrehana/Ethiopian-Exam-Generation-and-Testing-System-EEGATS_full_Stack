@@ -7,11 +7,12 @@ const page = ref(1);
 const searchPage = ref(1);
 const isReloading = ref(false);
 const searchText  = ref('');
-const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.testtaker.getExamsCount.query({testTakerId}),{ watch: [page, searchText] });
-const { data: exams, refresh: fetchExams, pending } = await useAsyncData(() => $client.testtaker.getExams.query({testTakerId, skip : (page.value - 1) * 6}), {watch: [page, searchText]});
-const { data: searchcount, refresh: fetchSearchCount } = await useAsyncData(() => $client.testtaker.getExamsCount.query({ testTakerId, search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
-const { data: searchExams, refresh: fetchSearchExams, pending: pendingSearch } = await useAsyncData(() => $client.testtaker.getExams.query({testTakerId, search: searchText.value !== '' ? searchText.value : undefined, skip : (page.value - 1) * 6}), {watch: [page, searchText]});
+const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.testtaker.getExamsCount.query({ testTakerId }));
+const { data: exams, refresh: fetchExams, pending } = await useAsyncData(() => $client.testtaker.getExams.query({ testTakerId, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
 
+const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.testtaker.getExamsCount.query({ testTakerId, search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
+const { data: searchExams, refresh: fetchSearchExams, pending: pendingSearch } = await useAsyncData(() => $client.testtaker.getExams.query({ testTakerId, search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
+  { watch: [page, searchText] });
 
 const paginate = async (newPage: number) => {
     page.value = newPage;
@@ -73,12 +74,10 @@ const resetSearch = () => {
                         </div>
                     </div>
                 </div>
-                </div>
-                <div class="w-full mt-10">
-
-                        <div v-if="searchText != ''">
-                            <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                      <div v-if="searchExams?.length == 0" class="w-full text-center text-lg mt-10 h-full">
+          
+                <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                    <div v-if="searchText != ''">
+                        <div v-if="searchExams?.length == 0" class="w-full text-center text-lg mt-10 h-full">
                                     <p>No exams found</p>
                                 </div>
                             <div v-if="searchExams?.length !== 0">
@@ -152,7 +151,7 @@ const resetSearch = () => {
                                                         </Nuxt-Link>
                                                     </div>
                                                     <div v-else>
-                                                     <div class="flex flex-row text-success justify-center">
+                                                     <div class="flex flex-row text-primary justify-center">
     
                                                         <Icon name="material-symbols:check-circle-outline" class="w-4 h-4 mr-1" ></Icon>
                                                         <span> Submitted</span>
@@ -200,7 +199,7 @@ const resetSearch = () => {
                                                     </button>
                                                 </li>
                                                 <li class="page-item">  
-                                                    <button class="page-link" v-on:click="paginateSearch(searchPage+1)" :disabled="(searchPage) * 6 >= searchcount!">
+                                                    <button class="page-link" v-on:click="paginateSearch(searchPage+1)" :disabled="(searchPage) * 6 >= searchCount!">
                                                         <div class="flex flex-row align-middle justify-center items-center">
                                                                 <span>Next</span>
                                                                 <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
@@ -217,11 +216,13 @@ const resetSearch = () => {
                           
                       
                             </div> 
-                            </div>
-                        </div>
-                        <div v-else>
-                            <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                      <div v-if="exams?.length == 0" class="w-full text-center text-lg mt-10 h-full">
+                            
+
+
+
+          </div>
+          <div v-else>
+            <div v-if="exams?.length == 0" class="w-full text-center text-lg mt-10 h-full">
                                     <p>No exams found</p>
                                 </div>
                             <div v-if="exams?.length !== 0">
@@ -295,7 +296,7 @@ const resetSearch = () => {
                                                         </Nuxt-Link>
                                                     </div>
                                                     <div v-else>
-                                                     <div class="flex flex-row text-success justify-center">
+                                                     <div class="flex flex-row text-primary justify-center">
     
                                                         <Icon name="material-symbols:check-circle-outline" class="w-4 h-4 mr-1" ></Icon>
                                                         <span> Submitted</span>
@@ -328,6 +329,7 @@ const resetSearch = () => {
                             </table>
                             <div class="flex flex-row mt-3">
                 <div class="md:block  text-slate-500">
+                   
                                     </div>
                                     <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                                         <nav class="w-full sm:w-auto sm:mr-auto">
@@ -359,6 +361,9 @@ const resetSearch = () => {
                           
                       
                             </div> 
+                            
+            </div>
+              
                             </div>
                         </div>
                     </div>
@@ -407,6 +412,6 @@ const resetSearch = () => {
                   
                 </div>
               
-            </div>
+            
     
 </template>
