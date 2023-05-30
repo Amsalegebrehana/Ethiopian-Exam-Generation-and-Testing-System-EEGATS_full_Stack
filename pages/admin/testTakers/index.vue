@@ -167,6 +167,11 @@ const copy = () => {
 
                                                     <td class="table-report__action w-96">
                                                             <div class="flex justify-center items-center">
+                                                                <a class="flex items-center mr-6 text-primary" :href="`/admin/testtakers/${student.id}`">
+                                                                    <Icon name="tabler:device-analytics"
+                                                                        class="w-4 h-4 mr-1"></Icon> View Details
+                                                                </a>
+                                                               
                                                               
                                                                 <a class="flex items-center mr-6" href="javascript:;"
                                                                     @click="ResetPasswordModal(student.id)">

@@ -335,26 +335,37 @@ watch(catID, (newId: string, oldId: string) => {
 
             <AdminSideBar pageName="exams" />
             <div class="w-full mx-6">
-                <div class="flex flex-row  align-middle mt-10">
-                    <NuxtLink :to="`/admin/pools`">
-                        <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
-                    </NuxtLink>
-                    <h2 class="intro-y text-lg font-medium ">{{ poolInfo?.name }}</h2>
+                <div class="flex flex-row w-full align-middle justify-between  mt-10">
+                    <div class="justify-start flex flex-row">
+
+                        <NuxtLink :to="`/admin/pools`">
+                            <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
+                        </NuxtLink>
+                        <h2 class="intro-y text-lg font-medium ">{{ poolInfo?.name }}</h2>
+                    </div>
+                    
+                    
+                    <div class="flex flex-row justify-end">
+                    <a class="btn btn-primary shadow-md mt-5 mr-4 text-white" :href="`/admin/pools/${poolId}/analytics`">Analytics
+                        <Icon name="tabler:device-analytics" class="w-6 h-6 ml-2 text-white"></Icon>
+                    </a>
+    
+                    </div>
                 </div>
 
                 <div class="mx-5 mt-5">
 
                     <ul class="nav nav-link-tabs" role="tablist">
                         <li id="example-5-tab" class="nav-item flex-1" role="presentation">
-                            <button class="nav-link w-full py-2 " @click="activeTab = 1"
-                                :class="{ 'active': activeTab === 1 }" data-tw-toggle="pill" data-tw-target="#example-tab-5"
+                            <button class="nav-link w-full py-2 text-gray-200 " @click="activeTab = 1"
+                                :class="{ 'active text-xl': activeTab === 1 }" data-tw-toggle="pill" data-tw-target="#example-tab-5"
                                 type="button" role="tab" aria-controls="example-tab-5" aria-selected="true">
                                 Categories
                             </button>
                         </li>
                         <li id="example-6-tab" class="nav-item flex-1" role="presentation">
                             <button class="nav-link w-full py-2" @click="activeTab = 2"
-                                :class="{ 'active': activeTab === 2 }" data-tw-toggle="pill" data-tw-target="#example-tab-6"
+                                :class="{ 'active text-xl': activeTab === 2 }" data-tw-toggle="pill" data-tw-target="#example-tab-6"
                                 type="button" role="tab" aria-controls="example-tab-6" aria-selected="true">
                                 Contributors
                             </button>
@@ -500,14 +511,14 @@ watch(catID, (newId: string, oldId: string) => {
 
 
 
-                            <div id="example-tab-5" class="tab-pane leading-relaxed " role="tabpanel"
+                            
+                            <div id="example-tab-5" class="tab-pane leading-relaxed p-2" role="tabpanel"
                                 aria-labelledby="example-5-tab" :class="{ 'active': activeTab === 2 }">
                                 <div class="grid grid-cols-12 gap-6 mt-5">
                                     <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ">
                                         <button v-on:click="toggleInviteModal()" class="btn btn-primary shadow-md mr-auto"
                                             data-modal-target="authentication-modal"
                                             data-modal-toggle="authentication-modal">Invite
-                                            Contributor
                                             <Icon name="fluent:people-add-20-filled" class="w-6 h-6 ml-2 text-white"></Icon>
                                         </button>
                                         <div class=" ml-auto mt-3 sm:mt-0 ">
@@ -643,7 +654,6 @@ watch(catID, (newId: string, oldId: string) => {
 
                                 </div>
                             </div>
-
                         </div>
 
 

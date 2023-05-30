@@ -2,16 +2,17 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { ChartData, ChartDataset } from 'chart.js';
+import { Category, Pool, Contributors } from '@prisma/client';
 
 interface CategoryCounts {
   [categoryName: string]: number;
 }
-const options : OptionInterface = {
+const options: OptionInterface = {
   responsive: true,
   maintainAspectRatio: true
 }
 
-interface OptionInterface{responsive: boolean, maintainAspectRatio : boolean}
+interface OptionInterface { responsive: boolean, maintainAspectRatio: boolean }
 
 interface ResultItem {
   id: string;
@@ -22,7 +23,7 @@ interface ResultItem {
   testTime?: number;
   testDuration?: number,
   ranking?: number,
-  chartData?: {data:   ChartData<"doughnut", number[], unknown>, options : OptionInterface};
+  chartData?: { data: ChartData<"doughnut", number[], unknown>, options: OptionInterface };
 
 }
 function generateRandomColors(numOfEntries: number, includeBlack: boolean): string[] {
@@ -32,7 +33,7 @@ function generateRandomColors(numOfEntries: number, includeBlack: boolean): stri
     const color = '#' + Math.floor(Math.random() * 16777215).toString(16);
     colors.push(color);
   }
-  if(includeBlack){
+  if (includeBlack) {
     colors.pop();
     colors.push('#000000');
   }
@@ -41,42 +42,6 @@ function generateRandomColors(numOfEntries: number, includeBlack: boolean): stri
 }
 
 export const analyticsRouter = router({
-  getQuestionStatusDistribution: protectedProcedure
-    .query(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
-
-        const questionStatusDistribution = await ctx.prisma.questions.groupBy({
-          by: ['status'],
-          _count: { id: true },
-        });
-
-        const labels: string[] = [];
-        const counts: number[] = [];
-        const backgroundColors = ['#41B883', '#E46651', '#00D8FF', '#DD1B16'];
-        // const backgroundColors = generateRandomColors(questionStatusDistribution.length);
-
-        questionStatusDistribution.forEach((item) => {
-          labels.push(item.status);
-          counts.push(item._count.id);
-        });
-
-        const datasets = [
-          {
-            backgroundColor: backgroundColors,
-            data: counts,
-          },
-        ];
-        return { data: { labels, datasets }, options };
-
-      } else {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'UNAUTHORIZED ACCESS.',
-
-        });
-      }
-
-    }),
   getTestTakerResults: protectedProcedure
     .input(z.object({
       testTakerId: z.string(),
@@ -152,7 +117,7 @@ export const analyticsRouter = router({
             const grades: number[] = [];
             data.forEach(async (item) => {
               const unansweredCategoryName = "Incorrect";
-              const correctCount = 0; 
+              const correctCount = 0;
               let unansweredCount = item.numberOfQuestions - item.TestTakerResponse.length;
 
               const testDuration = item.duration;
@@ -166,34 +131,34 @@ export const analyticsRouter = router({
               }
               item.TestTakerResponse.forEach((response) => {
                 const categoryName = response.questions.category.name;
-                
+
                 if (categoryCounts.hasOwnProperty(categoryName)) {
                   categoryCounts[categoryName]++;
                 } else {
                   categoryCounts[categoryName] = 1;
                 }
               });
-              
+
               if (unansweredCount > 0) {
                 categoryCounts[unansweredCategoryName] = unansweredCount;
               }
 
               const labels: string[] = [];
               const counts: number[] = [];
-            
-              const chartData:  ChartData<"doughnut", number[], unknown> = {
+
+              const chartData: ChartData<"doughnut", number[], unknown> = {
                 labels: [],
                 datasets: [{
                   data: [],
                   backgroundColor: [],
                 }],
               };
-              
+
               Object.entries(categoryCounts).forEach(([category, count], index) => {
                 chartData.labels?.push(category);
                 chartData.datasets[0].data.push(count);
               });
-              chartData.datasets[0].backgroundColor = generateRandomColors(chartData.labels?.length || 0, unansweredCount > 0 );
+              chartData.datasets[0].backgroundColor = generateRandomColors(chartData.labels?.length || 0, unansweredCount > 0);
               const grade = (item.TestSession[0].grade / item.numberOfQuestions) * 100;
               grades.push(grade);
 
@@ -209,11 +174,11 @@ export const analyticsRouter = router({
                 grade,
                 testTime,
                 testDuration,
-                chartData : {
-                  data : chartData,
+                chartData: {
+                  data: chartData,
                   options
                 },
-                
+
               });
             });
             const averageGrade = grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
@@ -242,6 +207,89 @@ export const analyticsRouter = router({
       }
 
     }),
+
+  getPoolAnalytics: protectedProcedure
+    .input(z.object({
+      poolId: z.string()
+    }))
+    .query(
+      async ({ ctx, input }) => {
+        try {
+          const pool = await ctx.prisma.pool.findUnique({
+            where: { id: input.poolId },
+            include: {
+              Contributors: {
+                include: { Questions: true },
+                orderBy: { Questions: { _count: 'desc' } },
+                
+              },
+              Category: {
+                include: { questions: true },
+                orderBy: { questions: { _count: 'desc' } },
+              },
+              Exam: true
+            }
+          });
+      
+          if (!pool) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Pool not found',
+        
+            });
+          }
+      
+          const contributorCount: number = pool.Contributors.length;
+      
+          const categoryDistribution: { categoryName: string; totalQuestions: number }[] = pool.Category.map(
+            (category) => ({
+              categoryName: category.name,
+              totalQuestions: category.questions.length
+            })
+          );
+      
+          const examCount: number = pool.Exam.length;
+      
+          const topContributors: string[] = pool.Contributors.map((contributor) => contributor.name).slice(0, 3);
+
+      
+          const topCategories: string[] = pool.Category
+            .sort((a, b) => b.questions.length - a.questions.length)
+            .map((category) => category.name)
+            .slice(0, 3);
+      
+            const totalContributions: number = pool.Contributors.reduce(
+              (total: number, contributor) => total + contributor.Questions.length,
+              0
+            );
+         
+      
+          const questionStatusMetrics: { [status: string]: number } = {};
+      
+          pool.Category.forEach((category) => {
+            category.questions.forEach((question) => {
+              if (!questionStatusMetrics[question.status]) {
+                questionStatusMetrics[question.status] = 0;
+              }
+              questionStatusMetrics[question.status]++;
+            });
+          });
+      
+          return {
+            contributorCount,
+            categoryDistribution,
+            examCount,
+            topContributors,
+            topCategories,
+            questionStatusMetrics
+          };
+        } catch (error) {
+          console.error('Error retrieving pool data:', error);
+          throw error;
+        }
+
+      }
+    )
 
 
 
