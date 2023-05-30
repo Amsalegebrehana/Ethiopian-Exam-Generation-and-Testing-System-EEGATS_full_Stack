@@ -3,7 +3,7 @@
         <AdminTopBar role="admin" />
         <div class="flex">
 
-            <AdminSideBar pageName="testtakers" />
+            <AdminSideBar pageName="pools" />
             <div class="w-full mx-6">
                 <div class="flex flex-row  align-middle mt-10">
                     <NuxtLink :to="`/admin/pools/${poolId}`">

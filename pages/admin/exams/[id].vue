@@ -98,8 +98,8 @@
 
                                 </div>
                                 <div class="grid grid-cols-2 gap-6 mt-4 ">
-                                    <div class="align-middle bg-green h-full justify-between mt-5 py-4">
-                                        <div class="bg-white rounded-lg shadow-lg p-6 justify-center hover:bg-gray-100">
+                                    <div class="align-middleh-full justify-between mt-5 py-4">
+                                        <div class="bg-white rounded-lg m-6 p-6 justify-center hover:bg-gray-100">
                                             <div class="mx-4">
 
                                                 <div class="flex flex-row justify-between  space-x-6 ">
@@ -117,7 +117,7 @@
                                             </div>
                                         </div>
                                         <div
-                                            class="bg-white rounded-lg shadow-lg p-6 justify-center hover:bg-gray-100 mt-10 ">
+                                            class="bg-white rounded-lg  p-6 justify-center hover:bg-gray-100 mt-10 m-6">
                                             <div class="mx-4">
 
                                                 <div class="flex flex-row justify-between  space-x-6 ">

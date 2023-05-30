@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import { ChartData, ChartDataset } from 'chart.js';
-import { Category, Pool, Contributors } from '@prisma/client';
+import { ChartConfiguration, ChartData, ChartDataset } from 'chart.js';
+import { PrismaClient, Contributors, Questions, Category, ContributorAssignment, Review } from "@prisma/client";
 import { filter } from "./reviews";
 
 interface CategoryCounts {
@@ -11,7 +11,7 @@ interface CategoryCounts {
 
 interface ResultItem {
   id: string;
-  pool:string;
+  pool: string;
   name: string;
   numOfQuestions: number;
   categories: CategoryCounts;
@@ -36,6 +36,8 @@ function generateRandomColors(numOfEntries: number, includeBlack: boolean): stri
 
   return colors;
 }
+
+
 
 export const analyticsRouter = router({
   getTestTakerResults: protectedProcedure
@@ -66,9 +68,9 @@ export const analyticsRouter = router({
             name: true,
             numberOfQuestions: true,
             duration: true,
-            pool:{
-              select:{
-                name:true
+            pool: {
+              select: {
+                name: true
               }
             },
             TestSession: {
@@ -180,7 +182,7 @@ export const analyticsRouter = router({
 
                       },
                     },
-                  }
+                  } as ChartConfiguration<'doughnut'>['options']
                 },
 
               });
@@ -332,7 +334,7 @@ export const analyticsRouter = router({
                 plugins: {
                   title: {
                     display: true,
-                    text: isEmptyDistribution ?'No Questions Found' : 'Question Status Distribution',
+                    text: isEmptyDistribution ? 'No Questions Found' : 'Question Status Distribution',
                     font: {
                       size: 22,
                       weight: 'bold',
@@ -343,7 +345,7 @@ export const analyticsRouter = router({
 
                   },
                 },
-              }
+              } as ChartConfiguration<'doughnut'>['options']
             },
             catDistribution: {
               data: categoryDistributionChartData,
@@ -365,7 +367,7 @@ export const analyticsRouter = router({
                 plugins: {
                   title: {
                     display: true,
-                    text: isEmptyBarDistribution ? 'No Questions Found':'Category Distribution',
+                    text: isEmptyBarDistribution ? 'No Questions Found' : 'Category Distribution',
                     font: {
                       size: 22,
                       weight: 'bold',
@@ -375,7 +377,7 @@ export const analyticsRouter = router({
                     display: false,
                   },
                 },
-              }
+              } as ChartConfiguration<'bar'>['options']
             },
           };
         } catch (error) {
@@ -424,10 +426,6 @@ export const analyticsRouter = router({
           totalTestTakers > 0 ? exam.TestSession.reduce((acc, session) => acc + session.grade, 0) / totalTestTakers : 0;
         const highestGrade = Math.max(...exam.TestSession.map((session) => session.grade));
         const lowestGrade = Math.min(...exam.TestSession.map((session) => session.grade));
-
-        // Calculate average time spent on the exam
-
-
 
         // Analyze question performance
         const questionPerformance: { contrId: string; title: string; percentageCorrect: number, contrName: string }[] = [];
@@ -506,7 +504,7 @@ export const analyticsRouter = router({
               plugins: {
                 title: {
                   display: true,
-                  text: isEmptyDistribution ?'Question Status Distribution' : 'No Questions Found',
+                  text: isEmptyDistribution ? 'No Question Found' : 'Question Status Distribution',
                   font: {
                     size: 14,
                     weight: 'bold',
@@ -517,7 +515,7 @@ export const analyticsRouter = router({
 
                 },
               },
-            }
+            } as ChartConfiguration<'doughnut'>['options']
           },
 
         };
@@ -531,6 +529,206 @@ export const analyticsRouter = router({
 
     }),
 
+
+  getContributorAnalytics: protectedProcedure
+    .input(z.object({
+      contrId: z.string()
+    }))
+    .query(async ({ ctx, input }) => {
+      
+      try {
+        const contributor = await ctx.prisma.contributors.findUnique({
+          where: { id: input.contrId },
+          select: {
+            Questions: { include: { category: true } },
+            contributorAssignments: {
+              include: {
+                category: {
+                  include: { questions: true },
+                }
+              }
+            },
+            Reviews: {
+              include: {
+                questions: true,
+              }
+            },
+            pool: {
+              select: {
+                name: true
+              }
+            },
+            name: true,
+          },
+        });
+
+        if (!contributor) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Contributor not found',
+
+          });
+        }
+        const statusDistribution: Record<string, number> = {
+          accepted: 0,
+          rejected: 0,
+          waitingReview: 0,
+          inDraft: 0,
+        };
+
+        contributor.Questions.forEach((question) => {
+          switch (question.status) {
+            case "approved":
+              statusDistribution.accepted++;
+              break;
+            case "rejected":
+              statusDistribution.rejected++;
+              break;
+            case "waiting":
+              statusDistribution.waitingReview++;
+              break;
+            case "draft":
+              statusDistribution.inDraft++;
+              break;
+            default:
+              break;
+          }
+        });
+
+
+        
+        const totalAssignedQuestions = contributor.contributorAssignments.reduce((total, assignment) => total + assignment.questionsRemaining, 0);
+      
+        const submittedReviews = contributor.Reviews.filter((review) => review.isReviewed);
+
+        const approvingRate = submittedReviews.filter((review) => review.questions.status === 'approved').length;
+
+        const chartData: ChartData<"doughnut", number[], unknown> = {
+          labels: [],
+          datasets: [{
+            data: [],
+            backgroundColor: [],
+          }],
+        };
+
+        Object.entries(statusDistribution).forEach(([status, count], index) => {
+          chartData.labels?.push(status);
+          chartData.datasets[0].data.push(count);
+        });
+        chartData.datasets[0].backgroundColor = generateRandomColors(chartData.labels?.length || 0, false);
+
+
+        const consolidatedCategories: {
+          categoryName: string;
+          totalQuestions: number;
+        }[] = [];
+
+        contributor.Questions.forEach((question) => {
+          const category: Category = question.category;
+          const categoryName: string = category.name;
+
+          const existingCategoryIndex = consolidatedCategories.findIndex(
+            (consolidatedCategory) => consolidatedCategory.categoryName === categoryName
+          );
+
+          if (existingCategoryIndex !== -1) {
+            consolidatedCategories[existingCategoryIndex].totalQuestions++;
+          } else {
+            consolidatedCategories.push({ categoryName, totalQuestions: 1 });
+          }
+        });
+
+        const categoryLabels: string[] = consolidatedCategories.map((category) => category.categoryName);
+        const categoryCounts: number[] = consolidatedCategories.map((category) => category.totalQuestions);
+
+        const categoryDistributionChartData: ChartData<"bar", number[], unknown> = {
+          labels: categoryLabels,
+          datasets: [
+            {
+              label: 'Total Questions',
+              data: categoryCounts,
+              backgroundColor: generateRandomColors(categoryCounts.length, false)
+            }
+          ]
+        };
+
+        const isEmptyDistribution = statusDistribution.accepted === 0 && statusDistribution.rejected === 0 && statusDistribution.waitingReview === 0 && statusDistribution.inDraft === 0;
+        const isEmptyBarDistribution = Object.keys(categoryCounts).length === 0;
+
+
+
+
+        return {
+         
+          totalQuestionsCreated : contributor.Questions.length,
+          totalAssignedQuestions,
+          approvingRate : (approvingRate / submittedReviews.length) * 100,
+          totalReviewsAssigned : contributor.Reviews.length,
+          submittedReviews: submittedReviews.length,
+          poolName: contributor.pool.name,
+          contributorName: contributor.name,
+          statusDistribution: {
+            data: chartData,
+            options:  {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                title: {
+                  display: true,
+                  text: isEmptyDistribution ? 'No Questions Found' : 'Question Status Distribution',
+                  font: {
+                    size: 22,
+                    weight: 'bold',
+                  },
+                },
+                legend: {
+                  position: 'right',
+
+                },
+              },
+            } as ChartConfiguration<'doughnut'>['options']
+          },
+          catDistribution: {
+            data: categoryDistributionChartData,
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              scales: {
+                x: {
+                  grid: {
+                    display: false // Hide the x-axis grid lines
+                  }
+                },
+                y: {
+                  grid: {
+                    display: false // Hide the y-axis grid lines
+                  }
+                }
+              },
+              plugins: {
+                title: {
+                  display: true,
+                  text: isEmptyBarDistribution ? 'No Questions Found' : 'Category Distribution',
+                  font: {
+                    size: 22,
+                    weight: 'bold',
+                  },
+                },
+                legend: {
+                  display: false,
+                },
+              },
+            } as ChartConfiguration<'bar'>['options']
+          },
+        }
+      } catch (error) {
+        console.error("Error retrieving contributor data:", error);
+        throw error;
+      }
+
+     
+
+    }),
 
 
 });
