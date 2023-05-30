@@ -10,6 +10,7 @@ import { reviewsRouter } from './reviews'
 import { category } from './category';
 import {examRouter} from './exams';
 import { analyticsRouter } from './analytics';
+import { passwordHandlerRouter } from './password_handler';
 
 
 export const appRouter = router({
@@ -23,6 +24,7 @@ export const appRouter = router({
     category :  category,
     exam: examRouter,
     analytics: analyticsRouter,
+    passwordHandlerRouter: passwordHandlerRouter,       
   
     
 });
