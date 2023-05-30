@@ -1,15 +1,32 @@
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
-import { addMinutes, min } from "date-fns";
+import { addMinutes, isAfter } from "date-fns";
 
+// import cron from node-cron
+
+// @ts-ignore
+
+import * as cron from "node-cron";
 // import isOverlapping  from 'date-fns';
 import { areIntervalsOverlapping } from 'date-fns'
 import { TRPCError } from "@trpc/server";
 import { th } from "date-fns/locale";
+import { PrismaClient } from "@prisma/client";
 
 // reuseble get exam group by Id here
 
-const getExamById = async (ctx: { session: { role: string; }; prisma: { exam: { findUnique: (arg0: { where: { id: any; }; }) => any; }; }; }, id: any) => {
+const getExamById = async (
+    ctx: { 
+        session: { role: string; }; 
+        prisma: { 
+            exam: { 
+                findUnique: (arg0: 
+                    { 
+                        where: { id: any; }; }) => any; 
+                    }; 
+                }; 
+            },
+                         id: any) => {
     //  retrieve the exam  by ID
     if (ctx.session.role === "admin") {
       const exam = await ctx.prisma.exam.findUnique({
@@ -25,11 +42,12 @@ const getExamById = async (ctx: { session: { role: string; }; prisma: { exam: { 
       });
     }
   }
-  
-
+       
 
 //   DRY testing date overlaps check function for create and update exam
-const checkIntervalsOverlap = async(ctx: { prisma: { exam: { findMany: (arg0: { select: { testingDate: boolean; duration: boolean; }; where: { examGroup: { id: any; }; }; }) => any; }; }; }, input: { examGroupId: any; testingDate:  Date; duration: number; })=>{
+const checkIntervalsOverlap = async(
+    ctx: { prisma: { exam: { findMany: (arg0: { select: { testingDate: boolean; duration: boolean; }; where: { examGroup: { id: any; }; }; }) => any; }; }; }, 
+    input: { examGroupId: any; testingDate:  Date; duration: number; })=>{
     
        // get all exams with the same exam group id, pool id 
        const previousExams = await ctx.prisma.exam.findMany({
@@ -363,6 +381,29 @@ export const examRouter = router({
                 })
             }
             }),
+        // get exams count by exam group id
+        getExamsCountInExamGroup: protectedProcedure
+        .input(
+            z.object({
+                examGroupId: z.string(),
+            })
+        )
+        .query(async ({ ctx, input }) => {
+            if (ctx.session.role === "admin") {
+
+                return await ctx.prisma.exam.count({
+                    where: {
+                        examGroupId: input.examGroupId,
+                    },
+                });
+
+            } else {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "UNAUTHORIZED ACCESS.",
+                });
+            }
+        }),
             // get all exams by exam group id
         getExamsByExamGroup: protectedProcedure
             .input(
@@ -573,7 +614,44 @@ export const examRouter = router({
             }
             ),
 
-            // release exam
            
-         
+            // cron job exam release status change
+            // update exam
+            // releaseExam: publicProcedure
+                   
+            //         .mutation(async ({ ctx }) => {
+            //             // ...
+
+            //             // Schedule the cron job
+            //             cron.schedule("*/5 * * * *", async () => {
+            //             // Code to execute on the defined schedule
+            //             console.log("Cron job executed");
+            //             const exams = await ctx.prisma.exam.findMany({
+            //                         where: {
+            //                             examReleaseDate: { lte: new Date() },
+            //                             status: { not: 'gradeReleased' },
+            //                         },
+            //                     });
+            //                                 // Update status for each exam
+            //             exams.forEach((exam) => {
+                           
+            //                  ctx.prisma.exam.update({
+            //                     where: {
+            //                         id: exam.id,
+            //                     },
+            //                     data: {
+            //                         status: 'gradeReleased',
+            //                     },
+            //                 });
+                                
+            //                 });
+            //             // Perform any operations you need here
+            //             // Return the updated exam
+            //             return exams;
+            //             });
+
+            // }),
+            
+   
 });
+

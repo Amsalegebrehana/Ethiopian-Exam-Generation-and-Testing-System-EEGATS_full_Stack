@@ -83,7 +83,7 @@
                             </select>
                           </td>
                           <td>
-                            <input type="number " v-model.number="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
+                            <input type="number" v-model.number="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
                             <input type="hidden" :value="selectedCategory.selectedId=categoryNameId[selectedCategory.categoryName]" />
                           </td>
                           <td>
@@ -352,7 +352,7 @@ const createExam = async () => {
       totalNumberOfQuestions.value += selectedCategory.numberOfQuestionPerCategory;
       
     });
-
+    
     const exam = {
         name: examName.value,
         examGroupId: selectedExamGroup.value,

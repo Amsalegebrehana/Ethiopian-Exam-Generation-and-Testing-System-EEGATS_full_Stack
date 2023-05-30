@@ -178,7 +178,7 @@
                                     <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2">
                                       
                                         <div class="hidden md:block mx-auto text-slate-500">
-                                            Showing 1 to 10 of {{ exams.length }} entries
+                                            
                                         </div>
                                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                                             <div class="w-56 relative text-slate-500">
@@ -290,7 +290,8 @@
                                         </select>
                                     </div>
                                     <!-- END: Pagination -->
-                                </div> </div>
+                                </div> 
+                        </div>
                     </div>
                                     
                 </div>           
@@ -418,6 +419,27 @@ const filepath = ref('');
 
 const route = useRoute()
 const examGroupId = route.params.id as string;
+
+// get exam data
+const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId }));
+const { data: reviews, refresh: fetchReviews, pending } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
+
+const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
+const { data: searchReviews, refresh: fetchSearchReviews, pending: pendingSearch } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
+  { watch: [page, searchText] });
+
+const paginate = async (newPage: number) => {
+  page.value = newPage;
+  isReloading.value = true;
+  try {
+    await fetchReviews();
+    await fetchCount();
+  } finally {
+    isReloading.value = false
+  }
+}
+
+
 const toggleAddModal = () => {
    
     showAddModal.value = !showAddModal.value;
@@ -430,7 +452,7 @@ const getTestTakers = async () => {
   testTakers = await $client.examGroup.getExamGroupTestTakers.query({ id: examGroupId });
     if (testTakers) {
 
-             testTakers.forEach((student) => { 
+             testTakers.forEach((student: { name: string; username: string; }) => { 
             rows.push([student.name, student.username]); // add data rows
         });
       }
