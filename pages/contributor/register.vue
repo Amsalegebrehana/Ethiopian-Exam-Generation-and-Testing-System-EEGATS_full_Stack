@@ -27,6 +27,7 @@ const nameFieldSchema = toFieldValidator(zod.string().nonempty('Field is require
 const emailFieldSchema = toFieldValidator(zod.string().nonempty('Field is required').email('Must be a valid email'));
 const passwordFieldSchema = toFieldValidator(zod.string().nonempty('Field is required').min(8, 'Minimum of 8 characters required'));
 const confirmPasswordSchema = toFieldValidator(zod.string().nonempty('Field is required').min(8, 'Minimum of 8 characters required'));
+const alreadyExists = ref(false);
 const formError = ref('');
 const showPassword = ref(false);
 const togglePassword = () => {
@@ -37,6 +38,7 @@ const toggleConfirmPassword = () => {
     showconfirmPassword.value = !showconfirmPassword.value;
 };
 const register = () => {
+    alreadyExists.value = false;
     if (userInfo.value.password !== userInfo.value.confirmPassword) {
         formError.value = "Passwords must match";
         return;
@@ -47,8 +49,8 @@ const register = () => {
 
 }
 const createContributor = async () => {
-
     try {
+        alreadyExists.value = false;
         if (poolId) {
             const data = await $client.contributor.registerContributor.mutate({
                 email: userInfo.value.email,
@@ -56,7 +58,9 @@ const createContributor = async () => {
                 name: userInfo.value.firstName + ' ' + userInfo.value.lastName,
                 poolId: poolId as string,
             });
+
             if (data) {
+                alreadyExists.value = false;
                 isLoading.value = false;
                 navigateTo('/contributor/login');
             }
@@ -65,6 +69,10 @@ const createContributor = async () => {
         }
     } catch (e: any) {
         isLoading.value = false;
+        if (e.message === "Exists") {
+            alreadyExists.value = true;
+        }
+
         if(e.message === "UNAUTHORIZED ACCESS." || e.message === 'Invalid Link, Unauthorized!'){
             formError.value = "UNAUTHORIZED ACCESS."
         }else{
@@ -72,8 +80,6 @@ const createContributor = async () => {
         }
        
     }
-
-
 
 }
 </script>
@@ -92,8 +98,14 @@ const createContributor = async () => {
             </div>
             <div class="w-1/2 h-full items-center align-middle my-auto ">
                 <div class=" mt-28 justify-start mx-auto">
+                    <!-- {{ poolId }} -->
+                    <div v-if="alreadyExists === true">
+                        <p class="font-bold text-red-500">There is an account with this email that is already registered! Please try again.
+                        </p>
+                    </div>
                     <span class="mt-5 text-red-500">{{ formError }}</span>
                     <div class="intro-x mt-8">
+
                         <Form>
                             <div class="py-3 flex flex-row ">
                                 <span class=" align-middle font-bold py-3 pr-2 w-24">First Name</span>
