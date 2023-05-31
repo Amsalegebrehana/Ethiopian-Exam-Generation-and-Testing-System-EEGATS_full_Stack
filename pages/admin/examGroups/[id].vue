@@ -334,7 +334,7 @@
                                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                         </div>
                                         <div v-else>
-                                            Add
+                                            Add 
                                         </div>
                                     </button>
 
@@ -416,10 +416,11 @@ const isReloading = ref(false);
 const isLoadingResetPassword = ref(false);
 const showResetPasswordModal = ref(false);
 const filepath = ref('');
-
+const page = ref(1);
+const searchText = ref('');
 const route = useRoute()
 const examGroupId = route.params.id as string;
-
+const searchPage = ref(1)
 // get exam data
 const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId }));
 const { data: reviews, refresh: fetchReviews, pending } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });

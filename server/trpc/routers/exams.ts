@@ -2,16 +2,10 @@ import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { addMinutes, isAfter } from "date-fns";
 
-// import cron from node-cron
-
-// @ts-ignore
-
-import * as cron from "node-cron";
 // import isOverlapping  from 'date-fns';
 import { areIntervalsOverlapping } from 'date-fns'
 import { TRPCError } from "@trpc/server";
-import { th } from "date-fns/locale";
-import { PrismaClient } from "@prisma/client";
+
 
 // reuseble get exam group by Id here
 
@@ -613,44 +607,6 @@ export const examRouter = router({
             }
             }
             ),
-
-           
-            // cron job exam release status change
-            // update exam
-            // releaseExam: publicProcedure
-                   
-            //         .mutation(async ({ ctx }) => {
-            //             // ...
-
-            //             // Schedule the cron job
-            //             cron.schedule("*/5 * * * *", async () => {
-            //             // Code to execute on the defined schedule
-            //             console.log("Cron job executed");
-            //             const exams = await ctx.prisma.exam.findMany({
-            //                         where: {
-            //                             examReleaseDate: { lte: new Date() },
-            //                             status: { not: 'gradeReleased' },
-            //                         },
-            //                     });
-            //                                 // Update status for each exam
-            //             exams.forEach((exam) => {
-                           
-            //                  ctx.prisma.exam.update({
-            //                     where: {
-            //                         id: exam.id,
-            //                     },
-            //                     data: {
-            //                         status: 'gradeReleased',
-            //                     },
-            //                 });
-                                
-            //                 });
-            //             // Perform any operations you need here
-            //             // Return the updated exam
-            //             return exams;
-            //             });
-
-            // }),
             
    
 });

@@ -157,7 +157,8 @@ const handleDeleteExamGroup = async () => {
                                         <td  > 
                                             <NuxtLink :to="`/admin/examgroups/${exgrp.id}`" class="font-medium whitespace-nowrap">
                                             {{
-                                                exgrp.name
+                                                 
+                                                exgrp.name.length > 40 ? exgrp.name.slice(0,39) + "..." : exgrp.name
                                             }}
                                             </NuxtLink>
                                        

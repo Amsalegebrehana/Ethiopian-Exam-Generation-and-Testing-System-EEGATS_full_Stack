@@ -73,7 +73,8 @@
                                 <Icon name="material-symbols:edit-outline" class="mr-2 w-4 h-4"></Icon> Edit
                             </button>
                             <button v-if="isLoading" class="btn btn-gray-700 text-primary flex items-center mr-3" disabled >
-                                <Icon name="line-md:loading-alt-loop" class="w-4 h-4"></Icon> Loading ...
+                                <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+
                             </button>
                         </div>
                     </div>
