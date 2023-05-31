@@ -1,46 +1,129 @@
 import { array, z } from "zod";
 import {  sendNewInvite, sendReturnEmail, sendNotificationEmail } from "~~/utils/mailer";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { validateEmail } from "~~/utils/emailValidation";
 const { auth } = useRuntimeConfig();
 import bcrypt from "bcrypt";
-import { QuestionStatus } from "@prisma/client";
+import { Prisma, QuestionStatus } from "@prisma/client";
+import { category } from "./category";
+import { throws } from "assert";
+import { TRPCError } from "@trpc/server";
 export const contributorRouter = router({
 
   
-  getContributorQuestions: publicProcedure
+  getContributorQuestions: protectedProcedure
   .input(
-    z.string()
+    z.object({
+      contrId: z.string(),
+      skip: z.number()
+    })
   )
   .query(
-    async ({ctx, input}) => {
-      const data = await ctx.prisma.questions.findMany({
-        where: {
-          contributorId: input,
-          status: QuestionStatus.draft,
-        }
-      })
-
-      return data;
+    async ({ctx, input}) => { 
+      if(ctx.session.role == 'contributor'){
+        const data = await ctx.prisma.questions.findMany({
+          skip: input.skip,
+          take: 6,
+          orderBy: {
+            createdAt: "desc",
+          },
+          where: {
+            contributorId: input.contrId,
+            status: QuestionStatus.draft,
+          }
+        })
+  
+        return data;
+      } else{
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS',
+        })
+      }
     }),
 
-  getContributorQuestionCount: publicProcedure
+  getContributorDraftCount: protectedProcedure
   .input(
     z.string()
   )
   .query(
     async ({ctx, input}) => {
-      const data = await ctx.prisma.questions.count({
-        where: {
-          contributorId: input,
-        }
-      })
-
-      return data;
+      if(ctx.session.role == 'contributor'){
+        const data = await ctx.prisma.questions.count({
+          where: {
+            contributorId: input,
+            status: QuestionStatus.draft
+          }
+        })
+  
+        return data;
+      } else{
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS',
+        })
+      }
     }
   ),
   
-  searchContributorQuestions: publicProcedure
+  searchQuestionsCount: protectedProcedure
+  .input(
+    z.object({
+      search: z.string().optional(),
+    })
+  )
+  .query(async ({ ctx, input }) => {
+    if(ctx.session.role == 'contributor'){
+      return await ctx.prisma.questions.count({
+        where: {
+          title: {
+            contains: input.search,
+          },
+        },
+      })} else{
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS',
+        })
+      }
+  }),
+
+  searchQuestions: protectedProcedure
+  .input(
+    z.object({
+      skip: z.number(),
+      search: z.string().optional(),
+    })
+  )
+  .query(async ({ ctx, input }) => {
+    if(ctx.session.role == 'contributor'){
+      const result = await ctx.prisma.questions.findMany({
+        skip: input.skip,
+        take: 6,
+        orderBy: {
+          createdAt: "desc",
+        },
+        where: {
+          status: {
+            equals: 'draft'
+          },
+          title: {
+            contains: input.search?.toLowerCase(),
+          },
+        }
+      })
+
+      return result;
+    } else{
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'UNAUTHORIZED ACCESS',
+      })
+    }
+
+  }),
+
+  searchContributorQuestions: protectedProcedure
   .input(
    z.object({
       skip: z.number(),
@@ -50,24 +133,31 @@ export const contributorRouter = router({
   )
   .query(
     async ({ctx, input}) => {
-      const data = await ctx.prisma.questions.findMany(
-        {
-          skip: input.skip, 
-          take: 6, 
-          orderBy: {
-            createdAt: "desc"
-          },
-          where: {
-            contributorId: input.contributorID,
-            title: {
-              contains: input.search,
+      if(ctx.session.role == 'contributor'){
+        const data = await ctx.prisma.questions.findMany(
+          {
+            skip: input.skip, 
+            take: 6, 
+            orderBy: {
+              createdAt: "desc"
             },
-          },
-        });
-        return data;
+            where: {
+              contributorId: input.contributorID,
+              title: {
+                contains: input.search,
+              },
+            },
+          });
+          return data;
+      } else{
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS',
+        })
+      }
     }),
     
-  getReviewsMade: publicProcedure
+  getReviewsMade: protectedProcedure
   .input(
     z.object({ 
       id: z.string(),
@@ -75,18 +165,25 @@ export const contributorRouter = router({
     })
   )
   .query(async ({ ctx, input }) => {
-    const data = await ctx.prisma.contributors.findUnique({
-      where: {
-        id: input.id,
-      }
-    }).then((data) => {
-      return data?.reviewsMade;
-    })
-    return data;
+    if(ctx.session.role == 'contributor'){
+      const data = await ctx.prisma.contributors.findUnique({
+        where: {
+          id: input.id,
+        }
+      }).then((data) => {
+        return data?.reviewsMade;
+      })
+      return data;
+    } else{
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'UNAUTHORIZED ACCESS',
+      })
+    }
 
 }),
 
-  checkifAssigned : publicProcedure
+  checkifAssigned : protectedProcedure
   .input(
    z.object({
      contrId: z.string(),
@@ -94,82 +191,65 @@ export const contributorRouter = router({
    })
  )
  .query(async ({ ctx, input }) => {
-
-   const contributor  =  await ctx.prisma.contributors. findUnique({
-     where : {
-       id : input.contrId
-     }
-   })
-
-   const data = await ctx.prisma.contributors.findMany({
-    select: {
-      _count: {
-        select: {
-          contributorAssignments: { where: {
-                   contrId : input.contrId,
-                   category : {
-                     poolId : contributor?.poolId
-                   },
-                   questionsRemaining : {
-                     gt :0 
-                   }
-                 },},
-        },
-      },
-    },
-       }
-     
-    
-   )
-   .then(
-     (data)=> {
-      var count = 0;
-      data.forEach(element => {
-        count += element._count.contributorAssignments
-      });
-
-      return count > 0
-    }
-    
-    )
-    return data;
-
+  if(ctx.session.role == 'contributor'){
+    var count = 0;
+    const assignments = await ctx.prisma.contributorAssignment.findMany({
+      where: {
+        contrId: input.contrId,
+      }
+    })
+    assignments.forEach((item) => count += item.questionsRemaining);
+    return count > 0;
+  } else{
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'UNAUTHORIZED ACCESS',
+    })
+  }
  }),
-  getAssignedCategories: publicProcedure
+
+  getAssignedCategories: protectedProcedure
    .input(
     z.object({
       contrId: z.string(),
     })
   )
   .query(async ({ ctx, input }) => {
-    const contributor  =  await ctx.prisma.contributors. findUnique({
-      where : {
-        id : input.contrId
-      }
-    })
-    const data = await ctx.prisma.category.findMany({
-      where: {
-        contributorAssignments :{
-          
-          some : {
-            contrId : input.contrId,
-            category : {
-              poolId : contributor?.poolId
-            },
-            questionsRemaining : {
-              gt :0 
-            }
-          }
-       
+    if(ctx.session.role == 'contributor'){
+      const contributor  =  await ctx.prisma.contributors.findUnique({
+        where : {
+          id : input.contrId
         }
-      },
-      
-     
-    });
-   return data;
+      })
+      const data = await ctx.prisma.category.findMany({
+        where: {
+          contributorAssignments :{
+            
+            some : {
+              contrId : input.contrId,
+              category : {
+                poolId : contributor?.poolId
+              },
+              questionsRemaining : {
+                gt :0 
+              }
+            }
+         
+          }
+        },
+        
+       
+      });
+     return data;
+    } else{
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'UNAUTHORIZED ACCESS',
+      })
+    }
   }),
  
-  getQuestionsRemaining: publicProcedure
+  getQuestionsRemaining: protectedProcedure
   .input(
     z.object({
       id: z.string(),
@@ -177,26 +257,33 @@ export const contributorRouter = router({
     })
   )
   .query(async ({ ctx, input }) => {
-    await ctx.prisma.contributorAssignment.findMany({
-      where: {
-        contrId: input.id
-      }
-    }).then(async(data: { catId: any; questionsRemaining: any; }[])=>{
-      let results: any[] = [];
-      data.forEach(async(relation: { catId: any; questionsRemaining: any; })=>{
-         const category = await ctx.prisma.category.findUnique({
-          where: {
-            id: relation.catId
-          }
-         });
-         results.push({
-                    category: category?.name,
-                    questionsRemaining: relation.questionsRemaining
-                  })
+    if(ctx.session.role == 'contributor'){
+      await ctx.prisma.contributorAssignment.findMany({
+        where: {
+          contrId: input.id
+        }
+      }).then(async(data: { catId: any; questionsRemaining: any; }[])=>{
+        let results: any[] = [];
+        data.forEach(async(relation: { catId: any; questionsRemaining: any; })=>{
+           const category = await ctx.prisma.category.findUnique({
+            where: {
+              id: relation.catId
+            }
+           });
+           results.push({
+                      category: category?.name,
+                      questionsRemaining: relation.questionsRemaining
+                    })
+        });
+  
+        return results;
       });
-
-      return results;
-    });
+    } else{
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'UNAUTHORIZED ACCESS',
+      })
+    }
     }),
 
   
@@ -430,6 +517,42 @@ export const contributorRouter = router({
         // console.log(input.contrID);
         
           return categories;
+      }),
+
+      getRemainingQuestionsByCategories: protectedProcedure
+      .input(
+        z.object({
+          contrId: z.string(),
+        }))
+      .query(async({ctx, input})=>{
+        if(ctx.session.role == 'contributor'){
+          const assignments = await ctx.prisma.contributorAssignment.findMany({
+            where: {
+              contrId: input.contrId
+            }
+          });
+          const categories = await Promise.all(assignments.map(async (assignment, index) => {
+            const category = await ctx.prisma.category.findUniqueOrThrow({
+              where: {
+                id: assignment.catId,
+              }
+            })
+            return {name: category.name, questionsRemaining: assignment.questionsRemaining}
+          }))
+  
+          return categories.filter((cat) => cat != null);
+        } else{
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'UNAUTHORIZED ACCESS',
+          })
+        }
+      }),
+
+      getCountOfContributors: publicProcedure
+      .query(async({ctx, input}) => {
+          const count = ctx.prisma.contributors.findMany({});
+          return (await count).length;
       })
     
 });
