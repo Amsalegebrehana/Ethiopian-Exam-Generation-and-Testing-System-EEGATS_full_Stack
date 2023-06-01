@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import { Category, QuestionStatus } from "@prisma/client";
 import ViewQuestion from "@/components/ViewQuestion.vue";
-import "vue3-circle-progress/dist/circle-progress.css";
 
 definePageMeta({ middleware: 'is-contributor' })
 const { $client } = useNuxtApp()
@@ -33,7 +32,7 @@ const { data: count, refresh: fetchQuestionsCount } = await useAsyncData(() => $
 const { data: questions, refresh: fetchQuestions, pending} = await useAsyncData(() => $client.contributor.getContributorQuestions.query({contrId: contrId, skip: (page.value - 1) * 6}),
       { watch: [page, searchText]} );
 const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.contributor.searchQuestionsCount.query({ search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
-const { data: searchQuestions, refresh: fetchSearchQuestions, pending: pendingSearch } = await useAsyncData(() => $client.contributor.searchQuestions.query({ search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
+const { data: searchQuestions, refresh: fetchSearchQuestions, pending: pendingSearch } = await useAsyncData(() => $client.contributor.searchContributorQuestions.query({ search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6, contributorId: contrId }),
     { watch: [page, searchText] });
 const { data: canAddQuestion } = await useAsyncData(async () => {
     const contrCount = await $client.contributor.getCountOfContributors.query();
