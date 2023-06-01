@@ -389,7 +389,7 @@ const unpublishBtn = ref(false);
 const twoDaysLater = exam && new Date(exam.testingDate.getTime() + 2 * 24 * 60 * 60 * 1000);
 
 // if exam grade is released then no publish exam
-if (exam?.status === 'published' && twoDaysLater && twoDaysLater < new Date()) {
+if ( exam.status === 'published' || exam.status === 'gradeReleased' ) {
     publishBtn.value = false;
 
 }

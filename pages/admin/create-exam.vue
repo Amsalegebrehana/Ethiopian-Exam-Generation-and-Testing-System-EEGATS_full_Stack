@@ -83,7 +83,7 @@
                             </select>
                           </td>
                           <td>
-                            <input type="number " v-model.number="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
+                            <input type="number" v-model.number="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
                             <input type="hidden" :value="selectedCategory.selectedId=categoryNameId[selectedCategory.categoryName]" />
                           </td>
                           <td>
@@ -129,7 +129,7 @@
                     </div>  
                     <!-- Duration -->
                     <div class="flex flex-row w-4/6 mt-3 ">
-                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium text-lg">Duration</label>
+                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium text-lg">Duration (mins)</label>
 
                       <Form >
                       
@@ -157,8 +157,8 @@
   
                   <button v-if="!isLoading" class="btn btn-primary shadow-md mt-5 w-100 px-5 py-3" type="submit" @click="createExam">Create Exam </button>
                   <button v-if="isLoading" class="btn btn-primary shadow-md mt-5 w-100 " disabled >
-                    <svg class="motion-reduce:hidden animate-spin ..." viewBox="0 0 24 24"><!-- ... --></svg>
-                        loading...
+                    <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+
                 </button>
 
               </div>
@@ -352,7 +352,7 @@ const createExam = async () => {
       totalNumberOfQuestions.value += selectedCategory.numberOfQuestionPerCategory;
       
     });
-
+    
     const exam = {
         name: examName.value,
         examGroupId: selectedExamGroup.value,
