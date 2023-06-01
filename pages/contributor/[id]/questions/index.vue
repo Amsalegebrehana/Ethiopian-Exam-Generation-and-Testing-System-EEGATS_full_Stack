@@ -18,7 +18,6 @@ const questionToSubmit = ref();
 
 const route = useRoute();
 const contrId = route.params.id as string;
-const questions = await $client.contributor.getContributorQuestions.query(contrId);
 
 const { data: isAssigned } = await useAsyncData(() => $client.contributor.checkifAssigned.query({ contrId }));
 const { data: categories } = await useAsyncData(() => $client.contributor.getRemainingQuestionsByCategories.query({ contrId }));
