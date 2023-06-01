@@ -6,8 +6,7 @@ import { TRPCError } from "@trpc/server";
 
 
 
-const filter = (text: string) => {
-    const length = 100;
+export const filter = (text: string, length=100) => {
     const clamp = '...';
     text = text.slice(3, -4);
     var new_content = text.length > length ? text.slice(0, length) + clamp : text;

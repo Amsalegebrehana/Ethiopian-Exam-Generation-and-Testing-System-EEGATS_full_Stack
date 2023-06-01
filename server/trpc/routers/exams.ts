@@ -343,12 +343,14 @@ export const examRouter = router({
                     include: {
                         examGroup: {
                             select:{
-                                name: true
+                                name: true,
+                                id:true
                             },
                         },
                         pool:{
                             select:{
-                                name: true
+                                name: true,
+                                id:true
                             },
                         },
 

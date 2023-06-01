@@ -205,7 +205,11 @@ getTestTakers: protectedProcedure
     
           }
           else{
-            // throw new Error('Exam not found');
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Exam not found',
+        
+            });
           }
         });
         return data;

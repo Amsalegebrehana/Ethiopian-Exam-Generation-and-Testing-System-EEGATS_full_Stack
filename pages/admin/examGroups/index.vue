@@ -107,7 +107,7 @@ const handleDeleteExamGroup = async () => {
     <AdminTopBar role="admin" />
     <div class="flex">
 
-        <AdminSideBar pageName="examGroups" />
+        <AdminSideBar pageName="examgroups" />
         <div class="w-full mx-6">
 
 
