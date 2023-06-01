@@ -146,7 +146,7 @@ const examToEdit = ref({});
 const {data: count, refresh:fetchCount} = await useAsyncData( ()=> $client.exam.getExamsCount.query());
 const {data: exams, refresh:fetchExams, pending} = await useAsyncData(()=> $client.exam.getExams.query({skip : (page.value - 1) * 6}), 
 {watch: [page, searchText]});
-const {data: searchcount, refresh:fetchSearchCount} = await useAsyncData( ()=> $client.exam.searchExamsCount.query({search: searchText.value !== '' ? searchText.value : undefined, }), {watch: [searchPage, searchText]});
+const {data: searchcount, refresh:fetchSearchCount} = await useAsyncData( ()=> $client.exam.searchExamsCount.query({search: searchText.value !== '' ? searchText.value : undefined, examGroupId: props.examGroupId }), {watch: [searchPage, searchText]});
 const {data: searchExams, refresh:fetchSearchExams, pending:pendingSearch} = await useAsyncData(()=> $client.exam.getSearchedExams.query({search: searchText.value !== '' ? searchText.value : undefined, skip : (searchPage.value - 1) * 6, examGroupId: props.examGroupId}), 
     {watch: [page, searchText]});
 

@@ -137,6 +137,8 @@ export const examRouter = router({
         .input(
             z.object({
                 search: z.string().optional(),
+                 // optional exam group id
+                 examGroupId: z.string().optional(),
             })
         )
         .query(async ({ ctx, input }) => {
@@ -146,6 +148,7 @@ export const examRouter = router({
                         name: {
                             contains: input.search,
                         },
+                        examGroupId: input.examGroupId,
                     },
                 });
             } else {

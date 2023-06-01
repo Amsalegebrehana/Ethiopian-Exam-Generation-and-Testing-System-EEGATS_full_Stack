@@ -8,7 +8,7 @@
             
             
                 <h2 class="intro-y text-lg font-medium mt-10">List of exams</h2>
-                <div class="">
+                <div class="mt-10">
                     <NuxtLink :to="`/admin/create-exam`">
                         <button class="btn btn-primary shadow-md mr-2">Create exam
                             <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
