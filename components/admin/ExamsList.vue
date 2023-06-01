@@ -64,7 +64,7 @@
                                                             </td>
                                                             <td class="">{{ testingDateformat(exam.testingDate) }}</td>
                                                     <td class="table-report__action w-40">
-                                                        <div class="flex justify-center items-center">
+                                                        <div v-if="exam.status != 'gradeReleased'" class="flex justify-center items-center">
                                                             <button class="text-success flex items-center mr-3"  @click="editExam(exam)">
                                                                 <Icon name="material-symbols:edit-outline" class="w-4 h-4"></Icon> Edit
                                                             </button>
@@ -124,6 +124,11 @@ import EditExamModal from '~~/components/admin/EditExamModal.vue';
 
 const { $client } = useNuxtApp();
 
+// accept props of exam group id
+const props = defineProps ({
+    examGroupId: String
+})
+
 // skip value for pagination
 const skipval = ref(0);
 const searchInput = ref('');
@@ -137,16 +142,12 @@ const openModal = ref(false);
 const examToEdit = ref({});
 // get exam count
 
-// const examCount = await $client.exam.getExamsCount.query();
-
-// get exams
-// let exams = await $client.exam.getExams.query({skip:skipval.value});
 // prev paginate
 const {data: count, refresh:fetchCount} = await useAsyncData( ()=> $client.exam.getExamsCount.query());
 const {data: exams, refresh:fetchExams, pending} = await useAsyncData(()=> $client.exam.getExams.query({skip : (page.value - 1) * 6}), 
 {watch: [page, searchText]});
-const {data: searchcount, refresh:fetchSearchCount} = await useAsyncData( ()=> $client.exam.searchExamsCount.query({search: searchText.value !== '' ? searchText.value : undefined}), {watch: [searchPage, searchText]});
-const {data: searchExams, refresh:fetchSearchExams, pending:pendingSearch} = await useAsyncData(()=> $client.exam.getSearchedExams.query({search: searchText.value !== '' ? searchText.value : undefined, skip : (searchPage.value - 1) * 6}), 
+const {data: searchcount, refresh:fetchSearchCount} = await useAsyncData( ()=> $client.exam.searchExamsCount.query({search: searchText.value !== '' ? searchText.value : undefined, }), {watch: [searchPage, searchText]});
+const {data: searchExams, refresh:fetchSearchExams, pending:pendingSearch} = await useAsyncData(()=> $client.exam.getSearchedExams.query({search: searchText.value !== '' ? searchText.value : undefined, skip : (searchPage.value - 1) * 6, examGroupId: props.examGroupId}), 
     {watch: [page, searchText]});
 
     const paginate = async (newPage: number) => {
@@ -167,7 +168,7 @@ const paginateSearch = async (newPage: number) => {
         await fetchSearchExams();
         await fetchSearchCount();
     } finally {
-        isReloading.value = false
+        isReloading.value = false  
     }
 }
 const editExam = async (exam : Object) => {

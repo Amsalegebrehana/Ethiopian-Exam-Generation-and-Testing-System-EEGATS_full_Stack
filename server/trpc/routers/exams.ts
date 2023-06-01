@@ -161,22 +161,44 @@ export const examRouter = router({
             z.object({
                 skip: z.number(),
                 search: z.string().optional(),
+                // optional exam group id
+                examGroupId: z.string().optional(),
             })
         )
         .query(async ({ ctx, input }) => {
             if (ctx.session.role === "admin") {
-                return await ctx.prisma.exam.findMany({
-                    skip: input.skip,
-                    take: 6,
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                    where: {
-                        name: {
-                            contains: input.search,
+                // if exam group id is provided
+                if(input.examGroupId){
+                    return await ctx.prisma.exam.findMany({
+                        skip: input.skip,
+                        take: 6,
+                        orderBy: {
+                            createdAt: "desc",
                         },
-                    },
-                });
+                        where: {
+                            name: {
+                                contains: input.search,
+                            },
+                            examGroupId: input.examGroupId,
+                        },
+                    });
+                }
+                else{
+
+                    return await ctx.prisma.exam.findMany({
+                        skip: input.skip,
+                        take: 6,
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                        where: {
+                            name: {
+                                contains: input.search,
+    
+                            },
+                        },
+                    });
+                }
             } else {
                 throw new TRPCError({
                     code: "UNAUTHORIZED",

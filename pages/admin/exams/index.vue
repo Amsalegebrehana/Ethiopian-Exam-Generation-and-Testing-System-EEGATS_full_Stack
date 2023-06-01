@@ -16,7 +16,7 @@
                         </NuxtLink>
                     </div>
                 <!-- after create exam btn starts here -->
-                    <ExamsList/>
+                    <ExamsList  />
                 </div>
             </div>
     </div>
@@ -27,15 +27,11 @@
 
 import AdminTopBar from '~~/components/TopBar.vue'
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
-import EditExamModal from '~~/components/admin/EditExamModal.vue';
 
 import ExamsList from '~~/components/admin/ExamsList.vue';
 
 definePageMeta({ middleware: 'is-admin' });
 const { $client } = useNuxtApp();
-
-
-
 
 
 </script>
