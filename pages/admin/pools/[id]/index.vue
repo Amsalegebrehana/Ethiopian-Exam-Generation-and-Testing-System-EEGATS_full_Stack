@@ -118,23 +118,28 @@ const toggleInviteModal = () => {
 
 const handleInviteContributor = async () => {
     isLoading.value = true;
-    const res = await $client.contributor.inviteContributor.mutate({ email: contributorEmail.value, poolId: poolId! });
-    isLoading.value = false;
-    showInv.value = false;
-    isEmailInvalid.value = false;
-    isInviteDup.value = false;
-    isInviteSuccess.value = false;
-    if (res == "Invalid Email!") {
-        isEmailInvalid.value = true;
-        contributorEmail.value = "";
-    }
-    if (res == 'Already a member of this pool') {
-        isInviteDup.value = true;
-        contributorEmail.value = '';
-    }
-    if (res === true) {
-        isInviteSuccess.value = true;
-        contributorEmail.value = '';
+    try{
+
+        const res = await $client.contributor.inviteContributor.mutate({ email: contributorEmail.value, poolId: poolId! });
+        isLoading.value = false;
+        showInv.value = false;
+        isEmailInvalid.value = false;
+        isInviteDup.value = false;
+        isInviteSuccess.value = false;
+    }catch(e : any){
+
+        if (e.message == "Invalid Email!") {
+            isEmailInvalid.value = true;
+            contributorEmail.value = "";
+        }
+        if (e.message == 'Already a member of this pool') {
+            isInviteDup.value = true;
+            contributorEmail.value = '';
+        }
+        if (e.message === true) {
+            isInviteSuccess.value = true;
+            contributorEmail.value = '';
+        }
     }
 }
 
@@ -333,7 +338,7 @@ watch(catID, (newId: string, oldId: string) => {
         <AdminTopBar role="admin" />
         <div class="flex">
 
-            <AdminSideBar pageName="exams" />
+            <AdminSideBar pageName="pools" />
             <div class="w-full mx-6">
                 <div class="flex flex-row w-full align-middle justify-between  mt-10">
                     <div class="justify-start flex flex-row">

@@ -116,7 +116,7 @@ const mySignInHandler = async ({ email, password, role }: { email: string, passw
     formError.value = '';
     isLoading.value = true
     try {
-        const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: 'http://localhost:3000/admin/pools' })
+        const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: 'http://localhost:3000/admin' })
         if (error) {
             if (error == 'Multiple failed attempts, you account has been locked, please contact system admin' || error == 'Invalid credentials') {
                 formError.value = error;
