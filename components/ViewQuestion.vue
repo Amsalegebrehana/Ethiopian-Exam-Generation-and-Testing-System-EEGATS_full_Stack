@@ -8,8 +8,8 @@
           <Icon name="eva:close-outline" class="w-8 h-8 text-red-600"></Icon>
         </button>
       </div>
-      <div class="p-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[50em] max-w-[70em] flex h-[50vh] opacity-100 gap-4 text-lg">
-        <div class="flex-1 overflow-auto">
+      <div class="p-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[70em] max-w-[70em] flex h-[50vh] opacity-100 gap-4 text-lg">
+        <div class="flex-1 overflow-scroll">
           <div v-html="question.question.title" class="py-5" />
           <div v-for="(choice, index) in question.choices" class="flex">
             <span class="py-2"> <b> {{ String.fromCharCode(65 + index) }}. </b> </span>
