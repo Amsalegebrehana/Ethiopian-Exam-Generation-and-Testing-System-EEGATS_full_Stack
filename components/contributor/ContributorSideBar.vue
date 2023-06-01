@@ -1,7 +1,7 @@
 <template>
     <div>
 
-<aside class="w-48 h-[80vh]" aria-label="Sidebar">
+<aside class="w-48 h-screen " aria-label="Sidebar">
     <div class="px-3 py-4 overflow-y-auto rounded h-full bg-gray-50">
         <ul class="space-y-2">
             <li>
