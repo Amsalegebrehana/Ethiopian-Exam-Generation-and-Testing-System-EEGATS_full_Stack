@@ -9,7 +9,61 @@ import { TRPCError } from "@trpc/server";
 const { auth } = useRuntimeConfig();
 
 export const contributorRouter = router({
-  
+  getAllContributorsCount: protectedProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+      })
+    ).query(async ({ ctx, input }) => {
+      if (ctx.session.role === 'admin') {
+        const contributorCount = await ctx.prisma.contributors.count(
+          {
+            where: {
+              name:
+              {
+                contains: input.search,
+              }
+            }
+          }
+        );
+        return contributorCount;
+      } else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
+      }
+    }),
+
+    getAllContributors: protectedProcedure
+    .input(
+      z.object({
+        skip: z.number(),
+        search: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.role === 'admin') {
+        return await ctx.prisma.contributors.findMany({
+          skip: input.skip,
+          take: 6,
+          orderBy: {
+            createdAt: "desc",
+          },
+          where: {
+            name: {
+              contains: input.search,
+            },
+          },
+        });
+      } else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
+      }
+    }),
+
   adminResetPassword: protectedProcedure.
     input(
       z.object({
@@ -313,16 +367,16 @@ export const contributorRouter = router({
           where: {
             id: input.id
           },
-          include:{
-            pool:true
+          include: {
+            pool: true
           }
         });
 
         let status = '';
-        if(contributor?.isActive === true){
+        if (contributor?.isActive === true) {
           status = 'Inactive';
         }
-        else{
+        else {
           status = 'Active';
         }
         await ctx.prisma.contributors.update({
@@ -332,17 +386,17 @@ export const contributorRouter = router({
           data: {
             isActive: !contributor?.isActive
           },
-          }).then((data) =>{
-            if(contributor){
-              sendStatusNotificationEmail({
-                url: `${auth.origin}`,
-                email: contributor.email,
-                pool: contributor.pool.name,
-                status: status
-              })
-            }
-          });
-        
+        }).then((data) => {
+          if (contributor) {
+            sendStatusNotificationEmail({
+              url: `${auth.origin}`,
+              email: contributor.email,
+              pool: contributor.pool.name,
+              status: status
+            })
+          }
+        });
+
       }
       else {
         throw new TRPCError({
@@ -397,40 +451,39 @@ export const contributorRouter = router({
               email: input.email,
             }
           });
-  
+
           if (user && user.poolId !== input.poolId) {
             throw new TRPCError({
-                code: 'BAD_REQUEST',
-                message: 'Already assigned',
-              });
-  
+              code: 'BAD_REQUEST',
+              message: 'Already assigned',
+            });
+
           }
-  
+
           if (user?.poolId === input.poolId && user.isActive === true) {
             throw new TRPCError({
               code: 'BAD_REQUEST',
               message: 'Already a member of this pool',
-              });
+            });
           }
-          if(pool){
-            console.log(":wokfe")
-            try{
+          if (pool) {
+            try {
               sendNewInvite({
-                  url: `${auth.origin}/contributor/register?poolId=${input.poolId}`,
-                  email: input.email,
-                  pool: pool?.name,
+                url: `${auth.origin}/contributor/register?poolId=${input.poolId}`,
+                email: input.email,
+                pool: pool?.name,
               })
             }
-            catch(err){
+            catch (err) {
               console.log("Error: ", err);
             }
-            
+
           }
-          else{
+          else {
             throw new TRPCError({
               code: 'BAD_REQUEST',
               message: 'Pool not found',
-              });
+            });
           }
           return true;
         }
@@ -438,17 +491,17 @@ export const contributorRouter = router({
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Invalid Email!',
-            });
-          }  
-        }
-        else{
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'UNAUTHORIZED ACCESS.',
-  
           });
         }
-        
+      }
+      else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+
+        });
+      }
+
     }),
 
   assignQuestion: protectedProcedure
@@ -540,7 +593,7 @@ export const contributorRouter = router({
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Exists',
-  
+
           });;
         }
         else {
@@ -565,7 +618,7 @@ export const contributorRouter = router({
             throw new TRPCError({
               code: 'BAD_REQUEST',
               message: 'Pool not found',
-    
+
             });
           }
         }
@@ -580,21 +633,61 @@ export const contributorRouter = router({
 
 
     }),
-
-  getCategoryForAssignment: protectedProcedure
+  getAssignmentCount: protectedProcedure
     .input(
       z.object({
-        contrID: z.string(),
+        search: z.string().optional(),
+        contrId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.role === 'admin') {
+
+        const contributor = await ctx.prisma.contributors.findUnique({
+          where: {
+            id: input.contrId
+          }
+        })
+        const categories = await ctx.prisma.category.count({
+          where: {
+            poolId: contributor?.poolId
+          },
+        });
+        return categories;
+      }
+    }),
+  getCategoryAssignments: protectedProcedure
+    .input(
+      z.object({
+        contrId: z.string(),
+        skip: z.number(),
+        search: z.string().optional(),
       }))
     .query(async ({ ctx, input }) => {
       if (ctx.session.role === 'admin') {
+        const contributor = await ctx.prisma.contributors.findUnique({
+          where: {
+            id: input.contrId
+          }
+        })
         const categories = await ctx.prisma.category.findMany({
+          where: {
+            poolId: contributor?.poolId,
+            name: {
+              contains: input.search,
+            },
+          },
+          skip: input.skip,
+          take: 6,
+          orderBy: {
+            createdAt: "desc",
+          },
           select: {
             name: true,
             id: true,
             contributorAssignments: {
               where: {
-                contrId: input.contrID
+                contrId: input.contrId
               },
               select: {
                 questionsRemaining: true
@@ -603,8 +696,48 @@ export const contributorRouter = router({
           }
 
         });
-        // console.log(input.contrID);
+        return categories;
+      }
+      else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
 
+        });
+      }
+
+    }),
+
+  getAllCategoryForAssignment: protectedProcedure
+    .input(
+      z.object({
+        contrId: z.string(),
+      }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.role === 'admin') {
+        const contributor = await ctx.prisma.contributors.findUnique({
+          where: {
+            id: input.contrId
+          }
+        })
+        const categories = await ctx.prisma.category.findMany({
+          where: {
+            poolId: contributor?.poolId
+          },
+          select: {
+            name: true,
+            id: true,
+            contributorAssignments: {
+              where: {
+                contrId: input.contrId
+              },
+              select: {
+                questionsRemaining: true
+              }
+            }
+          }
+
+        });
         return categories;
       }
       else {

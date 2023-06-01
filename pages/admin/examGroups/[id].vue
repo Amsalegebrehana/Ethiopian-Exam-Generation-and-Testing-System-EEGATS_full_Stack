@@ -3,7 +3,7 @@
         <AdminTopBar role="admin" />
         <div class="flex">
             
-            <AdminSideBar pageName="exams" />
+            <AdminSideBar pageName="examgroups" />
             <div class="w-full mx-6">
                 <div class="mx-5">
                     <h2 class="intro-y text-lg font-medium mt-10">1990 Ethiopian National Exam</h2>
