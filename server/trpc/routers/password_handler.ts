@@ -21,10 +21,7 @@ export const passwordHandlerRouter = router({
 
                 // If user is admin
                 if (ctx.session.role === 'admin') {
-                    const user = await ctx.prisma.admin.findUnique({
-                        where: {
-                            id: input.id,
-                        },
+                    const user = await ctx.prisma.admin.findFirst({
                     });
 
                     if (user!.password !== oldhashed) {
