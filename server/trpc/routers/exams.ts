@@ -147,6 +147,7 @@ export const examRouter = router({
                     where: {
                         name: {
                             contains: input.search,
+                            mode: 'insensitive'
                         },
                         examGroupId: input.examGroupId,
                     },
@@ -170,39 +171,20 @@ export const examRouter = router({
         )
         .query(async ({ ctx, input }) => {
             if (ctx.session.role === "admin") {
-                // if exam group id is provided
-                if(input.examGroupId){
-                    return await ctx.prisma.exam.findMany({
-                        skip: input.skip,
-                        take: 6,
-                        orderBy: {
-                            createdAt: "desc",
+                return await ctx.prisma.exam.findMany({
+                    skip: input.skip,
+                    take: 6,
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                    where: {
+                        name: {
+                            contains: input.search,
+                            mode: 'insensitive'
                         },
-                        where: {
-                            name: {
-                                contains: input.search,
-                            },
-                            examGroupId: input.examGroupId,
-                        },
-                    });
-                }
-                else{
-
-                    return await ctx.prisma.exam.findMany({
-                        skip: input.skip,
-                        take: 6,
-                        orderBy: {
-                            createdAt: "desc",
-                        },
-                        where: {
-                            name: {
-                                contains: input.search,
-    
-                            },
-                        },
-                    });
-                }
-            } else {
+                        examGroupId: input.examGroupId,
+                    }});
+                } else {
                 throw new TRPCError({
                     code: "UNAUTHORIZED",
                     message: "UNAUTHORIZED ACCESS.",
@@ -231,6 +213,7 @@ export const examRouter = router({
                     where: {
                         name: {
                             contains: input.search,
+                            mode: 'insensitive'
                         },
                     },
                 });

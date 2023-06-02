@@ -50,6 +50,7 @@ export const poolRouter = router({
             poolId: { equals: input.poolId },
             name: {
               contains: input.search,
+              mode: 'insensitive'
             },
           },
           include: {
@@ -97,6 +98,7 @@ export const poolRouter = router({
           where: {
             name: {
               contains: input.search,
+              mode: 'insensitive'
             },
           },
         });
@@ -121,6 +123,7 @@ export const poolRouter = router({
           where: {
             name: {
               contains: input.search,
+              mode: 'insensitive'
             },
           },
           include: {

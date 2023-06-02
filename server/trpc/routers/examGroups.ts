@@ -54,6 +54,7 @@ export const examGroupRouter = router({
             where: {
                 name: {
                 contains: input.search,
+                mode: 'insensitive'
                 },
             },
             });

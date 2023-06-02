@@ -100,7 +100,8 @@ export const category = router({
                     take:6,
                     where:{
                         name:{
-                            contains: input.search
+                            contains: input.search,
+                            mode: 'insensitive'
                         },
                         poolId:input.poolId
                     },

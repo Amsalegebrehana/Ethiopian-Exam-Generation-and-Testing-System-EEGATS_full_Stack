@@ -47,6 +47,7 @@ export const testTakerRouter = router({
         where: {
           username: {
             contains: input.search,
+            mode: 'insensitive'
           },
         },
       });
@@ -71,6 +72,7 @@ getTestTakers: protectedProcedure
         where: {
           username: {
             contains: input.search,
+            mode: 'insensitive'
           },
         },
         include: {
@@ -114,6 +116,7 @@ getTestTakers: protectedProcedure
         where: {
           name: {
             contains: input.search,
+            mode: 'insensitive'
           },
           examGroup :{
             id : testTaker?.examGroupId
@@ -151,6 +154,7 @@ getTestTakers: protectedProcedure
           where: {
             name: {
               contains: input.search,
+              mode: 'insensitive'
             },
             examGroup :{
               id : testTaker?.examGroupId
