@@ -1,28 +1,66 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { QuestionStatus } from "@prisma/client";
+import { Category, QuestionStatus, Questions } from "@prisma/client";
 import ViewQuestion from "@/components/ViewQuestion.vue";
 
 definePageMeta({ middleware: 'is-contributor' })
 const { $client } = useNuxtApp()
 
 const modalVisible = ref(false);
-const warningVisible = ref(false);
 const submitWarningVisible = ref(false);
+const showCatagoriesVisible = ref(false);
 const deleteWarningVisible = ref(false);
 const isDeleteLoading = ref(false);
 const isSubmitLoading = ref(false);
+const isReloading = ref(false);
 const selectedQuestion = ref();
 const questionToDelete = ref();
 const questionToSubmit = ref();
+const page = ref(1);
+const searchPage = ref(1);
+const searchText = ref('');
 
 const route = useRoute();
 const contrId = route.params.id as string;
-const questions = await $client.contributor.getContributorQuestions.query(contrId);
+
+
 
 const { data: isAssigned } = await useAsyncData(() => $client.contributor.checkifAssigned.query({ contrId }));
+const { data: categories } = await useAsyncData(() => $client.contributor.getRemainingQuestionsByCategories.query({ contrId }));
+const questionsRemaining = categories.value == null? 0 : categories.value.reduce((sum, category) => sum + category.questionsRemaining, 0);
+const { data: count, refresh: fetchQuestionsCount } = await useAsyncData(() => $client.contributor.getContributorDraftCount.query(contrId));
+const { data: questions, refresh: fetchQuestions, pending} = await useAsyncData(() => $client.contributor.getContributorQuestions.query({contrId: contrId, skip: (page.value - 1) * 6}),
+      { watch: [page, searchText]} );
+const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.contributor.searchQuestionsCount.query({ search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
+const { data: searchQuestions, refresh: fetchSearchQuestions, pending: pendingSearch } = await useAsyncData(() => $client.contributor.searchContributorQuestions.query({ search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6, contributorId: contrId }),
+    { watch: [page, searchText] });
+const { data: canAddQuestion } = await useAsyncData(async () => {
+    const contrCount = await $client.contributor.getCountOfContributors.query();
+    return contrCount > 2;
+    });
+const paginate = async (newPage: number) => {
+    page.value = newPage;
+    isReloading.value = true;
+    try {
+        await fetchQuestions();
+        await fetchQuestionsCount();
+    } finally {
+        isReloading.value = false
+    }
+}
 
-async function toggleModal(question: Object) {
+const paginateSearch = async (newPage: number) => {
+    searchPage.value = newPage;
+    isReloading.value = true;
+    try {
+        await fetchSearchQuestions();
+        await fetchSearchCount();
+    } finally {
+        isReloading.value = false;
+    }
+}
+
+async function toggleModal(question: Questions) {
     selectedQuestion.value = await $client.question.getQuestion.query(question.id);
     modalVisible.value = !modalVisible.value;
 }
@@ -34,6 +72,9 @@ const toggleDeleteWarning = (questionId?: string) => {
 const toggleSubmitWarning = (questionId?: string) => {
     questionToSubmit.value = questionId;
     submitWarningVisible.value = !submitWarningVisible.value;
+}
+const toggleShowCategory = () => {
+    showCatagoriesVisible.value = !showCatagoriesVisible.value
 }
 
 async function onDelete() {
@@ -48,10 +89,13 @@ async function onSubmit() {
     isSubmitLoading.value = !isSubmitLoading.value;
     const submitQuestion = await $client.question.submitQuestion.mutate(questionToSubmit.value);
     isSubmitLoading.value = !isSubmitLoading.value;
-    toggleDeleteWarning();
+    toggleSubmitWarning();
     window.location.reload()
 }
 
+async function onViewMore() {
+    showCatagoriesVisible.value = !showCatagoriesVisible.value
+}
 </script>
 
 
@@ -62,6 +106,16 @@ async function onSubmit() {
         <div v-if="modalVisible">
             <ViewQuestion :question="selectedQuestion" />
         </div>
+        <!-- Begin Add Question -->
+        <div class="text-lg fixed z-[100] bottom-16 right-10 md:block mx-auto text-slate-500">
+            <NuxtLink :to="`/contributor/${contrId}/create-question`">
+                <button class="btn btn-primary shadow-md mr-2" :disable="!isAssigned || canAddQuestion!">
+                    Add question
+                    <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
+                </button>
+            </NuxtLink>
+        </div>
+        <!-- End Add Question -->
         <div v-if="deleteWarningVisible"
             class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
             <div class="py-5 px-3 flex-col bg-white rounded-xl">
@@ -107,7 +161,7 @@ async function onSubmit() {
                     class="px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] flex h-[12vh] opacity-100 gap-4">
                     <div class="px-3 flex-col">
                         <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
-                            Are you sure you to submit this draft?
+                            Are you sure you want to submit this draft?
                         </DialogTitle>
                         <p class="py-3 text-sm text-gray-500"> You cannot edit your work once you have submited it. Please
                             make sure the question and its choices are up to standards. </p>
@@ -137,32 +191,61 @@ async function onSubmit() {
                 </div>
             </div>
         </div>
-        <div class="flex">
+        <div v-if="showCatagoriesVisible"
+            class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
+            <div class="py-5 px-3 flex-col bg-white rounded-xl">
+                <div class="flex-col px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] h-[50vh] opacity-100 gap-4">
+                    <div class="p-4 flex justify-between w-[100%]">
+                        <DialogTitle as="h3" class="text-xl font-semibold leading-6 text-gray-900">
+                            Remaining Questions by Category
+                        </DialogTitle>
+                        <button @click="toggleShowCategory" class="float-right px-1">
+                            <Icon name="eva:close-outline" class="w-8 h-8 text-red-600"></Icon>
+                        </button>
+                    </div>
+                    <ul v-if="categories" class="w-[96%] h-[83%] p-4 divide-y overflow-auto">
+                        <li v-for="category in categories" class="pb-3 sm:pb-4">
+                            <div class="flex justify-between items-center space-x-4 py-4">
+                                <div class="w-20">
+                                    <p class="text-lg font-medium text-gray-900 truncate">
+                                    {{ category!.name }}
+                                    </p>
+                                </div>
+                                <div class="px-5 self-end float-right text-lg inline-flex items-center font-semibold text-gray-900">
+                                    {{ category!.questionsRemaining }}
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="flex h-100vh">
             <ContributorSideBar pageName="questions" :contrId="contrId" />
             <div class="w-full mx-6">
 
                 <h2 class="intro-y text-lg font-medium mt-10">List of Questions</h2>
                 <div class="grid grid-cols-12 gap-6 mt-5">
-                    <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2">
-                        <NuxtLink :to="`/contributor/${contrId}/create-question`">
-                            <button class="btn btn-primary shadow-md mr-2" :disabled="!isAssigned">Add question
-                                <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
-                            </button>
-                        </NuxtLink>
-                        <div class="hidden md:block mx-auto text-slate-500">
-                            Showing 1 to 10 of {{ questions?.length }} entries
+                    <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap justify-between items-center mt-2">
+                        <div class="flex gap-5">
+                            <span class="intro-y text-lg font-medium pt-7 pr-5">
+                                {{ questionsRemaining }} questions remaining
+                                <button @click="onViewMore">
+                                    <icon name="material-symbols:more-up" class="mx-2 w-7 h-7 text-blue-700"></icon>
+                                </button>
+                            </span>
                         </div>
                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                             <div class="w-56 relative text-slate-500">
-                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." />
+                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." v-model="searchText"/>
                                 <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0">
                                 </Icon>
-
                             </div>
                         </div>
                     </div>
+
                     <!-- BEGIN: Data List -->
-                    <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                    <div v-if="searchText == ''" class="intro-y col-span-12 overflow-auto lg:overflow-visible">
                         <table class="table table-report mt-2">
                             <thead>
                                 <tr class="text-lg">
@@ -182,7 +265,7 @@ async function onSubmit() {
                                     <!-- Question Title -->
                                     <td>
                                         <button
-                                            v-html="question.title.length < 130 ? question.title : question.title.slice(0, 180) + ` ...`"
+                                            v-html="question.title.length < 130 ? question.title : question.title.slice(0, 120) + ` ...`"
                                             @click="toggleModal(question)" />
                                     </td>
                                     <!-- Actions -->
@@ -215,54 +298,108 @@ async function onSubmit() {
                         </table>
 
                     </div>
+                    <div v-else class="intro-y col-span-12 overflow-auto lg:overflow-visible">
+                        <table class="table table-report mt-2">
+                            <thead>
+                                <tr class="text-lg">
+                                    <th class="whitespace-nowrap"></th>
+                                    <th class="whitespace-nowrap">Question</th>
+                                    <th class="text-center whitespace-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody v-if="questions !== null" class="text-lg">
+                                <tr v-for="question in searchQuestions" :key="question.id" class="intro-x">
+                                    <!-- Question Icon -->
+                                    <td class="w-10">
+                                        <button @click="toggleModal(question)">
+                                            <Icon name="uiw:question-circle-o" class="w-6 h-6"></Icon>
+                                        </button>
+                                    </td>
+                                    <!-- Question Title -->
+                                    <td>
+                                        <button
+                                            v-html="question.title.length < 130 ? question.title : question.title.slice(0, 120) + ` ...`"
+                                            @click="toggleModal(question)" />
+                                    </td>
+                                    <!-- Actions -->
+                                    <td class="table-report__action w-66">
+                                        <div class="flex justify-center items-center">
+                                            <NuxtLink :to="`/contributor/${contrId}/questions/${question.id}/EditQuestion`"
+                                                class="font-medium whitespace-nowrap">
+                                                <a class="flex items-center mr-3" href="javascript:;">
+                                                    <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon>
+                                                    <p class="px-1"> Edit </p>
+                                                </a>
+                                            </NuxtLink>
+                                            <a class="flex items-center text-danger mr-3" href="javascript:;">
+                                                <button @click="toggleDeleteWarning(question.id)" class="text-red-600">
+                                                    <Icon name="fa6-regular:trash-can" class="w-4 h-4"></Icon> Delete
+                                                </button>
+                                            </a>
+                                            <button @click="toggleSubmitWarning(question.id)"
+                                                class="flex items-center text-green-600" href="javascript:;">
+                                                <Icon name="eva:checkmark-outline" class="w-8 h-8 text-green-600"></Icon>
+                                                Submit
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <div v-else>
+                                No questions found
+                            </div>
+                        </table>
+
+                    </div>
+                    
                     <!-- END: Data List -->
                     <!-- BEGIN: Pagination -->
-                    <div class="flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+                    <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                         <nav class="w-full sm:w-auto sm:mr-auto">
-                            <ul class="pagination">
-                                <li c.lass="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-double-left" class="h-4 w-4"></Icon>
-                                    </a>
+                            <ul v-if="searchText != ''" class="pagination">
+                                <li class="page-item">
+                                    <button class="page-link" v-on:click="paginateSearch(searchPage - 1)" :disabled="searchPage === 1">
+                                        <div class="flex flex-row align-middle justify-center items-center  ">
+                                            <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle">
+                                            </Icon>
+                                            <span class="">Previous</span>
+                                        </div>
+                                    </button>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-left" class="h-4 w-4"></Icon>
-                                    </a>
+                                    <button class="page-link" v-on:click="paginateSearch(searchPage + 1)"
+                                        :disabled="(searchPage) * 6 >= searchCount!">
+                                        <div class="flex flex-row align-middle justify-center items-center">
+                                            <span>Next</span>
+                                            <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle">
+                                            </Icon>
+                                        </div>
+                                    </button>
+                                </li>
+                            </ul>
+                            <ul v-else class="pagination">
+                                <li class="page-item">
+                                    <button class="page-link" v-on:click="paginate(page - 1)" :disabled="page === 1">
+                                        <div class="flex flex-row align-middle justify-center items-center  ">
+                                            <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle">
+                                            </Icon>
+                                            <span class="">Previous</span>
+                                        </div>
+                                    </button>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="#">...</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">1</a>
-                                </li>
-                                <li class="page-item active">
-                                    <a class="page-link" href="#">2</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">3</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">...</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-right" class="h-4 w-4"></Icon>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">
-                                        <Icon name="mdi:chevron-double-right" class="h-4 w-4"></Icon>
-                                    </a>
+                                    <button class="page-link" v-on:click="paginate(page + 1)"
+                                        :disabled="(page) * 6 >= count!">
+                                        <div class="flex flex-row align-middle justify-center items-center">
+                                            <span>Next</span>
+                                            <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle">
+                                            </Icon>
+                                        </div>
+                                    </button>
                                 </li>
                             </ul>
                         </nav>
-                        <select class="w-20 form-select box mt-3 sm:mt-0">
-                            <option>10</option>
-                            <option>25</option>
-                            <option>35</option>
-                            <option>50</option>
-                        </select>
+
                     </div>
                     <!-- END: Pagination -->
                 </div>
