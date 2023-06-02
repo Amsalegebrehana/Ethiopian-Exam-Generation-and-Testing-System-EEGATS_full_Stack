@@ -40,7 +40,7 @@
                                        </div> 
                                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                                             <div class="w-56 relative text-slate-500">
-                                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." />
+                                                <input type="text" class="form-control w-56 box pr-10" v-model="searchText" placeholder="Search..." />
                                                 <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
                             
                                             </div>
@@ -74,7 +74,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="student in testTakers" :key="student.id" class="intro-x">
+                                                <tr v-for="student in searchTestTakers" :key="student.id" class="intro-x">
                                                     <td class="w-10">
                                                         <NuxtLink :to="`/admin/exams/${student.id}`">
                                                         <Icon name="iconoir:page" class="w-6 h-6"></Icon>
@@ -112,64 +112,45 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2">
-                                    
-                                       <div class="hidden md:block mx-auto text-slate-500">
-                                           Showing 1 to 10 of {{ testTakers.length }} entries
-                                       </div>   
                                    </div>
+                                  
                                     <!-- BEGIN: Pagination -->
-                                    <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
-                                        <nav class="w-full sm:w-auto sm:mr-auto">
-                                            <ul class="pagination">
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-double-left" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-left" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">...</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">1</a>
-                                                </li>
-                                                <li class="page-item active">
-                                                    <a class="page-link" href="#">2</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">3</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">...</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-right" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-double-right" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </nav>
-                                        <select class="w-20 form-select box mt-3 sm:mt-0">
-                                            <option>10</option>
-                                            <option>25</option>
-                                            <option>35</option>
-                                            <option>50</option>
-                                        </select>
-                                    </div>
+                                    <div class="flex flex-row mt-3">
+                      <div class="md:block  text-slate-500">
+                   
+                          </div>
+                        <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+                            <nav class="w-full sm:w-auto sm:mr-auto">
+                                <ul class="pagination">
+                                    
+                                   
+                                    <li class="page-item">
+                                            <button class="page-link" v-on:click="paginateSearch(searchPage - 1)" :disabled="searchPage===1">
+                                                <div class="flex flex-row align-middle justify-center items-center  ">
+                                                    <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
+                                                    <span class="">Previous</span>
+                                                </div>
+                                            </button>
+                                        </li>
+                                        <li class="page-item">  
+                                            <button class="page-link" v-on:click="paginateSearch(searchPage+1)" :disabled="(searchPage) * 6 >= searchCount!">
+                                                <div class="flex flex-row align-middle justify-center items-center">
+                                                        <span>Next</span>
+                                                        <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
+                                                </div>
+                                                </button>
+                                         </li>
+            
+                
+                                    </ul>
+                            </nav>
+                            
+                            </div>
+                     </div>
                                     <!-- END: Pagination -->
                                 </div>
                     
-                            </div>   
+                     
                         
                         </div>
                         <div id="example-tab-6" class="tab-pane leading-relaxed" role="tabpanel" aria-labelledby="example-6-tab" :class="{ 'active': activeTab === 2 }">
@@ -309,30 +290,40 @@ const searchText = ref('');
 const route = useRoute()
 const examGroupId = route.params.id as string;
 
-const searchPage = ref(1)
+const searchPage = ref(1);
 // get exam group data
 const examGroup = await $client.examGroup.getExamGroup.query({ id: examGroupId });
 // get exam data
 
-const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId }));
-const { data: reviews, refresh: fetchReviews, pending } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
+const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(
+    () => $client.examGroup.getTestTakersCount.query(
+        { 
+            id: examGroupId, 
+            search: searchText.value !== '' ? searchText.value : undefined 
+        }
+        ),
+    { watch: [searchPage, searchText] });
+const { data: searchTestTakers, refresh: fetchSearchTestTakers, pending: pendingSearch } = await useAsyncData(
+    () => $client.examGroup.getExamGroupTestTakers.query(
+        { 
+            id: examGroupId, 
+            search: searchText.value !== '' ? searchText.value : undefined, 
+            skip: (searchPage.value - 1) * 6 
+        }
+            ),
+   { watch: [page, searchText] });
 
-const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
-const { data: searchReviews, refresh: fetchSearchReviews, pending: pendingSearch } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
-  { watch: [page, searchText] });
+const paginateSearch = async (newPage: number) => {
+    searchPage.value = newPage;
+    isReloading.value = true;
 
-const paginate = async (newPage: number) => {
-  page.value = newPage;
-  isReloading.value = true;
-  try {
-    await fetchReviews();
-    await fetchCount();
-  } finally {
-    isReloading.value = false
-  }
+    try {
+        await fetchSearchTestTakers();
+        await fetchSearchCount();
+    } finally {
+        isReloading.value = false  
+    }
 }
-
-
 const toggleAddModal = () => {
    
     showAddModal.value = !showAddModal.value;
@@ -340,6 +331,7 @@ const toggleAddModal = () => {
 let testTakers: string | any[] = [];
 
 const rows = [['Name', 'Admission Number']]; // add header row
+
 
 const getTestTakers = async () => {
   testTakers = await $client.examGroup.getExamGroupTestTakers.query({ id: examGroupId });

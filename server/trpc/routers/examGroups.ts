@@ -242,9 +242,41 @@ export const examGroupRouter = router({
             return finished;
            
         }), 
+        // search test takers count
+        getTestTakersCount: protectedProcedure
+
+            .input(
+                z.object({
+                    search:z.string().optional(),
+                    id: z.string(),
+                })
+            )
+            .query(async ({ ctx, input }) => {
+                if(ctx.session.role === "admin"){
+                    return await ctx.prisma.testTakers.count({
+                        where: {
+                            name: {
+                                contains: input.search,
+                            },
+                            examGroup: {
+                                id: input.id,
+                            },
+                        },
+                    });
+                }
+                else{
+                    throw new TRPCError({
+                        code: "UNAUTHORIZED",
+                        message: "UNAUTHORIZED ACCESS.",
+                    });
+                }
+            }),   
+
         getExamGroupTestTakers: protectedProcedure
             .input(
                 z.object({
+                    skip: z.number().optional(),
+                    search:z.string().optional(),
                     id: z.string(),
                 })
             )
@@ -252,7 +284,15 @@ export const examGroupRouter = router({
 
                 if(ctx.session.role === "admin"){
                     return await ctx.prisma.testTakers.findMany({
+                        skip: input.skip,
+                        take: 6,
+                        orderBy: {
+                            createdAt: "desc",
+                        },
                         where: {
+                            name: {
+                                contains: input.search,
+                            },
                             examGroup: {
                                 id: input.id,
                             },
