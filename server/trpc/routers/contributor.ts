@@ -77,6 +77,7 @@ export const contributorRouter = router({
         where: {
           title: {
             contains: input.search,
+            mode: 'insensitive'
           },
         },
       })} else{
@@ -109,7 +110,8 @@ export const contributorRouter = router({
             equals: 'draft'
           },
           title: {
-            contains: input.search?.toLowerCase(),
+            contains: input.search,
+            mode: 'insensitive'
           }, 
         },
       });

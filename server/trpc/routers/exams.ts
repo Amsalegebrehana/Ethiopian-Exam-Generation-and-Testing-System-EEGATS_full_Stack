@@ -133,6 +133,7 @@ export const examRouter = router({
                     where: {
                         name: {
                             contains: input.search,
+                            mode: 'insensitive'
                         },
                     },
                 });
@@ -162,6 +163,7 @@ export const examRouter = router({
                     where: {
                         name: {
                             contains: input.search,
+                            mode: 'insensitive'
                         },
                     },
                 });
@@ -194,6 +196,7 @@ export const examRouter = router({
                     where: {
                         name: {
                             contains: input.search,
+                            mode: 'insensitive'
                         },
                     },
                 });

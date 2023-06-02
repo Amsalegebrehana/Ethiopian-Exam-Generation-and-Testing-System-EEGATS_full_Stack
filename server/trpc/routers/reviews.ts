@@ -82,6 +82,7 @@ export const reviewsRouter = router({
                     questions: {
                         title: {
                             contains: input.search,
+                            mode: 'insensitive'
                         }
                     },
                     reviewerId: input.reviewerId,
@@ -130,6 +131,7 @@ export const reviewsRouter = router({
                     questions: {
                         title: {
                             contains: input.search,
+                            mode: 'insensitive'
                         }
                     },
                     reviewerId: input.reviewerId,
