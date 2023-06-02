@@ -18,42 +18,9 @@ const questionToSubmit = ref();
 
 const route = useRoute();
 const contrId = route.params.id as string;
+const questions = await $client.contributor.getContributorQuestions.query(contrId);
 
 const { data: isAssigned } = await useAsyncData(() => $client.contributor.checkifAssigned.query({ contrId }));
-const { data: categories } = await useAsyncData(() => $client.contributor.getRemainingQuestionsByCategories.query({ contrId }));
-const questionsRemaining = categories.value == null? 0 : categories.value.reduce((sum, category) => sum + category.questionsRemaining, 0);
-const { data: count, refresh: fetchQuestionsCount } = await useAsyncData(() => $client.contributor.getContributorDraftCount.query(contrId));
-const { data: questions, refresh: fetchQuestions, pending} = await useAsyncData(() => $client.contributor.getContributorQuestions.query({contrId: contrId, skip: (page.value - 1) * 6}),
-      { watch: [page, searchText]} );
-const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.contributor.searchQuestionsCount.query({ search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
-const { data: searchQuestions, refresh: fetchSearchQuestions, pending: pendingSearch } = await useAsyncData(() => $client.contributor.searchContributorQuestions.query({ search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6, contributorId: contrId }),
-    { watch: [page, searchText] });
-const { data: canAddQuestion } = await useAsyncData(async () => {
-    const contrCount = await $client.contributor.getCountOfContributors.query();
-    return contrCount > 2;
-    });
-const paginate = async (newPage: number) => {
-    page.value = newPage;
-    isReloading.value = true;
-    try {
-        await fetchQuestions();
-        await fetchQuestionsCount();
-    } finally {
-        isReloading.value = false
-    }
-}
-
-const paginateSearch = async (newPage: number) => {
-    searchPage.value = newPage;
-    isReloading.value = true;
-    try {
-        await fetchSearchQuestions();
-        await fetchSearchCount();
-    } finally {
-        isReloading.value = false;
-    }
-}
-
 
 async function toggleModal(question: Object) {
     selectedQuestion.value = await $client.question.getQuestion.query(question.id);

@@ -1,6 +1,6 @@
 import { array, z } from "zod";
 import { sendStatusNotificationEmail, sendNewInvite, sendReturnEmail, sendNotificationEmail } from "~~/utils/mailer";
-import { protectedProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { validateEmail } from "~~/utils/emailValidation";
 import bcrypt from "bcrypt";
 import { QuestionStatus } from "@prisma/client";
@@ -494,15 +494,16 @@ export const contributorRouter = router({
           });
         }
       }
-      else {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'UNAUTHORIZED ACCESS.',
-
-        });
+        else {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'UNAUTHORIZED ACCESS.',
+            
+          });
+        }
       }
-
-    }),
+      ),
+    
 
   assignQuestion: protectedProcedure
     .input(
@@ -573,7 +574,7 @@ export const contributorRouter = router({
 
     }),
 
-  registerContributor: protectedProcedure
+  registerContributor: publicProcedure
     .input(
       z.object({
         name: z.string(),
@@ -583,7 +584,6 @@ export const contributorRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
         const email = await ctx.prisma.contributors.findUnique({
           where: {
             email: input.email
@@ -622,14 +622,6 @@ export const contributorRouter = router({
             });
           }
         }
-      }
-      else {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'UNAUTHORIZED ACCESS.',
-
-        });
-      }
 
 
     }),

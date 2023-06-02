@@ -37,7 +37,6 @@ const paginate = async (newPage: number) => {
   }
 }
 
-
 const paginateSearch = async (newPage: number) => {
   searchPage.value = newPage;
   isReloading.value = true;
@@ -51,7 +50,6 @@ const paginateSearch = async (newPage: number) => {
     isReloading.value = false
   }
 }
-
 
 
 const resetSearch = () => {

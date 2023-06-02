@@ -27,6 +27,7 @@
 
 import AdminTopBar from '~~/components/TopBar.vue'
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
+import EditExamModal from '~~/components/admin/EditExamModal.vue';
 
 import ExamsList from '~~/components/admin/ExamsList.vue';
 
