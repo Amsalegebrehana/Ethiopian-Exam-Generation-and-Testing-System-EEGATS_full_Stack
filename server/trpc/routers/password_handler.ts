@@ -4,6 +4,14 @@ import { TRPCError } from "@trpc/server";
 import bcrypt from "bcrypt";
 
 
+const confirmPasswordHash = (plainPassword: string, hashedPassword: string) => {
+    return new Promise((resolve) => {
+        bcrypt.compare(plainPassword, hashedPassword, function (err, res) {
+            resolve(res);
+        });
+    });
+};
+
 
 export const passwordHandlerRouter = router({
 
@@ -16,15 +24,19 @@ export const passwordHandlerRouter = router({
             })
         ).mutation(
             async ({ ctx, input }) => {
-                const hashed = await bcrypt.hash(input.newPassword, 10)
-                const oldhashed = await bcrypt.hash(input.oldPassword, 10)
+                const hashed = await bcrypt.hash(input.newPassword, 10);
+                const oldhashed = await bcrypt.hash(input.oldPassword, 10);
 
                 // If user is admin
                 if (ctx.session.role === 'admin') {
                     const user = await ctx.prisma.admin.findFirst({
                     });
 
-                    if (user!.password !== oldhashed) {
+                    const isSame = await confirmPasswordHash(
+                        input.oldPassword,
+                        user!.password
+                      )
+                    if (!isSame) {
                         throw new TRPCError({
                             code: 'BAD_REQUEST',
                             message: 'Incorrect Password',
@@ -32,7 +44,7 @@ export const passwordHandlerRouter = router({
                     }
                     const data = await ctx.prisma.admin.update({
                         where: {
-                            id: input.id,
+                            id: user!.id,
                         },
                         data: {
                             password: hashed,
@@ -65,7 +77,7 @@ export const passwordHandlerRouter = router({
                     });
                     return hashed;
                 }
-                    
+
                 // If user is contributor
                 else if (ctx.session.role === "contributor") {
                     const user = await ctx.prisma.contributors.findUnique({
