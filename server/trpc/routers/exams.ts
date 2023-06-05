@@ -147,6 +147,7 @@ export const examRouter = router({
                     where: {
                         name: {
                             contains: input.search,
+                            mode: 'insensitive'
                         },
                         examGroupId: input.examGroupId,
                     },
@@ -181,6 +182,7 @@ export const examRouter = router({
                         where: {
                             name: {
                                 contains: input.search,
+                                mode: 'insensitive'
                             },
                             examGroupId: input.examGroupId,
                         },
@@ -197,7 +199,7 @@ export const examRouter = router({
                         where: {
                             name: {
                                 contains: input.search,
-    
+                                mode: 'insensitive'
                             },
                         },
                     });
@@ -231,6 +233,7 @@ export const examRouter = router({
                     where: {
                         name: {
                             contains: input.search,
+                            mode: 'insensitive'
                         },
                     },
                 });

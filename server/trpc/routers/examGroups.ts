@@ -45,33 +45,34 @@ export const examGroupRouter = router({
         return await ctx.prisma.examGroup.count();
     }),
     getExamGroups: protectedProcedure
-        .input(
-            z.object({
-                skip: z.number(),
-                search: z.string().optional(),
-            })
-        )
-        .query(async ({ ctx, input }) => {
-            if (ctx.session.role === "admin") {
-                return await ctx.prisma.examGroup.findMany({
-                    include: {
-                        _count: {
-                            select: {
-                                Exam: true
-                            }
-                        }
-                    },
-                    skip: input.skip,
-                    take: 6,
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                    where: {
-                        name: {
-                            contains: input.search,
-                        },
-                    },
-                });
+      .input(
+        z.object({
+          skip: z.number(),
+          search: z.string().optional(),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        if (ctx.session.role === "admin"){
+            return await ctx.prisma.examGroup.findMany({
+            include:{
+                _count:{
+                    select:{
+                        Exam:true
+                    }
+                }
+            },
+            skip: input.skip,
+            take: 6,
+            orderBy: {
+                createdAt: "desc",
+            },
+            where: {
+                name: {
+                contains: input.search,
+                mode: 'insensitive'
+                },
+            },
+            });
             } else {
                 throw new TRPCError({
                     code: "UNAUTHORIZED",
