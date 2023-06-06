@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../trpc";
 import nodemailer from "nodemailer";
-const { auth } = useRuntimeConfig();
 import { TRPCError } from "@trpc/server";
 
 
@@ -324,7 +323,7 @@ export const reviewsRouter = router({
                             id: contributor?.poolId,
                         },
                     });
-
+                    const { auth } = useRuntimeConfig();
                     sendNotification({ email: contributor!.id, pool: pool!.name, url: `${auth.origin}/contributor/login` });
 
                     return data;

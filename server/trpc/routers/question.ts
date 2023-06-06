@@ -3,7 +3,6 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 import {QuestionStatus } from "@prisma/client";
-const {supabaseUrl} = useRuntimeConfig();
 export const questionRouter = router({
     addQuestion: publicProcedure.input(
         z.object({
@@ -21,21 +20,22 @@ export const questionRouter = router({
             catId : z.string(),
             contrId : z.string(),
         }),
-    ).mutation(async ({ ctx, input }) => {
-        try{
-        const category = await ctx.prisma.category.findUnique({
-            where: {
-                id: input.catId,
-            }
-        });
-        const contributor = await ctx.prisma.contributors.findUnique({
+        ).mutation(async ({ ctx, input }) => {
+            try{
+                const category = await ctx.prisma.category.findUnique({
+                    where: {
+                        id: input.catId,
+                    }
+                });
+                const contributor = await ctx.prisma.contributors.findUnique({
             where: {
                 id: input.contrId,
             }
         });
         if(contributor?.poolId == category?.poolId ){
-        const poolId= category?.poolId;
-        if(poolId){
+            const poolId= category?.poolId;
+            if(poolId){
+            const {supabaseUrl} = useRuntimeConfig();
             const urlPrefix = supabaseUrl + '/storage/v1/object/public/eegts-images/' 
             const question = await ctx.prisma.questions.create({
                 data:{
