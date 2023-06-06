@@ -40,22 +40,47 @@ const getExamById = async (
 
 //   DRY testing date overlaps check function for create and update exam
 const checkIntervalsOverlap = async(
-    ctx: { prisma: { exam: { findMany: (arg0: { select: { testingDate: boolean; duration: boolean; }; where: { examGroup: { id: any; }; }; }) => any; }; }; }, 
-    input: { examGroupId: any; testingDate:  Date; duration: number; })=>{
+    ctx: { prisma: { exam: { findMany: (arg0: { select: { testingDate: boolean; duration: boolean }; where: { examGroup: { id: any }; NOT?: { id: any } } }) => any } } },
+    input: { [x: string]: any; examGroupId: any; testingDate: Date; duration: number },
+   flag: boolean)=>{
     
        // get all exams with the same exam group id, pool id 
-       const previousExams = await ctx.prisma.exam.findMany({
-        select:{
-            testingDate: true,
-            duration: true,
-            
-        },
-        where: {
-            examGroup: {
-                id: input.examGroupId,
-            },
-        },
-    });
+        //    if flag true input will have id so find many except for the current exam with the input id 
+        let previousExams = [];
+        if (flag && input.id){
+            // return all exams except with out the current input.id
+            previousExams = await ctx.prisma.exam.findMany({
+                select:{
+                    testingDate: true,
+                    duration: true,
+                    
+                },
+                where: {
+                    examGroup: {
+                        id: input.examGroupId,
+                    },
+                    NOT: {
+                        id: { equals: input.id },
+                      },
+                      
+                }, 
+            })
+        } else {
+
+            previousExams = await ctx.prisma.exam.findMany({
+                select:{
+                    testingDate: true,
+                    duration: true,
+                    
+                },
+                where: {
+                    examGroup: {
+                        id: input.examGroupId,
+                    },
+                },
+                
+            })
+        }
 
     // exams start is testing date and end date is testing date + duration simplified  object
     const previousExamsDateIntervals = previousExams.map((preExam: { testingDate: { getTime: () => number; }; duration: number; }) => {
@@ -275,7 +300,7 @@ export const examRouter = router({
                 }
                 
                 // check if the new exam testing date overlaps with any of the previous exams
-                const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input);
+                const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input, false);
         
                 // check if the new exam testing date + duration is in the interval of any previous exams
                 if ( isTestingDateInInterval) {
@@ -508,7 +533,7 @@ export const examRouter = router({
                     }
                     // check if the new exam testing date overlaps with any of the previous exams
                      
-                    const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input);
+                    const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input, true);
                 
                         // check if the new exam testing date + duration is in the interval of any previous exams
                         if ( isTestingDateInInterval) {

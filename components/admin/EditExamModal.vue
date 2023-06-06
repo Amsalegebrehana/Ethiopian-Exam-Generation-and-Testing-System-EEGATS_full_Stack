@@ -130,11 +130,11 @@ const editExam = async() => {
     try {
         const updatedExam = await $client.exam.updateExam.mutate({
 
-        id: props.exam?.id,
-        duration: duration.value,
-        testingDate: testingDate.value,
-        examReleaseDate: examReleaseDate.value,
-        examGroupId: props.exam?.examGroupId,
+            id: props.exam?.id,
+            duration: duration.value,
+            testingDate: testingDate.value,
+            examReleaseDate: examReleaseDate.value,
+            examGroupId: props.exam?.examGroupId,
 
         });
         emits('update:exam', updatedExam)

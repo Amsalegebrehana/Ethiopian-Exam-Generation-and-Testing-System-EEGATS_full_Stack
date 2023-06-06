@@ -346,14 +346,14 @@ const removeCategory = (index: number) => {
 const createExam = async () => {
 
     isLoading.value = true;
-    console.log(selectedCategories)
+  
     selectedCategories.value.map((selectedCategory:{ selectedId:any, categoryName: any; numberOfQuestionPerCategory: any; }) => {
 
       totalNumberOfQuestions.value += selectedCategory.numberOfQuestionPerCategory;
       
     });
 
-    console.log(totalNumberOfQuestions.value);
+
 
     const exam = {
         name: examName.value,
@@ -380,7 +380,7 @@ const createExam = async () => {
           }
     } 
     catch (error : any ) {
-      
+
       totalNumberOfQuestions.value = 0;
       isLoading.value = false;
       returnedErrorMessage.value =  error.message;
