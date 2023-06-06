@@ -93,6 +93,30 @@ export const examGroupRouter = router({
             });
         }
         }),
+        // all the exam groups
+        getAllExamGroup: protectedProcedure
+            .input(
+                z.object({
+                    search: z.string().optional(),
+                })
+            )
+            .query(async ({ ctx, input }) => {
+                if (ctx.session.role === "admin") {
+                    return await ctx.prisma.examGroup.findMany({
+                        where: {
+                            name: {
+                                contains: input.search,
+                            },
+                        },
+                    });
+                }
+                else{
+                    throw new TRPCError({
+                        code: "UNAUTHORIZED",
+                        message: "UNAUTHORIZED ACCESS.",
+                    });
+                }
+        }),
 
         getExamGroup: protectedProcedure
             .input(
@@ -104,6 +128,7 @@ export const examGroupRouter = router({
                 if (ctx.session.role === "admin"){
 
                     const examGroup = await getExamGroupById(ctx, input.id);
+
                     if(!examGroup){
                         throw new TRPCError({
                             code: "NOT_FOUND",

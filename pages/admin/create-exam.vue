@@ -234,7 +234,7 @@ const toggleErrorModal = () => {
  
 // 
 // fetch exam groups from db
-const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
+const examgroups = await $client.examGroup.getAllExamGroup.query({});
 
 // fetch all pools from db
 const pools = await $client.pool.getPoolsWithCategories.query({});
@@ -346,13 +346,15 @@ const removeCategory = (index: number) => {
 const createExam = async () => {
 
     isLoading.value = true;
-
+    console.log(selectedCategories)
     selectedCategories.value.map((selectedCategory:{ selectedId:any, categoryName: any; numberOfQuestionPerCategory: any; }) => {
 
       totalNumberOfQuestions.value += selectedCategory.numberOfQuestionPerCategory;
       
     });
-    
+
+    console.log(totalNumberOfQuestions.value);
+
     const exam = {
         name: examName.value,
         examGroupId: selectedExamGroup.value,
@@ -378,7 +380,8 @@ const createExam = async () => {
           }
     } 
     catch (error : any ) {
-
+      
+      totalNumberOfQuestions.value = 0;
       isLoading.value = false;
       returnedErrorMessage.value =  error.message;
     }
