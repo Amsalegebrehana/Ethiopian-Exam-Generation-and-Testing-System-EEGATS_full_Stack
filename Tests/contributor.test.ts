@@ -1,7 +1,7 @@
 import { jest, test, expect } from "@jest/globals";
-import { appRouter } from '../routers'
+import { appRouter } from '../server/trpc/routers'
 import { PrismaClient } from "@prisma/client";
-import { createInnerTRPCContext } from "~/server/trpc/context";
+import { createInnerTRPCContext } from "../server/trpc/context";
 
 require('dotenv').config();
   
