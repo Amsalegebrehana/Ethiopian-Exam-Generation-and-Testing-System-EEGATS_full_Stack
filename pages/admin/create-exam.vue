@@ -188,7 +188,7 @@ import { Field, Form, ErrorMessage } from 'vee-validate';
 import * as zod from 'zod';
 import { toFieldValidator } from '@vee-validate/zod';
 import { ref, computed, watch } from 'vue';
-import Modal from '@/components/Modal.vue'
+import Modal from '@/components/Modal.vue';
 
 
 definePageMeta({ middleware: 'is-admin' })

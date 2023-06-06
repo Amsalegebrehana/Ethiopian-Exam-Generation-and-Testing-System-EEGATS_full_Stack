@@ -198,11 +198,11 @@ export const examGroupRouter = router({
               z.object({
                 inputPath: z.string(),
                 examGroupId: z.string(),
-                spreadsheetId: z.string(),
+              
               })
             )
             .mutation(async ({ ctx, input }) => {
-              let finished = false;
+         
               let requestSuccess = true;
           
               https.get(input.inputPath, async(response) => {
@@ -214,12 +214,14 @@ export const examGroupRouter = router({
           
                     // Check if the fullName contains only letters
                     if (!/^[a-zA-Z]+$/.test(fullName)) {
-                      finished = true;
+                     
+                      return 
                     }
           
                     // Check if the row[1] is not empty
                     if (!row[1] || row[1].trim() === '' || fullName === '') {
-                      finished = true;
+              
+                      return 
                     }
           
                     const password = row[1] + String(Math.ceil(Math.random() * 10 ** 4)).padStart(4, '0');
@@ -248,7 +250,7 @@ export const examGroupRouter = router({
                     });
           
                     if (!createTestTakers) {
-                      finished = true;
+               
                       requestSuccess = false;
           
                       throw new TRPCError({
@@ -268,18 +270,10 @@ export const examGroupRouter = router({
                       message: 'Check your file format.',
                     });
                   })
-                  .on('end', async() => {
-                    // write on the doc
-                    
-                    finished = true;
-              
-                  });
+                 
               })
-
-              return finished && requestSuccess;
-        
-              
-
+           ;
+              return requestSuccess;
             })
           ,
         // search test takers count

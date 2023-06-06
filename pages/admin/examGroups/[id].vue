@@ -193,7 +193,7 @@
                                 <!--footer-->
                                 <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
 
-                                    <button @click="handleAddPool()"
+                                    <button @click="generateTestTakers()"
                                         class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading">
                                         <div v-if="isLoading">
                                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
@@ -262,6 +262,8 @@
             </div>
             <div v-if="showResetPasswordModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
             <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
+            <Modal type="success" :show="istestTakerCreated"  message="Test Takers data successfully created!"/>
+            
         </div>
 
 </template>
@@ -272,8 +274,7 @@ import AdminTopBar from '~~/components/TopBar.vue';
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 
 import ExamsList from '~~/components/admin/ExamsList.vue';
-
-import { GoogleSpreadsheet } from 'google-spreadsheet';
+import Modal from '@/components/Modal.vue'
 
 definePageMeta({ middleware: 'is-admin' });
 const { $client } = useNuxtApp();
@@ -283,8 +284,8 @@ const isLoading = ref(false);
 const isReloading = ref(false);
 const isLoadingResetPassword = ref(false);
 const showResetPasswordModal = ref(false);
-
-
+const istestTakerCreated = ref(false);
+const errorMessage = ref('');
 const filepath = ref('');
 const page = ref(1);
 const searchText = ref('');
@@ -346,27 +347,28 @@ const getTestTakers = async () => {
       
 }
 
-const handleAddPool = async () => {
+const generateTestTakers = async () => {
   isLoading.value = true;
-  const spreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1TE32ehttrqYLzhckBk6bTqTgcQzst1ukP6dUiOGJLwM/edit#gid=0';
-
-// Extract the spreadsheetId from the URL
-const spreadsheetId = '1TE32ehttrqYLzhckBk6bTqTgcQzst1ukP6dUiOGJLwM';
 
   const inputPath = 'https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-files/' + `${filepath.value}`
   try {
     // const doc = new GoogleSpreadsheet(spreadsheetId);
     
-    const testTakersCredentials = await $client.examGroup.generateCredentials.mutate({ examGroupId: examGroupId, inputPath: inputPath, spreadsheetId:spreadsheetId });
-    console.log(testTakersCredentials);
+    const testTakersCredentials = await $client.examGroup.generateCredentials.mutate({ examGroupId: examGroupId, inputPath: inputPath});
+
     if (testTakersCredentials) {
-        // reload window
-        console.log(testTakersCredentials);
-        window.location.reload();
-        isReloading.value = true;
+      
+        // after   istestTakerCreated is true show success modal then wait 2 seconds then reload window
+        istestTakerCreated.value = true;
+        setTimeout(() => {
+            istestTakerCreated.value = false;
+            window.location.reload();
+        }, 2000);
+
     }
     else {
-        console.log('Failed to add pool. Please check your internet and try again later.');
+        errorMessage.value = 'Failed to add. Please check your internet and try again later.';
+
     }
     isLoading.value = false;
     showAddModal.value = false;
@@ -376,10 +378,8 @@ const spreadsheetId = '1TE32ehttrqYLzhckBk6bTqTgcQzst1ukP6dUiOGJLwM';
     showAddModal.value = false;
     isReloading.value = true;
      
-    console.log(error);
+    errorMessage.value = error.message;
   }
-//   await $client.examGroup.generateCredentialsCopy.mutate({ examGroupId: examGroupId, inputPath: inputPath });
-
 
   // Refresh testTakers list after adding pool
   testTakers = await $client.examGroup.getExamGroupTestTakers.query({ id: examGroupId });
@@ -407,8 +407,9 @@ const exportTableData = async() => {
     // Clean up the URL object
     URL.revokeObjectURL(link.href);
 
-  } catch (error) {
-    console.error('Failed to export test takers:', error);
+  } catch (error: any) {
+    errorMessage.value = 'Failed to export.' + error.message;
+  
   }
 };
 
