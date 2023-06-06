@@ -7,6 +7,7 @@ import { parse } from 'csv-parse';
 import { TRPCError } from "@trpc/server";
 
 import { promisify } from "util";
+import { createObjectCsvStringifier } from "csv-writer";
 
 
 
@@ -236,7 +237,15 @@ export const examGroupRouter = router({
                         examGroupId: input.examGroupId,
                       },
                     });
-                    
+
+                    const tempTestTakers = await ctx.prisma.temporaryTestTakers.create({
+                        data: {
+                            name: row[0],
+                            username: row[1],
+                            password: password,
+                            examGroupId: input.examGroupId,
+                        },
+                    });
           
                     if (!createTestTakers) {
                       finished = true;
@@ -337,5 +346,35 @@ export const examGroupRouter = router({
                     });
                 }
             }),
-            });
+
+            exportTestTakers: protectedProcedure
+              .input(
+                z.object({
+                  id: z.string(),
+                })
+              )
+              .query(async ({ ctx, input }) => {
+                // Filter test takers by exam group id
+                const testTakers = await ctx.prisma.temporaryTestTakers.findMany({
+                  where: {
+                    examGroupId: input.id,
+                  },
+                });
+            
+                // Create CSV stringifier
+                const csvStringifier = createObjectCsvStringifier({
+                  header: [
+                    { id: 'name', title: 'Name' },
+                    { id: 'username', title: 'Admission Number' },
+                    { id: 'password', title: 'Password' },
+                  ],
+                });
+            
+                // Convert test takers to CSV data
+                const csvData = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(testTakers);
+            
+                return csvData;
+              }),
+            
+ });
         

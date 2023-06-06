@@ -389,14 +389,27 @@ const spreadsheetId = '1TE32ehttrqYLzhckBk6bTqTgcQzst1ukP6dUiOGJLwM';
 
 getTestTakers();
 const exportTableData = async() => {
-      
-      const csvContent = 'data:text/csv;charset=utf-8,' + rows.map((row) => row.join(',')).join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', 'table-data.csv');
-      document.body.appendChild(link);
-      link.click();
+
+   try {
+    const response = await $client.examGroup.exportTestTakers.query({ id: examGroupId });
+
+    // Create a Blob object from the CSV data
+    const blob = new Blob([response], { type: 'text/csv' });
+
+    // Create a download link
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'test_takers.csv';
+
+    // Simulate a click to trigger the download
+    link.click();
+
+    // Clean up the URL object
+    URL.revokeObjectURL(link.href);
+
+  } catch (error) {
+    console.error('Failed to export test takers:', error);
+  }
 };
 
 const handleDelete = async (id: string) => {
