@@ -273,6 +273,8 @@ import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 
 import ExamsList from '~~/components/admin/ExamsList.vue';
 
+import { GoogleSpreadsheet } from 'google-spreadsheet';
+
 definePageMeta({ middleware: 'is-admin' });
 const { $client } = useNuxtApp();
 const activeTab = ref(1);
@@ -346,13 +348,38 @@ const getTestTakers = async () => {
 
 const handleAddPool = async () => {
   isLoading.value = true;
+  const spreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1TE32ehttrqYLzhckBk6bTqTgcQzst1ukP6dUiOGJLwM/edit#gid=0';
+
+// Extract the spreadsheetId from the URL
+const spreadsheetId = '1TE32ehttrqYLzhckBk6bTqTgcQzst1ukP6dUiOGJLwM';
 
   const inputPath = 'https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-files/' + `${filepath.value}`
-  await $client.examGroup.generateCredentials.mutate({ examGroupId: examGroupId, inputPath: inputPath });
+  try {
+    // const doc = new GoogleSpreadsheet(spreadsheetId);
+    
+    const testTakersCredentials = await $client.examGroup.generateCredentials.mutate({ examGroupId: examGroupId, inputPath: inputPath, spreadsheetId:spreadsheetId });
+    console.log(testTakersCredentials);
+    if (testTakersCredentials) {
+        // reload window
+        console.log(testTakersCredentials);
+        window.location.reload();
+        isReloading.value = true;
+    }
+    else {
+        console.log('Failed to add pool. Please check your internet and try again later.');
+    }
+    isLoading.value = false;
+    showAddModal.value = false;
 
-  isLoading.value = false;
-  showAddModal.value = false;
-  isReloading.value = true;
+  } catch (error: any) {
+    isLoading.value = false;
+    showAddModal.value = false;
+    isReloading.value = true;
+     
+    console.log(error);
+  }
+//   await $client.examGroup.generateCredentialsCopy.mutate({ examGroupId: examGroupId, inputPath: inputPath });
+
 
   // Refresh testTakers list after adding pool
   testTakers = await $client.examGroup.getExamGroupTestTakers.query({ id: examGroupId });
@@ -371,6 +398,7 @@ const exportTableData = async() => {
       document.body.appendChild(link);
       link.click();
 };
+
 const handleDelete = async (id: string) => {
     const response = await $client.examGroup.deleteExamGroup.mutate({ id: id });
     if (response) {

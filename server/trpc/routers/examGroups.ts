@@ -6,6 +6,10 @@ import bcrypt from "bcrypt";
 import { parse } from 'csv-parse';
 import { TRPCError } from "@trpc/server";
 
+import { promisify } from "util";
+
+
+
 // reuseble get exam group by Id here
 
 const getExamGroupById = async (ctx: { session: { role: string; }; prisma: { examGroup: { findUnique: (arg0: { where: { id: any; }; }) => any; }; }; }, id: any) => {
@@ -188,60 +192,87 @@ export const examGroupRouter = router({
                 }
             }),
 
-        generateCredentials : publicProcedure
-        .input(
-            z.object({
+            generateCredentials: publicProcedure
+            .input(
+              z.object({
                 inputPath: z.string(),
                 examGroupId: z.string(),
-            })
-        )
-        .mutation( async ({ ctx, input }) => {
-            let finished = false;
-            const inputfilename = input.inputPath.split('/');
-      
-            const outputFilePath ="./" + inputfilename[inputfilename.length-1].slice(0,inputfilename[inputfilename.length-1].length - 4)  +"new.csv";
-
-            const writableStream = fs.createWriteStream(outputFilePath);
-            // create a readable stream
+                spreadsheetId: z.string(),
+              })
+            )
+            .mutation(async ({ ctx, input }) => {
+              let finished = false;
+              let requestSuccess = true;
           
-            https.get(input.inputPath, (response) => {
-                response.pipe(parse({ delimiter: ',',relax_quotes: true, from_line: 2 }))
-                .on('data', async (row) => {
+              https.get(input.inputPath, async(response) => {
+                response
+                  .pipe(parse({ delimiter: ',', relax_quotes: true, from_line: 2 }))
+                  .on('data', async (row) => {
+
+                    const fullName = row[0].trim();
+          
+                    // Check if the fullName contains only letters
+                    if (!/^[a-zA-Z]+$/.test(fullName)) {
+                      finished = true;
+                    }
+          
+                    // Check if the row[1] is not empty
+                    if (!row[1] || row[1].trim() === '' || fullName === '') {
+                      finished = true;
+                    }
+          
                     const password = row[1] + String(Math.ceil(Math.random() * 10 ** 4)).padStart(4, '0');
                     row.push(password);
-                    // write the row to the output file
-                    writableStream.write(row.join(',') + '\n');
-                    
-                    const hashedPassword =await bcrypt.hash(password, 10);
-
-                    await ctx.prisma.testTakers.create({
-                        data: {
-                            name: row[0],
-                            username: row[1],
-                            password: hashedPassword,
-                            examGroupId : input.examGroupId
-                        }  
-                    });  
-                })
-                .on('error', (error) => {
-                    console.log(error.message);
-                })
-                .on('end', () => {
-                
-                    // close the writable stream when done
-                    writableStream.end();
-                    finished = true;
+          
                    
-                });
-            }).on('error', (error) => {
-                console.log(error.message);
-            });
-            while (!finished) {
-                await new Promise((resolve) => setTimeout(resolve, 100));
-            }
-            return finished;
-           
-        }), 
+          
+                    const hashedPassword = await bcrypt.hash(password, 10);
+                    // create test taker
+                    const createTestTakers = await ctx.prisma.testTakers.create({
+                      data: {
+                        name: row[0],
+                        username: row[1],
+                        password: hashedPassword,
+                        examGroupId: input.examGroupId,
+                      },
+                    });
+                    
+          
+                    if (!createTestTakers) {
+                      finished = true;
+                      requestSuccess = false;
+          
+                      throw new TRPCError({
+                        code: 'BAD_REQUEST',
+                        message: 'Check your file format.',
+                      });
+                    }
+
+                 
+                  })
+                  .on('error', (error) => {
+                  
+                    // handle error while reading
+                    requestSuccess = false;
+                    throw new TRPCError({
+                      code: 'BAD_REQUEST',
+                      message: 'Check your file format.',
+                    });
+                  })
+                  .on('end', async() => {
+                    // write on the doc
+                    
+                    finished = true;
+              
+                  });
+              })
+
+              return finished && requestSuccess;
+        
+              
+
+            })
+          ,
         // search test takers count
         getTestTakersCount: protectedProcedure
 
