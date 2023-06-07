@@ -116,7 +116,7 @@
                   <div class="flex flex-row align-middle w-4/6 mt-3">
 
                       <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium text-lg">Exam Date</label>
-                      <Datepicker calendar-class="rounded text-priamry form-control w-full hover:-translate-y-0.5 hover:border-blue-700" v-model="testingDate"  />
+                      <Datepicker calendar-class="rounded text-priamry form-control w-full hover:-translate-y-0.5 hover:border-blue-700" :disabled-dates="disablePastDates" v-model="testingDate"  />
 
                   </div>  
                     <!-- Test Release date -->
@@ -124,7 +124,7 @@
                     <div class="flex flex-row align-middle w-4/6 mt-3">
 
                         <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium text-lg">Grade Release Date</label>
-                        <Datepicker calendar-class="rounded text-priamry form-control w-full" v-model="examReleaseDate"  />
+                        <Datepicker calendar-class="rounded text-priamry form-control w-full" :disabled-dates="disablePastDates" v-model="examReleaseDate"  />
 
                     </div>  
                     <!-- Duration -->
@@ -224,6 +224,12 @@ const isExamCreated = ref(false);
 // error message
 const returnedErrorMessage = ref('');
 
+const disablePastDates = (date: Date)=> {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set time to the beginning of the day
+
+      return date < today;
+    }
 
 // modal
 const toggleErrorModal = () => {
@@ -234,7 +240,7 @@ const toggleErrorModal = () => {
  
 // 
 // fetch exam groups from db
-const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
+const examgroups = await $client.examGroup.getAllExamGroup.query({});
 
 // fetch all pools from db
 const pools = await $client.pool.getPoolsWithCategories.query({});
@@ -346,13 +352,15 @@ const removeCategory = (index: number) => {
 const createExam = async () => {
 
     isLoading.value = true;
-
+  
     selectedCategories.value.map((selectedCategory:{ selectedId:any, categoryName: any; numberOfQuestionPerCategory: any; }) => {
 
       totalNumberOfQuestions.value += selectedCategory.numberOfQuestionPerCategory;
       
     });
-    
+
+
+
     const exam = {
         name: examName.value,
         examGroupId: selectedExamGroup.value,
@@ -379,6 +387,7 @@ const createExam = async () => {
     } 
     catch (error : any ) {
 
+      totalNumberOfQuestions.value = 0;
       isLoading.value = false;
       returnedErrorMessage.value =  error.message;
     }
