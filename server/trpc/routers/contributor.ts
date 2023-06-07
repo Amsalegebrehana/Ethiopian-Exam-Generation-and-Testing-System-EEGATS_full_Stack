@@ -131,7 +131,7 @@ export const contributorRouter = router({
     )
     .query(
       async ({ ctx, input }) => {
-        if (ctx.session.role === 'admin') {
+        if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
           const data = await ctx.prisma.questions.count({
             where: {
               contributorId: input,
@@ -195,7 +195,7 @@ export const contributorRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
+      if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
         const data = await ctx.prisma.contributors.findUnique({
           where: {
             id: input.id,
@@ -224,7 +224,7 @@ export const contributorRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
+      if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
         const contributor = await ctx.prisma.contributors.findUnique({
           where: {
             id: input.contrId
@@ -280,7 +280,7 @@ export const contributorRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
+      if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
         const contributor = await ctx.prisma.contributors.findUnique({
           where: {
             id: input.contrId
@@ -325,7 +325,7 @@ export const contributorRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
+      if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
         await ctx.prisma.contributorAssignment.findMany({
           where: {
             contrId: input.id
@@ -852,7 +852,6 @@ export const contributorRouter = router({
     getCountOfContributors: publicProcedure
     .query(async({ctx, input}) => {
         const count = await ctx.prisma.contributors.count({});
-        console.log("Hey there! The backend function runs fine:::: ", count)
         return count;
     })
 
