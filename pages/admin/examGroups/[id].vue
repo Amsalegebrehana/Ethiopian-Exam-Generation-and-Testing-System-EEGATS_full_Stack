@@ -47,11 +47,9 @@
                                         </div>
                                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                                             <div class="w-56 relative text-slate-500">
-                                                <input type="text" class="form-control w-56 box pr-10"
-                                                    placeholder="Search..." />
-                                                <Icon name="carbon:search"
-                                                    class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
-
+                                                <input type="text" class="form-control w-56 box pr-10" v-model="searchText" placeholder="Search..." />
+                                                <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
+                            
                                             </div>
                                         </div>
 
@@ -86,7 +84,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="student in testTakers" :key="student.id" class="intro-x">
+                                                <tr v-for="student in searchTestTakers" :key="student.id" class="intro-x">
                                                     <td class="w-10">
                                                         <NuxtLink :to="`/admin/exams/${student.id}`">
                                                             <Icon name="iconoir:page" class="w-6 h-6"></Icon>
@@ -126,65 +124,46 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2">
-
-                                        <div class="hidden md:block mx-auto text-slate-500">
-                                            Showing 1 to 10 of {{ testTakers.length }} entries
-                                        </div>
-                                    </div>
+                                   </div>
+                                  
                                     <!-- BEGIN: Pagination -->
-                                    <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
-                                        <nav class="w-full sm:w-auto sm:mr-auto">
-                                            <ul class="pagination">
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-double-left" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-left" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">...</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">1</a>
-                                                </li>
-                                                <li class="page-item active">
-                                                    <a class="page-link" href="#">2</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">3</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">...</a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-right" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                                <li class="page-item">
-                                                    <a class="page-link" href="#">
-                                                        <Icon name="mdi:chevron-double-right" class="h-4 w-4"></Icon>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </nav>
-                                        <select class="w-20 form-select box mt-3 sm:mt-0">
-                                            <option>10</option>
-                                            <option>25</option>
-                                            <option>35</option>
-                                            <option>50</option>
-                                        </select>
-                                    </div>
+                                    <div class="flex flex-row mt-3">
+                      <div class="md:block  text-slate-500">
+                   
+                          </div>
+                        <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+                            <nav class="w-full sm:w-auto sm:mr-auto">
+                                <ul class="pagination">
+                                    
+                                   
+                                    <li class="page-item">
+                                            <button class="page-link" v-on:click="paginateSearch(searchPage - 1)" :disabled="searchPage===1">
+                                                <div class="flex flex-row align-middle justify-center items-center  ">
+                                                    <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle"></Icon>
+                                                    <span class="">Previous</span>
+                                                </div>
+                                            </button>
+                                        </li>
+                                        <li class="page-item">  
+                                            <button class="page-link" v-on:click="paginateSearch(searchPage+1)" :disabled="(searchPage) * 6 >= searchCount!">
+                                                <div class="flex flex-row align-middle justify-center items-center">
+                                                        <span>Next</span>
+                                                        <Icon name="mdi:chevron-right" class="h-4 w-4 align-middle"></Icon>
+                                                </div>
+                                                </button>
+                                         </li>
+            
+                
+                                    </ul>
+                            </nav>
+                            
+                            </div>
+                     </div>
                                     <!-- END: Pagination -->
                                 </div>
-
-                            </div>
-
+                    
+                     
+                        
                         </div>
                         <div id="example-tab-6" class="tab-pane leading-relaxed" role="tabpanel"
                             aria-labelledby="example-6-tab" :class="{ 'active': activeTab === 2 }">
@@ -246,7 +225,7 @@
                     <!--footer-->
                     <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
 
-                        <button @click="handleAddPool()"
+                        <button @click="generateTestTakers()"
                             class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading">
                             <div v-if="isLoading">
                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
@@ -300,7 +279,7 @@
 
                                     </div>
 
-
+                    
                                 </div>
                             </div>
                         </div>
@@ -360,7 +339,7 @@
                                     <button @click="handlePractice()"
                                         class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
                                         :disabled="isLoading">
-                                        <div v-if="isLoading || pending">
+                                        <div v-if="isLoading ">
                                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                         </div>
                                         <div v-else>
@@ -380,6 +359,10 @@
                     </div>
                 </div>
             </div>
+            <div v-if="showResetPasswordModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+            <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
+            <Modal type="success" :show="istestTakerCreated"  message="Test Takers data successfully created!"/>
+            
         </div>
         <div v-if="showPracticeModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
         <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
@@ -392,6 +375,7 @@ import AdminTopBar from '~~/components/TopBar.vue';
 import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
 
 import ExamsList from '~~/components/admin/ExamsList.vue';
+import Modal from '@/components/Modal.vue'
 
 definePageMeta({ middleware: 'is-admin' });
 const { $client } = useNuxtApp();
@@ -426,6 +410,8 @@ const handlePractice = async () => {
 
 }
 
+const istestTakerCreated = ref(false);
+const errorMessage = ref('');
 const filepath = ref('');
 const page = ref(1);
 const searchText = ref('');
@@ -433,7 +419,7 @@ const searchText = ref('');
 const route = useRoute()
 const examGroupId = route.params.id as string;
 
-const searchPage = ref(1)
+const searchPage = ref(1);
 // get exam group data
 const examGroup = await  $client.examGroup.getExamGroup.query({ id: examGroupId });
 
@@ -450,25 +436,35 @@ if(practiceData.value === 'practice'){
     publishBtn.value = false;
 }
 
-const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId }));
-const { data: reviews, refresh: fetchReviews, pending } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
+const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(
+    () => $client.examGroup.getTestTakersCount.query(
+        { 
+            id: examGroupId, 
+            search: searchText.value !== '' ? searchText.value : undefined 
+        }
+        ),
+    { watch: [searchPage, searchText] });
+const { data: searchTestTakers, refresh: fetchSearchTestTakers, pending: pendingSearch } = await useAsyncData(
+    () => $client.examGroup.getExamGroupTestTakers.query(
+        { 
+            id: examGroupId, 
+            search: searchText.value !== '' ? searchText.value : undefined, 
+            skip: (searchPage.value - 1) * 6 
+        }
+            ),
+   { watch: [page, searchText] });
 
-const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.review.getReviewsCount.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
-const { data: searchReviews, refresh: fetchSearchReviews, pending: pendingSearch } = await useAsyncData(() => $client.review.getReviews.query({ reviewerId: contrId, search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
-    { watch: [page, searchText] });
-
-const paginate = async (newPage: number) => {
-    page.value = newPage;
+const paginateSearch = async (newPage: number) => {
+    searchPage.value = newPage;
     isReloading.value = true;
+
     try {
-        await fetchReviews();
-        await fetchCount();
+        await fetchSearchTestTakers();
+        await fetchSearchCount();
     } finally {
-        isReloading.value = false
+        isReloading.value = false  
     }
 }
-
-
 const toggleAddModal = () => {
 
     showAddModal.value = !showAddModal.value;
@@ -476,6 +472,7 @@ const toggleAddModal = () => {
 let testTakers: string | any[] = [];
 
 const rows = [['Name', 'Admission Number']]; // add header row
+
 
 const getTestTakers = async () => {
     testTakers = await $client.examGroup.getExamGroupTestTakers.query({ id: examGroupId });
@@ -488,15 +485,39 @@ const getTestTakers = async () => {
 
 }
 
-const handleAddPool = async () => {
-    isLoading.value = true;
+const generateTestTakers = async () => {
+  isLoading.value = true;
 
-    const inputPath = 'https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-files/' + `${filepath.value}`
-    await $client.examGroup.generateCredentials.mutate({ examGroupId: examGroupId, inputPath: inputPath });
+  const inputPath = 'https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-files/' + `${filepath.value}`
+  try {
+    // const doc = new GoogleSpreadsheet(spreadsheetId);
+    
+    const testTakersCredentials = await $client.examGroup.generateCredentials.mutate({ examGroupId: examGroupId, inputPath: inputPath});
 
+    if (testTakersCredentials) {
+      
+        // after   istestTakerCreated is true show success modal then wait 2 seconds then reload window
+        istestTakerCreated.value = true;
+        setTimeout(() => {
+            istestTakerCreated.value = false;
+            window.location.reload();
+        }, 2000);
+
+    }
+    else {
+        errorMessage.value = 'Failed to add. Please check your internet and try again later.';
+
+    }
+    isLoading.value = false;
+    showAddModal.value = false;
+
+  } catch (error: any) {
     isLoading.value = false;
     showAddModal.value = false;
     isReloading.value = true;
+     
+    errorMessage.value = error.message;
+  }
 
     // Refresh testTakers list after adding pool
     testTakers = await $client.examGroup.getExamGroupTestTakers.query({ id: examGroupId });
@@ -505,16 +526,31 @@ const handleAddPool = async () => {
 };
 
 getTestTakers();
-const exportTableData = async () => {
+const exportTableData = async() => {
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + rows.map((row) => row.join(',')).join('\n');
-    const encodedUri = encodeURI(csvContent);
+   try {
+    const response = await $client.examGroup.exportTestTakers.query({ id: examGroupId });
+
+    // Create a Blob object from the CSV data
+    const blob = new Blob([response], { type: 'text/csv' });
+
+    // Create a download link
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'table-data.csv');
-    document.body.appendChild(link);
+    link.href = URL.createObjectURL(blob);
+    link.download = 'test_takers.csv';
+
+    // Simulate a click to trigger the download
     link.click();
+
+    // Clean up the URL object
+    URL.revokeObjectURL(link.href);
+
+  } catch (error: any) {
+    errorMessage.value = 'Failed to export.' + error.message;
+  
+  }
 };
+
 const handleDelete = async (id: string) => {
     const response = await $client.examGroup.deleteExamGroup.mutate({ id: id });
     if (response) {

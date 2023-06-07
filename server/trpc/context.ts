@@ -1,7 +1,19 @@
 import { inferAsyncReturnType } from '@trpc/server'
 import type { H3Event } from 'h3'
 import { getServerSession } from '#auth'
+import { PrismaClient } from "@prisma/client";
 
+type CreateContextOptions = {
+  session: null;
+  prisma?: PrismaClient;
+};
+
+export const createInnerTRPCContext = (opts: CreateContextOptions) => {
+  return {
+    session: opts.session,
+    prisma: opts.prisma || PrismaClient,
+  };
+};
 /**
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context

@@ -1,12 +1,10 @@
 import { array, z } from "zod";
-import { sendStatusNotificationEmail, sendNewInvite, sendReturnEmail, sendNotificationEmail } from "~~/utils/mailer";
+import { sendStatusNotificationEmail, sendNewInvite, sendReturnEmail, sendNotificationEmail } from "../../../utils/mailer";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
-import { validateEmail } from "~~/utils/emailValidation";
+import { validateEmail } from "../../../utils/emailValidation";
 import bcrypt from "bcrypt";
 import { QuestionStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-
-const { auth } = useRuntimeConfig();
 
 export const contributorRouter = router({
   getAllContributorsCount: protectedProcedure
@@ -155,7 +153,7 @@ export const contributorRouter = router({
     )
     .query(
       async ({ ctx, input }) => {
-        if (ctx.session.role === 'admin') {
+        if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
           const data = await ctx.prisma.questions.count({
             where: {
               contributorId: input,
@@ -219,7 +217,7 @@ export const contributorRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
+      if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
         const data = await ctx.prisma.contributors.findUnique({
           where: {
             id: input.id,
@@ -248,7 +246,7 @@ export const contributorRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
+      if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
         const contributor = await ctx.prisma.contributors.findUnique({
           where: {
             id: input.contrId
@@ -304,7 +302,7 @@ export const contributorRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
+      if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
         const contributor = await ctx.prisma.contributors.findUnique({
           where: {
             id: input.contrId
@@ -349,7 +347,7 @@ export const contributorRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.session.role === 'admin') {
+      if (ctx.session.role == 'contributor' || ctx.session.role == 'admin') {
         await ctx.prisma.contributorAssignment.findMany({
           where: {
             contrId: input.id
@@ -416,6 +414,7 @@ export const contributorRouter = router({
           },
         }).then((data) => {
           if (contributor) {
+            const { auth } = useRuntimeConfig();
             sendStatusNotificationEmail({
               url: `${auth.origin}`,
               email: contributor.email,
@@ -486,6 +485,7 @@ export const contributorRouter = router({
           }
           if (pool) {
             try {
+              const { auth } = useRuntimeConfig();
               sendNewInvite({
                 url: `${auth.origin}/contributor/register?poolId=${input.poolId}`,
                 email: input.email,
@@ -569,6 +569,7 @@ export const contributorRouter = router({
           }
         }).then((data) => {
           if (pool && category && contributor) {
+            const { auth } = useRuntimeConfig();
             sendNotificationEmail({
               url: `${auth.origin}`,
               email: contributor.email,
@@ -872,8 +873,8 @@ export const contributorRouter = router({
 
     getCountOfContributors: publicProcedure
     .query(async({ctx, input}) => {
-        const count = ctx.prisma.contributors.findMany({});
-        return (await count).length;
+        const count = await ctx.prisma.contributors.count({});
+        return count;
     })
 
 });

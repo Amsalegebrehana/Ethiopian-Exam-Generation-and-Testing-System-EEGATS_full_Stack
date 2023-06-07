@@ -69,7 +69,8 @@
                                                 <button class="text-success flex items-center mr-3 "  @click="EditModal(exgrp.id, exgrp.name)">
                                                     <Icon name="material-symbols:edit-outline" class="w-4 h-4 mr-1"> </Icon> Edit
                                                 </button>
-                                                <button v-if="exgrp._count['Exam'] == 0" class="flex items-center text-danger"  @click="DeleteModal(exgrp.id, exgrp.name)">
+                                               
+                                                <button  class="flex items-center " :class="exgrp._count['Exam'] !== 0? ' text-white': 'text-danger'" :disabled="exgrp._count['Exam'] !== 0"  @click="DeleteModal(exgrp.id, exgrp.name)">
                                                     <Icon name="fa6-regular:trash-can" class="w-4 h-4"></Icon> Delete
                                                 </button>
                                             </div>
