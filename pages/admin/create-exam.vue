@@ -162,7 +162,7 @@
                               </div>
                                 <Field 
                                     class=" form-control py-3 border-none w-full  font-medium text-black-900"
-                                  
+                                    
                                     name="gradePassPoint" 
                                     type="number" 
                                     v-model.number="gradePassPoint" />

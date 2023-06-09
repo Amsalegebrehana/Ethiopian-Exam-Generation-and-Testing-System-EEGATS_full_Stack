@@ -319,10 +319,10 @@ export const examRouter = router({
                     });
                 }
                 // check if gradePassPoint is less than the number of questions
-                if(input.gradePassPoint > input.numberOfQuestions){
+                if(input.gradePassPoint > input.numberOfQuestions && input.numberOfQuestions < 0){
                     throw new TRPCError({
                         code: "BAD_REQUEST",
-                        message:"The grade pass point should be less than the number of questions."
+                        message:"The grade pass point should be less than the number of questions or greater than 0."
                     });
                 }
                 else {  
