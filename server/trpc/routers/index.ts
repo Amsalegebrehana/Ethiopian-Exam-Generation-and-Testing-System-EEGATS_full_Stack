@@ -11,7 +11,10 @@ import { category } from './category';
 import {examRouter} from './exams';
 import { analyticsRouter } from './analytics';
 import { passwordHandlerRouter } from './password_handler';
+import { PrismaClient } from '@prisma/client';
 
+
+import * as cron from "node-cron";
 
 export const appRouter = router({
 
@@ -28,6 +31,43 @@ export const appRouter = router({
   
     
 });
+// / access prisma client
+const prismaClient = new PrismaClient();
+
+// do cron job exam 
+const cronJobExam = async () => {
+    // invoke the cron job exam release
+       // Schedule the cron job
+       cron.schedule("* * * * *", async () => {
+        // Code to execute on the defined schedule
+
+        const exams = await prismaClient.exam.findMany({
+                    where: {
+                        examReleaseDate: { lte: new Date() },
+                        status: { not: 'gradeReleased' },
+                    },
+                });
+         // Update status for each exam
+     
+         exams.forEach(async (exam) => {
+           
+            await prismaClient.exam.update({
+                where: {
+                    id: exam.id,
+                },
+                data: {
+                    status: 'gradeReleased',
+                },
+            });
+                
+            });
+        // Perform any operations you need here
+   
+        });
+}
+// invoke the cron job exam 
+cronJobExam();
+
 
 // export type definition of API
 export type AppRouter = typeof appRouter

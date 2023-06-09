@@ -141,7 +141,7 @@ const handleDeletePool = async () => {
     try {
         const res = await $client.pool.deletePool.mutate({ id: poolInfo.value.id });
         if (res === 'Can\'t delete pool.') {
-            errorText.value = "You can't delete with active questions or contributors!";
+            errorText.value = "You can't delete with a pool active questions or contributors!";
             showErrorModal.value = true;
         }
         isReloading.value = true;

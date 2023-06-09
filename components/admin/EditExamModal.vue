@@ -35,7 +35,7 @@
                         <div class="flex flex-row align-middle w-full mt-3">
 
                             <label for="horizontal-form-1" class=" my-auto align-middle w-3/6 font-medium text-md">Exam Date</label>
-                            <Datepicker calendar-class="rounded text-priamry form-control w-full hover:-translate-y-0.5 hover:border-blue-700" v-model="testingDate"  />
+                            <Datepicker calendar-class="rounded text-priamry form-control w-full hover:-translate-y-0.5 hover:border-blue-700" :disabled-dates="disablePastDates" v-model="testingDate"  />
 
                         </div>  
                             <!-- Test Release date -->
@@ -43,7 +43,7 @@
                         <div class="flex flex-row align-middle w-full mt-3">
 
                             <label for="horizontal-form-1" class=" my-auto align-middle w-3/6 font-medium text-md">Grade Release Date</label>
-                            <Datepicker calendar-class="rounded text-priamry form-control w-full" v-model="examReleaseDate"  />
+                            <Datepicker calendar-class="rounded text-priamry form-control w-full" v-model="examReleaseDate" :disabled-dates="disablePastDates" />
 
                         </div> 
                    
@@ -73,7 +73,8 @@
                                 <Icon name="material-symbols:edit-outline" class="mr-2 w-4 h-4"></Icon> Edit
                             </button>
                             <button v-if="isLoading" class="btn btn-gray-700 text-primary flex items-center mr-3" disabled >
-                                <Icon name="line-md:loading-alt-loop" class="w-4 h-4"></Icon> Loading ...
+                                <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+
                             </button>
                         </div>
                     </div>
@@ -111,6 +112,13 @@ const errorMessage = ref('');
 // duration of exam
 const duration = ref(props.exam?.duration || 0);
 
+const disablePastDates = (date: Date)=> {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set time to the beginning of the day
+
+      return date < today;
+    }
+
 // watch for changes in props.exam
 watch(() => props.exam, (newVal: any, oldVal) => {
  
@@ -129,11 +137,11 @@ const editExam = async() => {
     try {
         const updatedExam = await $client.exam.updateExam.mutate({
 
-        id: props.exam?.id,
-        duration: duration.value,
-        testingDate: testingDate.value,
-        examReleaseDate: examReleaseDate.value,
-        examGroupId: props.exam?.examGroupId,
+            id: props.exam?.id,
+            duration: duration.value,
+            testingDate: testingDate.value,
+            examReleaseDate: examReleaseDate.value,
+            examGroupId: props.exam?.examGroupId,
 
         });
         emits('update:exam', updatedExam)

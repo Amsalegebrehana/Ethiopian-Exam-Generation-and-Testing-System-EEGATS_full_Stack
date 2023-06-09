@@ -64,7 +64,6 @@ export async function sendReturnEmail({
     html: `<p>Greetings,<br></p> <p>You have been invited to contribute and review questions for the Ethiopian Exam Generation and Testing System's ${pool} pool.<br></p><p>Log into your account by clicking <a href="${url}">HERE</a></p>`,
   });
 
-  // console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
 }
 
 export async function sendNotificationEmail({

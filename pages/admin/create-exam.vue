@@ -83,7 +83,7 @@
                             </select>
                           </td>
                           <td>
-                            <input type="number " v-model.number="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
+                            <input type="number" v-model.number="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
                             <input type="hidden" :value="selectedCategory.selectedId=categoryNameId[selectedCategory.categoryName]" />
                           </td>
                           <td>
@@ -116,7 +116,7 @@
                   <div class="flex flex-row align-middle w-4/6 mt-3">
 
                       <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium text-lg">Exam Date</label>
-                      <Datepicker calendar-class="rounded text-priamry form-control w-full hover:-translate-y-0.5 hover:border-blue-700" v-model="testingDate"  />
+                      <Datepicker calendar-class="rounded text-priamry form-control w-full hover:-translate-y-0.5 hover:border-blue-700" :disabled-dates="disablePastDates" v-model="testingDate"  />
 
                   </div>  
                     <!-- Test Release date -->
@@ -124,12 +124,12 @@
                     <div class="flex flex-row align-middle w-4/6 mt-3">
 
                         <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium text-lg">Grade Release Date</label>
-                        <Datepicker calendar-class="rounded text-priamry form-control w-full" v-model="examReleaseDate"  />
+                        <Datepicker calendar-class="rounded text-priamry form-control w-full" :disabled-dates="disablePastDates" v-model="examReleaseDate"  />
 
                     </div>  
                     <!-- Duration -->
                     <div class="flex flex-row w-4/6 mt-3 ">
-                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium text-lg">Duration</label>
+                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium text-lg">Duration (mins)</label>
 
                       <Form >
                       
@@ -157,8 +157,8 @@
   
                   <button v-if="!isLoading" class="btn btn-primary shadow-md mt-5 w-100 px-5 py-3" type="submit" @click="createExam">Create Exam </button>
                   <button v-if="isLoading" class="btn btn-primary shadow-md mt-5 w-100 " disabled >
-                    <svg class="motion-reduce:hidden animate-spin ..." viewBox="0 0 24 24"><!-- ... --></svg>
-                        loading...
+                    <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+
                 </button>
 
               </div>
@@ -188,7 +188,7 @@ import { Field, Form, ErrorMessage } from 'vee-validate';
 import * as zod from 'zod';
 import { toFieldValidator } from '@vee-validate/zod';
 import { ref, computed, watch } from 'vue';
-import Modal from '@/components/Modal.vue'
+import Modal from '@/components/Modal.vue';
 
 
 definePageMeta({ middleware: 'is-admin' })
@@ -224,6 +224,12 @@ const isExamCreated = ref(false);
 // error message
 const returnedErrorMessage = ref('');
 
+const disablePastDates = (date: Date)=> {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set time to the beginning of the day
+
+      return date < today;
+    }
 
 // modal
 const toggleErrorModal = () => {
@@ -234,7 +240,7 @@ const toggleErrorModal = () => {
  
 // 
 // fetch exam groups from db
-const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
+const examgroups = await $client.examGroup.getAllExamGroup.query({});
 
 // fetch all pools from db
 const pools = await $client.pool.getPoolsWithCategories.query({});
@@ -346,12 +352,14 @@ const removeCategory = (index: number) => {
 const createExam = async () => {
 
     isLoading.value = true;
-
+  
     selectedCategories.value.map((selectedCategory:{ selectedId:any, categoryName: any; numberOfQuestionPerCategory: any; }) => {
 
       totalNumberOfQuestions.value += selectedCategory.numberOfQuestionPerCategory;
       
     });
+
+
 
     const exam = {
         name: examName.value,
@@ -379,6 +387,7 @@ const createExam = async () => {
     } 
     catch (error : any ) {
 
+      totalNumberOfQuestions.value = 0;
       isLoading.value = false;
       returnedErrorMessage.value =  error.message;
     }

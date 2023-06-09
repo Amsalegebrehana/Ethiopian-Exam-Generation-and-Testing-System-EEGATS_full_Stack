@@ -7,6 +7,7 @@ export const category = router({
         .input(
             z.object({
              poolId: z.string(),
+             search : z.string().optional()
             })
           )
           .query(async ({ ctx , input}) => {
@@ -14,6 +15,10 @@ export const category = router({
                 return await ctx.prisma.category.count({
                     where: {
                       poolId: { equals: input.poolId },
+                      name: {
+                        contains: input.search,
+                        mode: 'insensitive'
+                      }
                     }
                   });
             }
@@ -96,7 +101,8 @@ export const category = router({
                     take:6,
                     where:{
                         name:{
-                            contains: input.search
+                            contains: input.search,
+                            mode: 'insensitive'
                         },
                         poolId:input.poolId
                     },
@@ -162,12 +168,18 @@ export const category = router({
         )
         .mutation(async ({ctx,input})=>{
             if (ctx.session.role === 'admin') {
-                const data = await ctx.prisma.category.delete({
-                    where:{
-                        id:input.id
-                    }
-                });
-                return data; //MIGHT NEED ADDITIONAL CHECKS
+                try {
+
+                    const data = await ctx.prisma.category.delete({
+                      where: {
+                        id: input.id,
+                      },
+                    });
+                    return data;
+                  }
+                  catch (e) {
+                    return 'Can\'t delete category.';
+                  } 
             }
             else{
                 throw new TRPCError({

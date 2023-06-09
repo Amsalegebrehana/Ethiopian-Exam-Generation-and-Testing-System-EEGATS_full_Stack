@@ -1,13 +1,11 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../trpc";
 import nodemailer from "nodemailer";
-const { auth } = useRuntimeConfig();
 import { TRPCError } from "@trpc/server";
 
 
 
-const filter = (text: string) => {
-    const length = 100;
+export const filter = (text: string, length=100) => {
     const clamp = '...';
     text = text.slice(3, -4);
     var new_content = text.length > length ? text.slice(0, length) + clamp : text;
@@ -82,6 +80,7 @@ export const reviewsRouter = router({
                     questions: {
                         title: {
                             contains: input.search,
+                            mode: 'insensitive'
                         }
                     },
                     reviewerId: input.reviewerId,
@@ -130,6 +129,7 @@ export const reviewsRouter = router({
                     questions: {
                         title: {
                             contains: input.search,
+                            mode: 'insensitive'
                         }
                     },
                     reviewerId: input.reviewerId,
@@ -323,7 +323,7 @@ export const reviewsRouter = router({
                             id: contributor?.poolId,
                         },
                     });
-
+                    const { auth } = useRuntimeConfig();
                     sendNotification({ email: contributor!.id, pool: pool!.name, url: `${auth.origin}/contributor/login` });
 
                     return data;

@@ -23,7 +23,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
        Error  : {{ error }}
         <div v-if="questionStatusDistribution">
 
-            <!-- <Doughnut :data="questionStatusDistribution.data" :options="questionStatusDistribution.options" /> -->
+            <Doughnut :data="questionStatusDistribution.data" :options="questionStatusDistribution.options" />
         </div>
     </div>
   </template>

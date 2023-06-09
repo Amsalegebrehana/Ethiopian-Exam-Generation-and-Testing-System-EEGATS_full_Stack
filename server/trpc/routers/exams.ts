@@ -1,15 +1,26 @@
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
-import { addMinutes, min } from "date-fns";
+import { addMinutes, isAfter } from "date-fns";
 
 // import isOverlapping  from 'date-fns';
 import { areIntervalsOverlapping } from 'date-fns'
 import { TRPCError } from "@trpc/server";
-import { th } from "date-fns/locale";
+
 
 // reuseble get exam group by Id here
 
-const getExamById = async (ctx: { session: { role: string; }; prisma: { exam: { findUnique: (arg0: { where: { id: any; }; }) => any; }; }; }, id: any) => {
+const getExamById = async (
+    ctx: { 
+        session: { role: string; }; 
+        prisma: { 
+            exam: { 
+                findUnique: (arg0: 
+                    { 
+                        where: { id: any; }; }) => any; 
+                    }; 
+                }; 
+            },
+                         id: any) => {
     //  retrieve the exam  by ID
     if (ctx.session.role === "admin") {
       const exam = await ctx.prisma.exam.findUnique({
@@ -25,25 +36,51 @@ const getExamById = async (ctx: { session: { role: string; }; prisma: { exam: { 
       });
     }
   }
-  
-
+       
 
 //   DRY testing date overlaps check function for create and update exam
-const checkIntervalsOverlap = async(ctx: { prisma: { exam: { findMany: (arg0: { select: { testingDate: boolean; duration: boolean; }; where: { examGroup: { id: any; }; }; }) => any; }; }; }, input: { examGroupId: any; testingDate:  Date; duration: number; })=>{
+const checkIntervalsOverlap = async(
+    ctx: { prisma: { exam: { findMany: (arg0: { select: { testingDate: boolean; duration: boolean }; where: { examGroup: { id: any }; NOT?: { id: any } } }) => any } } },
+    input: { [x: string]: any; examGroupId: any; testingDate: Date; duration: number },
+   flag: boolean)=>{
     
        // get all exams with the same exam group id, pool id 
-       const previousExams = await ctx.prisma.exam.findMany({
-        select:{
-            testingDate: true,
-            duration: true,
-            
-        },
-        where: {
-            examGroup: {
-                id: input.examGroupId,
-            },
-        },
-    });
+        //    if flag true input will have id so find many except for the current exam with the input id 
+        let previousExams = [];
+        if (flag && input.id){
+            // return all exams except with out the current input.id
+            previousExams = await ctx.prisma.exam.findMany({
+                select:{
+                    testingDate: true,
+                    duration: true,
+                    
+                },
+                where: {
+                    examGroup: {
+                        id: input.examGroupId,
+                    },
+                    NOT: {
+                        id: { equals: input.id },
+                      },
+                      
+                }, 
+            })
+        } else {
+
+            previousExams = await ctx.prisma.exam.findMany({
+                select:{
+                    testingDate: true,
+                    duration: true,
+                    
+                },
+                where: {
+                    examGroup: {
+                        id: input.examGroupId,
+                    },
+                },
+                
+            })
+        }
 
     // exams start is testing date and end date is testing date + duration simplified  object
     const previousExamsDateIntervals = previousExams.map((preExam: { testingDate: { getTime: () => number; }; duration: number; }) => {
@@ -125,6 +162,8 @@ export const examRouter = router({
         .input(
             z.object({
                 search: z.string().optional(),
+                 // optional exam group id
+                 examGroupId: z.string().optional(),
             })
         )
         .query(async ({ ctx, input }) => {
@@ -133,7 +172,9 @@ export const examRouter = router({
                     where: {
                         name: {
                             contains: input.search,
+                            mode: 'insensitive'
                         },
+                        examGroupId: input.examGroupId,
                     },
                 });
             } else {
@@ -149,22 +190,45 @@ export const examRouter = router({
             z.object({
                 skip: z.number(),
                 search: z.string().optional(),
+                // optional exam group id
+                examGroupId: z.string().optional(),
             })
         )
         .query(async ({ ctx, input }) => {
             if (ctx.session.role === "admin") {
-                return await ctx.prisma.exam.findMany({
-                    skip: input.skip,
-                    take: 6,
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                    where: {
-                        name: {
-                            contains: input.search,
+                // if exam group id is provided
+                if(input.examGroupId){
+                    return await ctx.prisma.exam.findMany({
+                        skip: input.skip,
+                        take: 6,
+                        orderBy: {
+                            createdAt: "desc",
                         },
-                    },
-                });
+                        where: {
+                            name: {
+                                contains: input.search,
+                                mode: 'insensitive'
+                            },
+                            examGroupId: input.examGroupId,
+                        },
+                    });
+                }
+                else{
+
+                    return await ctx.prisma.exam.findMany({
+                        skip: input.skip,
+                        take: 6,
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                        where: {
+                            name: {
+                                contains: input.search,
+                                mode: 'insensitive'
+                            },
+                        },
+                    });
+                }
             } else {
                 throw new TRPCError({
                     code: "UNAUTHORIZED",
@@ -194,6 +258,7 @@ export const examRouter = router({
                     where: {
                         name: {
                             contains: input.search,
+                            mode: 'insensitive'
                         },
                     },
                 });
@@ -235,7 +300,7 @@ export const examRouter = router({
                 }
                 
                 // check if the new exam testing date overlaps with any of the previous exams
-                const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input);
+                const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input, false);
         
                 // check if the new exam testing date + duration is in the interval of any previous exams
                 if ( isTestingDateInInterval) {
@@ -343,12 +408,14 @@ export const examRouter = router({
                     include: {
                         examGroup: {
                             select:{
-                                name: true
+                                name: true,
+                                id:true
                             },
                         },
                         pool:{
                             select:{
-                                name: true
+                                name: true,
+                                id:true
                             },
                         },
 
@@ -361,6 +428,29 @@ export const examRouter = router({
                 })
             }
             }),
+        // get exams count by exam group id
+        getExamsCountInExamGroup: protectedProcedure
+        .input(
+            z.object({
+                examGroupId: z.string(),
+            })
+        )
+        .query(async ({ ctx, input }) => {
+            if (ctx.session.role === "admin") {
+
+                return await ctx.prisma.exam.count({
+                    where: {
+                        examGroupId: input.examGroupId,
+                    },
+                });
+
+            } else {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "UNAUTHORIZED ACCESS.",
+                });
+            }
+        }),
             // get all exams by exam group id
         getExamsByExamGroup: protectedProcedure
             .input(
@@ -443,7 +533,7 @@ export const examRouter = router({
                     }
                     // check if the new exam testing date overlaps with any of the previous exams
                      
-                    const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input);
+                    const isTestingDateInInterval = await checkIntervalsOverlap(ctx, input, true);
                 
                         // check if the new exam testing date + duration is in the interval of any previous exams
                         if ( isTestingDateInInterval) {
@@ -570,8 +660,7 @@ export const examRouter = router({
             }
             }
             ),
-
-            // release exam
-           
-         
+            
+   
 });
+
