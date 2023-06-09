@@ -30,6 +30,7 @@
                                                     <th class="text-center whitespace-nowrap">Number of Questions</th>
                                                     <th class="whitespace-nowrap">Status</th>
                                                     <th class="whitespace-nowrap">Testing Date</th>
+                                                    <th class="whitespace-nowrap">Duration</th>
                                                     <th class="text-center whitespace-nowrap">ACTIONS</th>
                                                 </tr>
                                             </thead>
@@ -63,12 +64,21 @@
                                                                 </div>
                                                             </td>
                                                             <td class="">{{ testingDateformat(exam.testingDate) }}</td>
-                                                    <td class="table-report__action w-40">
-                                                        <div v-if="exam.status != 'gradeReleased'" class="flex justify-center items-center">
-                                                            <button class="text-success flex items-center mr-3"  @click="editExam(exam)">
+                                                            <td class="">{{ exam.duration }}</td>
+                                                    <td class="table-report__action w-60">
+                                                        <div class="flex justify-center items-center">
+                                                            <a class="flex items-center mr-6 text-primary" :href="`/admin/exams/${exam.id}`">
+                                                                <Icon name="tabler:device-analytics"
+                                                                    class="w-4 h-4 mr-1"></Icon> View Details
+                                                            </a>
+                                                            <button v-if="exam.status == 'gradeReleased'"  class="text-white flex items-center mr-3" disabled >
+                                                                <Icon name="material-symbols:edit-outline" class="w-4 h-4"></Icon> Edit
+                                                            </button>
+                                                            <button v-if="exam.status != 'gradeReleased'"  class="text-success flex items-center mr-3"  @click="editExam(exam)">
                                                                 <Icon name="material-symbols:edit-outline" class="w-4 h-4"></Icon> Edit
                                                             </button>
                                                          
+                                                            
                                                         </div>
                                                     </td>
                                                 </tr>
