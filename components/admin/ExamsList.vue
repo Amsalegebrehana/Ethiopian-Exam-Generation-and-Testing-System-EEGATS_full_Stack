@@ -30,7 +30,7 @@
                                                     <th class="text-center whitespace-nowrap">Number of Questions</th>
                                                     <th class="whitespace-nowrap">Status</th>
                                                     <th class="whitespace-nowrap">Testing Date</th>
-                                                    <th class="whitespace-nowrap">Duration</th>
+                                                    <th class="whitespace-nowrap">Duration(mins)</th>
                                                     <th class="text-center whitespace-nowrap">ACTIONS</th>
                                                 </tr>
                                             </thead>
@@ -210,7 +210,7 @@ const examStatus = (status: string) => {
 // testing date  short format
 const testingDateformat = (date: string) => {
     
-    return new Date(date).toLocaleDateString();
+    return new Date(date).toLocaleTimeString() + " " + new Date(date).toLocaleDateString();
 }
 // update exam
 const handleUpdate = async (updatedExam: Object) => {
