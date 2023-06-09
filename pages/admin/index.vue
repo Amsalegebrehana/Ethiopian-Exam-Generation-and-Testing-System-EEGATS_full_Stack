@@ -57,11 +57,11 @@
                                                     <div class="flex">
                                                         <i data-lucide="monitor" class="report-box__icon text-warning"></i> 
                                                         <div class="ml-auto">
-                                                          
-                                                            <Icon name=" mdi-account-group-outline"
-                                                                class=" w-16 h-10  my-2 text-primary ">
-                                                            </Icon>
-                                                           </div>
+                                                           
+                                                           <Icon name="solar:pie-chart-broken"
+                                                               class=" w-16 h-10  my-2 text-primary ">
+                                                           </Icon>
+                                                        </div>
                                                     </div>
                                                     <div class="text-3xl font-medium leading-8 mt-6">10</div>
                                                     <div class="text-base text-slate-500 mt-1">Total Contributors</div>
@@ -74,7 +74,10 @@
                                                     <div class="flex">
                                                         <i data-lucide="user" class="report-box__icon text-success"></i> 
                                                         <div class="ml-auto">
-                                                            <div class="report-box__indicator bg-success tooltip cursor-pointer" title="22% Higher than last month"> 22% <i data-lucide="chevron-up" class="w-4 h-4 ml-0.5"></i> </div>
+                                                           
+                                                           <Icon name="solar:pie-chart-broken"
+                                                               class=" w-16 h-10  my-2 text-primary ">
+                                                           </Icon>
                                                         </div>
                                                     </div>
                                                     <div class="text-3xl font-medium leading-8 mt-6">5</div>
@@ -122,7 +125,7 @@
                                         </div>
                                     </div>
                         </div>
-                        <!-- END: General Report -->
+                     
                       
                 </div>
                 </div>
