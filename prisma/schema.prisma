@@ -56,21 +56,22 @@ model Contributors {
 }
 
 model Exam {
-  id                String              @id @default(uuid())
-  name              String              @unique
-  numberOfQuestions Int                 @default(0)
-  duration          Float               @default(0)
+  id                String              @id @default(uuid()) 
+  name              String              @unique 
+  numberOfQuestions Int                 @default(0) 
+  duration          Float               @default(0) 
   testingDate       DateTime
   examReleaseDate   DateTime
   status            ExamStatus
+  gradePassPoint    Int                 @default(0)
   poolId            String
   examGroupId       String
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   examGroup         ExamGroup           @relation(fields: [examGroupId], references: [id])
   pool              Pool                @relation(fields: [poolId], references: [id])
-  Questions         Questions[]
-  TestSession       TestSession[]
+  Questions         Questions[] 
+  TestSession       TestSession[] 
   TestTakerResponse TestTakerResponse[]
 }
 
