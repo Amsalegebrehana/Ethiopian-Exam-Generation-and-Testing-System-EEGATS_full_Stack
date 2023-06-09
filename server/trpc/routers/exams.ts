@@ -334,6 +334,7 @@ export const examRouter = router({
                                 poolId: input.poolId,
                                 numberOfQuestions: input.numberOfQuestions,
                                 testingDate: input.testingDate,
+                                gradePassPoint: input.gradePassPoint,
                                 examReleaseDate: input.examReleaseDate,
                                 duration: input.duration,
                                 status: "generated",
