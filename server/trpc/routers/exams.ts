@@ -282,6 +282,7 @@ export const examRouter = router({
                 testingDate: z.date(),
                 duration: z.number(),
                 examReleaseDate: z.date(),
+                gradePassPoint: z.number(),
                 categories: z.array(z.object({
                     selectedId: z.string(),
                     numberOfQuestionPerCategory: z.number(),
@@ -317,6 +318,13 @@ export const examRouter = router({
                         message:"The exam release date should be after the testing date."
                     });
                 }
+                // check if gradePassPoint is less than the number of questions
+                if(input.gradePassPoint > input.numberOfQuestions && input.numberOfQuestions < 0){
+                    throw new TRPCError({
+                        code: "BAD_REQUEST",
+                        message:"The grade pass point should be less than the number of questions or greater than 0."
+                    });
+                }
                 else {  
                         // create exam
                         const newExam = await ctx.prisma.exam.create({
@@ -326,6 +334,7 @@ export const examRouter = router({
                                 poolId: input.poolId,
                                 numberOfQuestions: input.numberOfQuestions,
                                 testingDate: input.testingDate,
+                                gradePassPoint: input.gradePassPoint,
                                 examReleaseDate: input.examReleaseDate,
                                 duration: input.duration,
                                 status: "generated",
