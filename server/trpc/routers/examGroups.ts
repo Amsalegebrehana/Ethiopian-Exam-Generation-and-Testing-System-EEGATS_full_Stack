@@ -247,16 +247,19 @@ export const examGroupRouter = router({
         .mutation(async ({ ctx, input }) => {
 
             let requestSuccess = true;
+      
 
             https.get(input.inputPath, async (response) => {
                 response
                     .pipe(parse({ delimiter: ',', relax_quotes: true, from_line: 2 }))
                     .on('data', async (row) => {
 
+                    
+
                         const fullName = row[0].trim();
 
                         // Check if the fullName contains only letters
-                        if (!/^[a-zA-Z]+$/.test(fullName)) {
+                        if (!/^[a-zA-Z\s]+$/.test(fullName)) {
 
                             return
                         }
@@ -269,20 +272,21 @@ export const examGroupRouter = router({
 
                         const password = row[1] + String(Math.ceil(Math.random() * 10 ** 4)).padStart(4, '0');
                         row.push(password);
+                  
 
-
-
-                        const hashedPassword = await bcrypt.hash(password, 10);
+                        const hashedPassword = await bcrypt.hash(password, 10); 
+           
                         // create test taker
+
                         const createTestTakers = await ctx.prisma.testTakers.create({
                             data: {
-                                name: row[0],
-                                username: row[1],
-                                password: hashedPassword,
-                                examGroupId: input.examGroupId,
+                                name: row[0], 
+                                username: row[1], 
+                                password: hashedPassword, 
+                                examGroupId: input.examGroupId, 
                             },
                         });
-
+                       
                         const tempTestTakers = await ctx.prisma.temporaryTestTakers.create({
                             data: {
                                 name: row[0],
@@ -291,6 +295,7 @@ export const examGroupRouter = router({
                                 examGroupId: input.examGroupId,
                             },
                         });
+                  
 
                         if (!createTestTakers) {
 
@@ -314,8 +319,8 @@ export const examGroupRouter = router({
                         });
                     })
 
-            })
-                ;
+            });
+                
             return requestSuccess;
         })
     ,

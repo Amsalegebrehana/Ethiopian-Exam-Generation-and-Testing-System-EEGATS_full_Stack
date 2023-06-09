@@ -486,6 +486,7 @@ const getTestTakers = async () => {
 }
 
 const generateTestTakers = async () => {
+   
   isLoading.value = true;
 
   const inputPath = 'https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-files/' + `${filepath.value}`
@@ -493,9 +494,10 @@ const generateTestTakers = async () => {
     // const doc = new GoogleSpreadsheet(spreadsheetId);
     
     const testTakersCredentials = await $client.examGroup.generateCredentials.mutate({ examGroupId: examGroupId, inputPath: inputPath});
+    
 
     if (testTakersCredentials) {
-      
+
         // after   istestTakerCreated is true show success modal then wait 2 seconds then reload window
         istestTakerCreated.value = true;
         setTimeout(() => {
