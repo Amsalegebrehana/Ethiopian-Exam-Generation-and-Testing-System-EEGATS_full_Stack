@@ -31,9 +31,9 @@ model Pool {
 model ExamGroup {
   id         String       @id @default(uuid())
   name       String       @unique
+  isPractice Boolean      @default(false)
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
-  isPractice Boolean      @default(false)
   Exam       Exam[]
   TestTakers TestTakers[]
 }

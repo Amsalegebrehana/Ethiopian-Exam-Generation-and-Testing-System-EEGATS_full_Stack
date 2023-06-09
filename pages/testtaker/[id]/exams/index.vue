@@ -38,10 +38,11 @@ const showGradeModal = ref(false);
 const toggleViewGradeModal = () => {
     showGradeModal.value = !showGradeModal.value;
 }
-const gradeInfo = ref({ name: '', score : 0});
-const GradeModal = async (name : string, score : number) => {
+const gradeInfo = ref({ name: '', score : 0, numberOfQuestions: 0});
+const GradeModal = async (name : string, score : number, numberOfQuestions: number) => {
 gradeInfo.value.name = name;
 gradeInfo.value.score = score;
+gradeInfo.value.numberOfQuestions = numberOfQuestions;
 showGradeModal.value = !showGradeModal.value;
 }
 
@@ -120,7 +121,7 @@ const resetSearch = () => {
                                             <div v-if="exam.TestSession[0]&& exam.TestSession[0].isSubmitted">
 
                                                 <div class="flex justify-center items-center">
-                                                    <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade )">
+                                                    <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade, exam.numberOfQuestions )">
                                                         <Icon name="material-symbols:demography-rounded" class="w-4 h-4 mr-1"></Icon> View Grade
                                                     </a>
                                                     
@@ -265,7 +266,7 @@ const resetSearch = () => {
                                             <div v-if="exam.TestSession[0]&& exam.TestSession[0].isSubmitted">
 
                                                 <div class="flex justify-center items-center">
-                                                    <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade )">
+                                                    <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade , exam.numberOfQuestions)">
                                                         <Icon name="material-symbols:demography-rounded" class="w-4 h-4 mr-1"></Icon> View Grade
                                                     </a>
                                                     
@@ -397,7 +398,7 @@ const resetSearch = () => {
             
               
                     
-                    <p class="align-middle my-auto font-bold text-lg text-center p-20">You have scored {{  gradeInfo.score}} for {{ gradeInfo.name }} Exam</p>
+                    <p class="align-middle my-auto font-bold text-lg text-center p-20">You have scored {{ ( (gradeInfo.score / gradeInfo.numberOfQuestions )* 100).toFixed(2) }} % for {{ gradeInfo.name }} Exam</p>
                  
               
             </div>

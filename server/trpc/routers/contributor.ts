@@ -43,7 +43,7 @@ export const contributorRouter = router({
     )
     .query(async ({ ctx, input }) => {
       if (ctx.session.role === 'admin') {
-        return await ctx.prisma.contributors.findMany({
+       const contributors = await ctx.prisma.contributors.findMany({
           skip: input.skip,
           take: 6,
           orderBy: {
@@ -55,7 +55,29 @@ export const contributorRouter = router({
               mode: 'insensitive'
             },
           },
+          include: {
+            contributorAssignments: {
+              where: {
+                questionsRemaining: {
+                  gt: 0
+                }
+              }
+            }
+
+          }
+        }).then((contributors) => {
+          contributors.map((contributor) => {
+            let sumOfQuestions = 0;
+            contributor.contributorAssignments.forEach((contr) => {
+              sumOfQuestions += contr.questionsRemaining;
+            });
+            contributor.reviewsMade = sumOfQuestions;
+            //REVIEWS MADE HAS BEEN CHANGED TO TOTAL QUESTIONS ASSIGNED
+          });
+
+          return contributors;
         });
+        return contributors;
       } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
