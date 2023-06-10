@@ -126,7 +126,7 @@ model Questions {
   id                String              @id @default(uuid())
   title             String
   image             String?
-  status            QuestionStatus      @default(waiting)
+  status            QuestionStatus      @default(draft)
   poolId            String
   catId             String
   examId            String?

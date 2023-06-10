@@ -13,6 +13,7 @@ const deleteWarningVisible = ref(false);
 const isDeleteLoading = ref(false);
 const isSubmitLoading = ref(false);
 const isReloading = ref(false);
+const isLoadingQ = ref(false);
 const selectedQuestion = ref();
 const questionToDelete = ref();
 const questionToSubmit = ref();
@@ -61,7 +62,9 @@ const paginateSearch = async (newPage: number) => {
 }
 
 async function toggleModal(question: Questions) {
+    isLoadingQ.value = true;
     selectedQuestion.value = await $client.question.getQuestion.query(question.id);
+    isLoadingQ.value = false;
     modalVisible.value = !modalVisible.value;
 }
 
@@ -217,7 +220,7 @@ async function onViewMore() {
         <div class="flex h-100vh">
             <ContributorSideBar pageName="questions" :contrId="contrId" />
             <div class="w-full mx-6">
-
+                <Loading v-if="isLoadingQ" />
                 <h2 class="intro-y text-lg font-medium mt-10">List of Questions</h2>
                 <div class="grid grid-cols-12 gap-6 mt-5">
                     <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap justify-between items-center mt-2">
