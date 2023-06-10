@@ -83,7 +83,7 @@
                             </select>
                           </td>
                           <td>
-                            <input type="number " v-model.number="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
+                            <input type="number" v-model.number="selectedCategory.numberOfQuestionPerCategory" class="input hover:-translate-y-0.5 "  required  min="1" :max="setMax(selectedCategory.categoryName)" />
                             <input type="hidden" :value="selectedCategory.selectedId=categoryNameId[selectedCategory.categoryName]" />
                           </td>
                           <td>
@@ -116,7 +116,7 @@
                   <div class="flex flex-row align-middle w-4/6 mt-3">
 
                       <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium text-lg">Exam Date</label>
-                      <Datepicker calendar-class="rounded text-priamry form-control w-full hover:-translate-y-0.5 hover:border-blue-700" v-model="testingDate"  />
+                      <Datepicker calendar-class="rounded text-priamry form-control w-full hover:-translate-y-0.5 hover:border-blue-700" :disabled-dates="disablePastDates" v-model="testingDate"  />
 
                   </div>  
                     <!-- Test Release date -->
@@ -124,12 +124,12 @@
                     <div class="flex flex-row align-middle w-4/6 mt-3">
 
                         <label for="horizontal-form-1" class=" my-auto align-middle w-2/6 font-medium text-lg">Grade Release Date</label>
-                        <Datepicker calendar-class="rounded text-priamry form-control w-full" v-model="examReleaseDate"  />
+                        <Datepicker calendar-class="rounded text-priamry form-control w-full" :disabled-dates="disablePastDates" v-model="examReleaseDate"  />
 
                     </div>  
                     <!-- Duration -->
                     <div class="flex flex-row w-4/6 mt-3 ">
-                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium text-lg">Duration</label>
+                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium text-lg">Duration (mins)</label>
 
                       <Form >
                       
@@ -149,23 +149,44 @@
                           </Form>
            
                         </div>
+                    <!--pass grade point -->
+                    <div class="flex flex-row w-4/6 mt-3 ">
+                      <label for="horizontal-form-1" class="my-auto w-2/6  font-medium text-lg">Grade Pass point</label>
 
+                      <Form >
+                      
+                        <ErrorMessage name="gradePassPoint" class="text-red-500" />
+                          <div class="flex flex-row rounded-md border hover:-translate-y-0.5 hover:border-blue-700">
+                              <div class="w-10 flex items-center justify-center bg-white rounded-l-md text-gray-400">
+                                  <Icon name="fluent-mdl2:page-solid" class="w-4 h-4 my-auto"></Icon>
+                              </div>
+                                <Field 
+                                    class=" form-control py-3 border-none w-full  font-medium text-black-900"
+                                    
+                                    name="gradePassPoint" 
+                                    type="number" 
+                                    v-model.number="gradePassPoint" />
+                                
+                                  </div>
+                          </Form>
+           
+                        </div>
             
                 </div>
             
                 <div class="flex justify-center">
   
-                  <button v-if="!isLoading" class="btn btn-primary shadow-md mt-5 w-100 px-5 py-3" type="submit" @click="createExam">Create Exam </button>
+                  <button v-if="!isLoading" class="btn btn-primary shadow-md mt-5 w-100 px-5 py-3" type="submit" @click="createExam" :disabled="disableBtn()">Create Exam </button>
                   <button v-if="isLoading" class="btn btn-primary shadow-md mt-5 w-100 " disabled >
-                    <svg class="motion-reduce:hidden animate-spin ..." viewBox="0 0 24 24"><!-- ... --></svg>
-                        loading...
+                    <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+
                 </button>
 
               </div>
             </div>
           </div>
              
-              <Modal type="success" :show="isExamCreated"  message="Exam successfully created!"/>
+              <Modal v-if=" isExamCreated" type="success" :show="isExamCreated"  message="Exam successfully created!"/>
               <Modal type="error" :show="!isExamCreated && returnedErrorMessage.length > 0" :toggle="toggleErrorModal" :message="returnedErrorMessage "/>
               <!--alert for error message  -->
             
@@ -188,7 +209,7 @@ import { Field, Form, ErrorMessage } from 'vee-validate';
 import * as zod from 'zod';
 import { toFieldValidator } from '@vee-validate/zod';
 import { ref, computed, watch } from 'vue';
-import Modal from '@/components/Modal.vue'
+import Modal from '@/components/Modal.vue';
 
 
 definePageMeta({ middleware: 'is-admin' })
@@ -218,12 +239,21 @@ const examReleaseDate = ref('');
 // duration of exam
 const duration = ref(0);
 
+// grade pass point 
+const gradePassPoint = ref(0);
+
 // is exam created successfully
 const isExamCreated = ref(false);
 
 // error message
 const returnedErrorMessage = ref('');
 
+const disablePastDates = (date: Date)=> {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set time to the beginning of the day
+
+      return date < today;
+    }
 
 // modal
 const toggleErrorModal = () => {
@@ -231,10 +261,17 @@ const toggleErrorModal = () => {
     returnedErrorMessage.value = "";
 }
 
- 
-// 
+// //  check input field value and return true if values are not empty
+const disableBtn = ()=>{
+  return examName.value.length < 2 || selectedExamGroup.value === '' || selectedPool.value === '' || testingDate.value === '' || examReleaseDate.value === '' || duration.value == 0 || gradePassPoint.value <= 0 ; 
+}
+// wacth for diableBtn if the comparition values are changed
+watch([examName, selectedExamGroup, selectedPool, testingDate, examReleaseDate, duration, gradePassPoint], (newVal, oldVal) => {
+  disableBtn();
+}, { deep: true });
+
 // fetch exam groups from db
-const examgroups = await $client.examGroup.getExamGroups.query({skip:0});
+const examgroups = await $client.examGroup.getAllExamGroup.query({});
 
 // fetch all pools from db
 const pools = await $client.pool.getPoolsWithCategories.query({});
@@ -345,13 +382,17 @@ const removeCategory = (index: number) => {
 // create exam
 const createExam = async () => {
 
-    isLoading.value = true;
 
+
+    isLoading.value = true;
+  
     selectedCategories.value.map((selectedCategory:{ selectedId:any, categoryName: any; numberOfQuestionPerCategory: any; }) => {
 
       totalNumberOfQuestions.value += selectedCategory.numberOfQuestionPerCategory;
       
     });
+
+
 
     const exam = {
         name: examName.value,
@@ -360,6 +401,7 @@ const createExam = async () => {
         numberOfQuestions : totalNumberOfQuestions.value,
         testingDate: testingDate.value,
         examReleaseDate: examReleaseDate.value,
+        gradePassPoint: gradePassPoint.value,
         duration: duration.value,
         categories: selectedCategories.value
     };
@@ -379,8 +421,11 @@ const createExam = async () => {
     } 
     catch (error : any ) {
 
+      totalNumberOfQuestions.value = 0;
       isLoading.value = false;
       returnedErrorMessage.value =  error.message;
+
+     
     }
 
 }

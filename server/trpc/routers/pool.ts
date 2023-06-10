@@ -7,6 +7,7 @@ export const poolRouter = router({
     .input(
       z.object({
         poolId: z.string(),
+        search: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -15,6 +16,10 @@ export const poolRouter = router({
         return await ctx.prisma.contributors.count({
           where: {
             poolId: { equals: input.poolId },
+            name: {
+              contains: input.search,
+              mode: 'insensitive'
+            }
           }
         });
       } else {
@@ -44,9 +49,9 @@ export const poolRouter = router({
           },
           where: {
             poolId: { equals: input.poolId },
-            isActive: { equals: true },
             name: {
               contains: input.search,
+              mode: 'insensitive'
             },
           },
           include: {
@@ -94,6 +99,7 @@ export const poolRouter = router({
           where: {
             name: {
               contains: input.search,
+              mode: 'insensitive'
             },
           },
         });
@@ -118,6 +124,7 @@ export const poolRouter = router({
           where: {
             name: {
               contains: input.search,
+              mode: 'insensitive'
             },
           },
           include: {

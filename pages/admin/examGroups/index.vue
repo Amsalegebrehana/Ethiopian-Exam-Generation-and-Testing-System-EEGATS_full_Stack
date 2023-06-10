@@ -1,113 +1,11 @@
-<script setup lang="ts">
 
-import AdminTopBar from '~~/components/TopBar.vue'
-import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
-import { Field, Form, ErrorMessage } from 'vee-validate';
-import { toFieldValidator } from '@vee-validate/zod';
-import * as zod from 'zod';
-
-definePageMeta({ middleware: 'is-admin' })
-const { $client } = useNuxtApp()
-const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').min(2, 'Minimum of 2 characters required'));
-const page = ref(1);
-const searchText  = ref('');
-const {data: count, refresh:fetchCount} = await useAsyncData( ()=> $client.examGroup.getExamGroupCount.query());
-const {data: examGroup, refresh:fetchExamGroups, pending} = await useAsyncData(()=> $client.examGroup.getExamGroups.query({search: searchText.value !== '' ? searchText.value : undefined, skip : (page.value - 1) * 6}), {watch: [page, searchText]});
-const paginate = async (newPage: number) => {
-    page.value = newPage;
-    isReloading.value = true;
-    try {
-        await fetchExamGroups();
-        await fetchCount();
-    } finally {
-        isReloading.value = false
-    }
-}
-const isReloading = ref(false);
-const showAddModal = ref(false);
-const showEditModal = ref(false);
-const showDeleteModal = ref(false);
-const isLoading = ref(false);
-const examGroupInfo = ref({
-    name: '',
-    id: ''
-});
-const toggleAddModal = () => {
-    examGroupInfo.value.id = '';
-    examGroupInfo.value.name = '';
-    showAddModal.value = !showAddModal.value;
-}
-const handleAddExamGroup = async () => {
-    isLoading.value = true;
-    await $client.examGroup.addExamGroup.mutate({name : examGroupInfo.value.name});
-    isReloading.value = true;
-    isLoading.value =false;
-    showAddModal.value = false;
-    examGroupInfo.value.name = '';
-    await fetchExamGroups();
-    await fetchCount();
-    isReloading.value = false;
-}
-const toggleEditModal = () => {
-    examGroupInfo.value.id = '';
-    examGroupInfo.value.name = '';
-    showEditModal.value = !showEditModal.value;
-}
-
-const EditModal = async (examGroupId : string, examGroupName : string) => {
-
-    examGroupInfo.value.id = examGroupId;
-    examGroupInfo.value.name = examGroupName;
-    showEditModal.value = !showEditModal.value;
-   
-}
-const handleEditExamGroup = async () => {
-    isLoading.value = true;
-    await $client.examGroup.updateExamGroup.mutate(examGroupInfo.value);
-    isReloading.value = true;
-    isLoading.value = false;
-    showEditModal.value = false;
-    examGroupInfo.value.id = '';
-    examGroupInfo.value.name = '';
-    await fetchExamGroups();
-    await fetchCount();
-    isReloading.value = false;
-}
-const toggleDeleteModal = () => {
-    examGroupInfo.value.id = '';
-    examGroupInfo.value.name = '';
-    showDeleteModal.value = !showDeleteModal.value;
-}
-
-const DeleteModal = async (examGroupId: string, examGroupName: string) => {
-
-    examGroupInfo.value.id = examGroupId;
-    examGroupInfo.value.name = examGroupName;
-    showDeleteModal.value = !showDeleteModal.value;
-
-}
-const handleDeleteExamGroup = async () => {
-
-    isLoading.value = true;
-    await $client.examGroup.deleteExamGroup.mutate({id :examGroupInfo.value.id});
-    isReloading.value = true;
-    isLoading.value = false;
-    showDeleteModal.value = false;
-    examGroupInfo.value.id = '';
-    examGroupInfo.value.name = '';
-    await fetchExamGroups();
-    await fetchCount();
-    isReloading.value = false;
-}
-
-</script>
 
 <template>
     <div>
     <AdminTopBar role="admin" />
     <div class="flex">
 
-        <AdminSideBar pageName="examGroups" />
+        <AdminSideBar pageName="examgroups" />
         <div class="w-full mx-6">
 
 
@@ -157,7 +55,8 @@ const handleDeleteExamGroup = async () => {
                                         <td  > 
                                             <NuxtLink :to="`/admin/examgroups/${exgrp.id}`" class="font-medium whitespace-nowrap">
                                             {{
-                                                exgrp.name
+                                                 
+                                                exgrp.name.length > 40 ? exgrp.name.slice(0,39) + "..." : exgrp.name
                                             }}
                                             </NuxtLink>
                                        
@@ -166,12 +65,14 @@ const handleDeleteExamGroup = async () => {
                                  
                                         <td class="table-report__action w-56">
                                             <div class="flex justify-center items-center">
-                                                <a class="flex items-center mr-3" href="javascript:;" @click="EditModal(exgrp.id, exgrp.name)">
-                                                    <Icon name="eva:checkmark-square-outline" class="w-4 h-4"></Icon> Edit
-                                                </a>
-                                                <a class="flex items-center text-danger" href="javascript:;" @click="DeleteModal(exgrp.id, exgrp.name)">
+                                                
+                                                <button class="text-success flex items-center mr-3 "  @click="EditModal(exgrp.id, exgrp.name)">
+                                                    <Icon name="material-symbols:edit-outline" class="w-4 h-4 mr-1"> </Icon> Edit
+                                                </button>
+                                               
+                                                <button  class="flex items-center " :class="exgrp._count['Exam'] !== 0? ' text-white': 'text-danger'" :disabled="exgrp._count['Exam'] !== 0"  @click="DeleteModal(exgrp.id, exgrp.name)">
                                                     <Icon name="fa6-regular:trash-can" class="w-4 h-4"></Icon> Delete
-                                                </a>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -180,8 +81,7 @@ const handleDeleteExamGroup = async () => {
                             <div class="flex flex-row mt-3">
                 <div class="md:block  text-slate-500">
                    
-                         Showing {{1 + (page-1)*6}} to {{ page*6 <count! ? page*6:count }} of {{count! }} entries
-                                    </div>
+                                  </div>
                                     <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                                         <nav class="w-full sm:w-auto sm:mr-auto">
                                             <ul class="pagination">
@@ -298,8 +198,7 @@ const handleDeleteExamGroup = async () => {
                 <Field name="editExamGroupInfoName" type="text" class="intro-x login__input form-control py-3 block"  
                                                         placeholder="Enter Pool Name" v-model="examGroupInfo.name" :rules="fieldSchema" />
               </Form>
-                                        <!-- <input type="text" class="intro-x login__input form-control py-3 px-4 block"
-                                            placeholder="Enter Pool Name" v-model="poolInfo.name"> -->
+                                      
                                     </div>
                                 </div>
                                 <!--footer-->
@@ -405,9 +304,137 @@ const handleDeleteExamGroup = async () => {
                                 </div>
                             </div>
                             <div v-if="isReloading" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                            <Modal type="success" :show="examGroupCreated"  message="Exam Group successfully created!"/>
+                           
+            
                     </div>
 
             </div>
         </div>
 
 </template>
+<script setup lang="ts">
+
+import AdminTopBar from '~~/components/TopBar.vue'
+import AdminSideBar from '~~/components/admin/AdminSideBar.vue';
+import { Field, Form, ErrorMessage } from 'vee-validate';
+import { toFieldValidator } from '@vee-validate/zod';
+import Modal from '~~/components/Modal.vue';
+import * as zod from 'zod';
+
+definePageMeta({ middleware: 'is-admin' })
+const { $client } = useNuxtApp()
+const fieldSchema = toFieldValidator(zod.string().nonempty('Field is required').min(2, 'Minimum of 2 characters required'));
+const page = ref(1);
+const searchText  = ref('');
+const {data: count, refresh:fetchCount} = await useAsyncData( ()=> $client.examGroup.getExamGroupCount.query());
+const {data: examGroup, refresh:fetchExamGroups, pending} = await useAsyncData(()=> $client.examGroup.getExamGroups.query({search: searchText.value !== '' ? searchText.value : undefined, skip : (page.value - 1) * 6}), {watch: [page, searchText]});
+const paginate = async (newPage: number) => {
+    page.value = newPage;
+    isReloading.value = true;
+    try {
+        await fetchExamGroups();
+        await fetchCount();
+    } finally {
+        isReloading.value = false
+    }
+}
+
+//  exam group created modal
+const examGroupCreated = ref(false);
+const returnedErrorMessage = ref('');
+
+const isReloading = ref(false);
+const showAddModal = ref(false);
+const showEditModal = ref(false);
+const showDeleteModal = ref(false);
+const isLoading = ref(false);
+const examGroupInfo = ref({
+    name: '',
+    id: ''
+});
+const toggleAddModal = () => {
+    examGroupInfo.value.id = '';
+    examGroupInfo.value.name = '';
+    showAddModal.value = !showAddModal.value;
+}
+const handleAddExamGroup = async () => {
+
+    isLoading.value = true;
+    try{
+
+        await $client.examGroup.addExamGroup.mutate({name : examGroupInfo.value.name});
+        isReloading.value = true;
+        isLoading.value =false;
+        showAddModal.value = false;
+        examGroupInfo.value.name = '';
+        await fetchExamGroups();
+        await fetchCount();
+        isReloading.value = false;
+        examGroupCreated.value = true;
+    }
+    catch(err:any){
+        returnedErrorMessage.value = err.message;
+    }
+    finally{
+        isLoading.value = false;
+        // wait for 3 seconds and then set examGroupCreated to false
+        setTimeout(() => {
+            examGroupCreated.value = false;
+        }, 2000);
+        
+    }
+}
+const toggleEditModal = () => {
+    examGroupInfo.value.id = '';
+    examGroupInfo.value.name = '';
+    showEditModal.value = !showEditModal.value;
+}
+
+const EditModal = async (examGroupId : string, examGroupName : string) => {
+
+    examGroupInfo.value.id = examGroupId;
+    examGroupInfo.value.name = examGroupName;
+    showEditModal.value = !showEditModal.value;
+   
+}
+const handleEditExamGroup = async () => {
+    isLoading.value = true;
+    await $client.examGroup.updateExamGroup.mutate(examGroupInfo.value);
+    isReloading.value = true;
+    isLoading.value = false;
+    showEditModal.value = false;
+    examGroupInfo.value.id = '';
+    examGroupInfo.value.name = '';
+    await fetchExamGroups();
+    await fetchCount();
+    isReloading.value = false;
+}
+const toggleDeleteModal = () => {
+    examGroupInfo.value.id = '';
+    examGroupInfo.value.name = '';
+    showDeleteModal.value = !showDeleteModal.value;
+}
+
+const DeleteModal = async (examGroupId: string, examGroupName: string) => {
+
+    examGroupInfo.value.id = examGroupId;
+    examGroupInfo.value.name = examGroupName;
+    showDeleteModal.value = !showDeleteModal.value;
+
+}
+const handleDeleteExamGroup = async () => {
+
+    isLoading.value = true;
+    await $client.examGroup.deleteExamGroup.mutate({id :examGroupInfo.value.id});
+    isReloading.value = true;
+    isLoading.value = false;
+    showDeleteModal.value = false;
+    examGroupInfo.value.id = '';
+    examGroupInfo.value.name = '';
+    await fetchExamGroups();
+    await fetchCount();
+    isReloading.value = false;
+}
+
+</script>

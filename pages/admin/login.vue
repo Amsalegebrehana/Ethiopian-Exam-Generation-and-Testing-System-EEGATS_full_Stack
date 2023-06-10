@@ -12,8 +12,8 @@
                 <img src="../../assets/images/undraw_Onboarding_re_6osc.png" class="h-4/6 mx-auto " />
             </div>
             <div class="h-screen align-middle my-auto py-10">
-                <form @submit="onSubmit" >
-                    <input  name="hidden" type="text" class="hidden"/>
+                <form @submit="onSubmit">
+                    <input name="hidden" type="text" class="hidden" />
                     <div class="w-8/12 mt-32 justify-center mx-auto">
                         <span class="mt-5 text-red-500">{{ formError }}</span>
 
@@ -25,7 +25,7 @@
                                     <Icon name="material-symbols:alternate-email" class="w-4 h-4"></Icon>
                                 </div>
                                 <input type="text" name="email" class="form-control bg-slate-100" placeholder="Email"
-                                    v-model="email" autocomplete="new-password" >
+                                    v-model="email" autocomplete="new-password">
 
                             </div>
 
@@ -53,7 +53,8 @@
                 </div> -->
 
 
-                        <button class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center mt-8">
+                        <button class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center mt-8"
+                            :disabled="isLoading">
                             <div v-if="isLoading">
                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                             </div>
@@ -78,9 +79,9 @@ definePageMeta({ auth: false })
 const { getSession } = useSession();
 onMounted(() => {
     const inputFields = document.querySelectorAll('input');
-      inputFields.forEach((input) => {
+    inputFields.forEach((input) => {
         input.setAttribute('autocomplete', 'off');
-      });
+    });
 });
 const isLoading = ref(false);
 const validationSchema = toFormValidator(
@@ -112,13 +113,21 @@ const onSubmit = handleSubmit(values => {
 
 const { signIn } = useSession()
 const mySignInHandler = async ({ email, password, role }: { email: string, password: string, role: string }) => {
+    formError.value = '';
     isLoading.value = true
-    const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: 'http://localhost:3000/admin/pools' })
-    if (error) {
-        formError.value = "Incorrect credentials! Please try again";
+    try {
+        const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: 'http://localhost:3000/admin' })
+        if (error) {
+            if (error == 'Multiple failed attempts, you account has been locked, please contact system admin' || error == 'Invalid credentials') {
+                formError.value = error;
+            } else {
+                formError.value = 'Something went wrong, please try again';
+            }
+        } else {
+            return navigateTo(url, { external: true })
+        }
+    } catch (error) {
 
-    } else {
-        return navigateTo(url, { external: true })
     }
     isLoading.value = false
 }

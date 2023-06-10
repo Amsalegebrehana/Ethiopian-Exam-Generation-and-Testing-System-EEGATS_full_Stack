@@ -10,8 +10,6 @@ definePageMeta({ auth: false })
 
 const {$client} = useNuxtApp()
 
-const question = await $client.question.getQuestion.query("4e8270cb-c2e7-4dda-90fe-eff4de695795")
-
 const { data: session } = useSession();
 if (session.value?.role === "admin") {
   navigateTo('/admin/pools');

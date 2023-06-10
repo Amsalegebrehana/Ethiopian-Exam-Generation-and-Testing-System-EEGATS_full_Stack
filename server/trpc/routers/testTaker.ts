@@ -1,33 +1,92 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc";
+import bcrypt from "bcrypt";
+import { publicProcedure, protectedProcedure, router } from "../trpc";
 import shuffleSeed from 'shuffle-seed';
 import { TRPCError } from "@trpc/server";
 
 export const testTakerRouter = router({
-    getTestTakersCount: publicProcedure.query(async ({ ctx }) => {
-      return await ctx.prisma.testTakers.count();
-    }),
-    getTestTakers: publicProcedure
-        .input(
-            z.object({
-                skip: z.number(),
-                search: z.string().optional(),
-            })
-        )
-        .query(async ({ ctx, input }) => {
-            return await ctx.prisma.testTakers.findMany({
-                skip: input.skip,
-                take: 6,
-                orderBy: {
-                    createdAt: "desc",
-                },
-                where: {
-                    name: {
-                        contains: input.search,
-                    },
-                },
-            });
-        }),
+  adminResetPassword : protectedProcedure.
+  input(
+    z.object({
+      id: z.string(),
+    })
+  ).mutation(
+    async ({ctx, input}) => {
+      if (ctx.session.role === 'admin') {
+        const pwd = Math.random().toString(36).slice(-8);
+        const hashed = await bcrypt.hash(pwd, 10)
+        const data = await ctx.prisma.testTakers.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            password: hashed,
+            failedAttempts: 0,
+          },
+        });
+        return pwd;
+      } else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
+      }
+      
+    }
+  ),
+  getTestTakersCount: protectedProcedure
+  .input(
+    z.object({
+      search: z.string().optional(),
+    })
+  )
+  .query(async ({ ctx, input }) => {
+    if (ctx.session.role === 'admin') {
+
+      return await ctx.prisma.testTakers.count({
+        where: {
+          username: {
+            contains: input.search,
+          },
+        },
+      });
+    }
+  }),
+
+getTestTakers: protectedProcedure
+  .input(
+    z.object({
+      skip: z.number(),
+      search: z.string().optional(),
+    })
+  )
+  .query(async ({ ctx, input }) => {
+    if (ctx.session.role === 'admin') {
+      return await ctx.prisma.testTakers.findMany({
+        skip: input.skip,
+        take: 6,
+        orderBy: {
+          createdAt: "desc",
+        },
+        where: {
+          username: {
+            contains: input.search,
+            mode: 'insensitive'
+          },
+        },
+        include: {
+          examGroup: true,
+        }
+      });
+    } else {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'UNAUTHORIZED ACCESS.',
+      })
+    }
+  }),
+
+  
 
     getTestTakerId : publicProcedure
     .input(z.object({
@@ -43,7 +102,8 @@ export const testTakerRouter = router({
     }),
     getExamsCount: publicProcedure
     .input(z.object({
-      testTakerId : z.string()
+      testTakerId : z.string(),
+      search :z.string().optional()
     }))
     .query(async ({ ctx , input}) => {
       const testTaker = await ctx.prisma.testTakers.findUnique({
@@ -53,6 +113,10 @@ export const testTakerRouter = router({
       });
       const data = await ctx.prisma.exam.findMany({
         where: {
+          name: {
+            contains: input.search,
+            mode: 'insensitive'
+          },
           examGroup :{
             id : testTaker?.examGroupId
           },
@@ -89,6 +153,7 @@ export const testTakerRouter = router({
           where: {
             name: {
               contains: input.search,
+              mode: 'insensitive'
             },
             examGroup :{
               id : testTaker?.examGroupId
@@ -143,7 +208,11 @@ export const testTakerRouter = router({
     
           }
           else{
-            // throw new Error('Exam not found');
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Exam not found',
+        
+            });
           }
         });
         return data;
@@ -246,18 +315,29 @@ export const testTakerRouter = router({
           }
         });
         if(exam){
-
-          if(Date.now()> exam?.testingDate.getDate() && Date.now() < exam?.testingDate.getDate() + exam?.duration * 60 * 1000){
+          if(Date.now()> exam?.testingDate.valueOf() && Date.now() < exam?.testingDate.valueOf() + exam?.duration * 60 * 1000){
             const data = await ctx.prisma.testSession.create({
               data: {
                 examId : input.examId,
                 testTakerId : input.testTakerId,
               }
             });
+            if(data){
             return data;
+            }else{
+              throw new TRPCError({
+                code: 'INTERNAL_SERVER_ERROR',
+                message: 'Error in creating test session',
+          
+              });
+            }
           }
         }else{
-          // throw new Error('Exam not found');
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Exam not found',
+      
+          });
         }
       
       

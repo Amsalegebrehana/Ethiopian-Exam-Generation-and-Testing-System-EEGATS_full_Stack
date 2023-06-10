@@ -51,7 +51,7 @@
                 </div> -->
 
 
-                        <button class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center mt-8">
+                        <button class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center mt-8" :disabled="isLoading">
                             <div v-if="isLoading">
                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                             </div>
@@ -104,13 +104,22 @@ const onSubmit = handleSubmit(values => {
 });
 const { signIn } = useSession()
 const mySignInHandler = async ({ email, password, role }) => {
+    formError.value = '';
     isLoading.value = true;
-    const { data: contrId } = await useAsyncData(() => $client.contributor.getContributorId.query({ email }));
-    const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: `http://localhost:3000/contributor/${contrId._rawValue}/questions` })
-    if (error) {
-        formError.value = "Incorrect credentials! Please try again";
-    } else {
-        return navigateTo(url, { external: true })
+    try{
+        const { data: contrId } = await useAsyncData(() => $client.contributor.getContributorId.query({ email }));
+        const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: `http://localhost:3000/contributor/${contrId._rawValue}/questions` })
+        if (error) {
+            if(error == 'Multiple failed attempts, you account has been locked, please contact system admin'  || error == 'Invalid credentials') {
+                formError.value = error;
+            } else {
+                formError.value = 'Something went wrong, please try again';
+            }
+        } else {
+            return navigateTo(url, { external: true })
+        }
+    }catch(e){
+        
     }
     isLoading.value = false;
 }

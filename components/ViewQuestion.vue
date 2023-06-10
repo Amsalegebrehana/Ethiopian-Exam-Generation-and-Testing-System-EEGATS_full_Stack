@@ -8,47 +8,42 @@
           <Icon name="eva:close-outline" class="w-8 h-8 text-red-600"></Icon>
         </button>
       </div>
-      <div class="p-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[70em] max-w-[70em] flex h-[50vh] opacity-100 gap-4 text-lg">
+      <div
+        class="p-5 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[70em] max-w-[70em] flex h-[50vh] opacity-100 gap-4 text-lg">
         <div class="flex-1 overflow-scroll">
           <div v-html="question.question.title" class="py-5" />
-          <div v-for="(choice, index) in question.choices" class="flex">
-            <span class="py-2"> <b> {{ String.fromCharCode(65 + index) }}. </b> </span>
-            <span v-html="choice.title" class="px-2 py-2 w-full" />
+          <img v-if="question.question.image" :src=question.question.image style="width: 10em; height: 10em;" />
+          <div v-for="choice in question.choices" :key="choice.id" class="ml-5">
+
+            <div class="flex flex-row align-middle my-1 mt-5 ml-5">
+              <input id="radio_1" type="radio" name="radio" :value="choice.id" v-model="question.answer.choiceId"
+                :disabled="true">
+              <label class="pl-2 " for="radio_1">
+
+
+                <div v-html="choice.title" class="px-2"></div>
+                <img v-if="choice.image" :src=choice.image style="width: 10em; height: 10em;" />
+
+              </label>
+            </div>
           </div>
-          <div class="flex py-5">
-            <span class="pt-5 pr-2"> <b> Correct answer: </b> </span>
-            <span v-html="question.choices.filter(choice => choice.id === question.answer.choiceId)[0].title" class="pt-5" />
-          </div>
+
         </div>
       </div>
     </div>
   </div>
 </template>
   
-<script>
-export default {
-  props: {
-    question: Object,
+<script setup lang="ts">
+defineProps({
+  question: {
+    type: Object,
     required: true,
   },
-  name: 'EditQuestion',
-  components: {},
-  data() {
-    return {
-      isOpen: true,
-    }
-
-  },
-  computed: {
-    isModalVisible() {
-      return this.isOpen;
-    }
-  },
-  methods: {
-    onToggle() {
-      this.isOpen = !this.isOpen;
-    },
-  },
-}
+});
+const isOpen = ref(true);
+const isModalVisible = computed(() => isOpen.value);
+const onToggle = () => isOpen.value = !isOpen.value;
 </script>
+
   

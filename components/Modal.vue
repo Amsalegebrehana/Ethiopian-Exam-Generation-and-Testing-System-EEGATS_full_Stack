@@ -35,17 +35,15 @@
         <div v-if="show" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
   </template>
   
-  <script>
-export default {
-    components: {},
-    name: 'SuccessModal',
-    props: {
+  <script setup lang="ts">
+
+const props = defineProps({
         show: Boolean,
         toggle : Function,
         type : String,
         message : String
-    },
-  
-}
+    });
+   
+
 </script>
   
