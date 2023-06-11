@@ -5,7 +5,7 @@
         <div class="flex">
 
             <AdminSideBar pageName="contributors" />
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 mt-24">
 
                 <h2 class="intro-y text-lg font-medium mt-10">List of Contributors</h2>
                 <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ">

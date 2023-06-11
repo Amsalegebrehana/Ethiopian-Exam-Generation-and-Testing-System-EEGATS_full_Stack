@@ -4,7 +4,7 @@
         <div class="flex">
 
             <AdminSideBar pageName="exams" />
-            <div class="w-full m-6 ">
+            <div class="w-full m-6 mt-24">
                 <div class=" rounded-md mt-5 p-5 ">
                     <div class="flex flex-row  align-middle mt-10">
                         <NuxtLink :to="`/admin/exams`">

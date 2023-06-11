@@ -119,7 +119,7 @@ watch(catID, (newId: string, oldId: string) => {
         <div class="flex">
 
             <AdminSideBar pageName="pools" />
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 mt-24">
                 <div class="flex flex-row  align-middle mt-10">
                     <NuxtLink :to="`/admin/pools/${poolId}`">
                         <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>

@@ -4,7 +4,7 @@
         <div class="flex"> 
 
             <AdminSideBar pageName="exams"/>
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 mt-24">
             
             
                 <h2 class="intro-y text-lg font-medium mt-10">List of exams</h2>

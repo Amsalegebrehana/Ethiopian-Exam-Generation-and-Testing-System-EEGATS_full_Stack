@@ -100,7 +100,7 @@ const copy = () => {
         <div class="flex">
 
             <AdminSideBar pageName="testtakers" />
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 mt-24">
 
                 <h2 class="intro-y text-lg font-medium mt-10">List of Test Takers</h2>
 
@@ -438,4 +438,5 @@ const copy = () => {
         </div>
 
     </div>
-</div></template>
+</div>
+</template>

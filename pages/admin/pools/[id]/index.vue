@@ -333,7 +333,7 @@ const handleDisableContributor = async () => {
         <div class="flex">
 
             <AdminSideBar pageName="pools" />
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 mt-24">
                 <div class="flex flex-row w-full align-middle justify-between  mt-10">
                     <div class="justify-start flex flex-row">
 

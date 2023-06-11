@@ -4,7 +4,7 @@
         <div class="flex">
 
             <AdminSideBar pageName="examgroups" />
-            <div class="w-full mx-6" v-if="examGroup">
+            <div class="w-full mx-6 mt-24 " v-if="examGroup">
                 <div class="mx-5">
                     <h2 class="intro-y text-lg font-medium mt-10">{{ examGroup.name }}</h2>
                 </div>
@@ -37,7 +37,7 @@
                                     <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2">
 
                                         <button v-on:click="toggleAddModal()"
-                                            class="btn btn-primary shadow-md mr-2">Generate credintials
+                                            class="btn btn-primary shadow-md mr-2">Generate credentials
                                             <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white">
                                             </Icon>
                                         </button>

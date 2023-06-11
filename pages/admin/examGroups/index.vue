@@ -6,7 +6,7 @@
     <div class="flex">
 
         <AdminSideBar pageName="examgroups" />
-        <div class="w-full mx-6">
+        <div class="w-full mx-6 mt-24">
 
 
             <h2 class="intro-y text-lg font-medium mt-10">List of Exam Groups</h2>

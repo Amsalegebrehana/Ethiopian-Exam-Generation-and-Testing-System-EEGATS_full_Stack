@@ -4,7 +4,8 @@
         <div class="flex">
 
             <AdminSideBar pageName="analytics" />
-            <div class="content">
+            <div class="content middle  w-full mt-24">
+                <div class="my-5 w-full overflow-y-auto">
                 <div class="grid grid-cols-12 gap-6">
                     <div class="col-span-12 2xl:col-span-9">
                     <div v-if="analytics"  class="grid grid-cols-12 gap-6">
@@ -130,7 +131,7 @@
                 </div>
                 </div>
                 </div>
-
+            </div>
             </div>
 
         </div>
@@ -160,3 +161,12 @@ const { data: analytics } = await useAsyncData(() => $client.analytics.getDashbo
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement)
 
 </script>
+
+<style scoped>
+.middle {
+    margin-left: 15vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>
