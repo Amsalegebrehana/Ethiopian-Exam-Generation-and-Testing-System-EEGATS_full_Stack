@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ["@sidebase/nuxt-auth", "@nuxtjs/tailwindcss", "nuxt-icon", "@nuxtjs/supabase",  '@pinia/nuxt',  '@pinia-plugin-persistedstate/nuxt', '@vueuse/nuxt','nuxt-security'],
+  modules: ["@sidebase/nuxt-auth", "@nuxtjs/tailwindcss", "nuxt-icon", "@nuxtjs/supabase",  '@pinia/nuxt',  '@pinia-plugin-persistedstate/nuxt', '@vueuse/nuxt'],
   build: {
     transpile: ["trpc-nuxt"],
   },
