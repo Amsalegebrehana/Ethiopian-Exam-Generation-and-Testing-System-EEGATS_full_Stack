@@ -21,6 +21,8 @@
 
                             <h1 class="text-4xl font-bold">{{ exam.name }}</h1>
                             <div class="flex flex-row justify-end">
+                                <button class="btn box flex items-center text-slate-600 dark:text-slate-300 shadow" @click="exportExam()">  <Icon name="material-symbols:export-notes-outline" class="hidden sm:block w-4 h-4 mr-2 text-primary"></Icon> Export pdf </button>
+
                                 <button v-if="publishBtn" class="btn btn-success shadow-md mt-5 mr-4 text-white"
                                     @click="publishExam">Publish</button>
                                 <button v-if="unpublishBtn" class="btn btn-success shadow-md mt-5 mr-4 text-white"
@@ -400,7 +402,17 @@ if (exam?.status === 'published' && exam?.testingDate > new Date()) {
     publishBtn.value = false;
 }
 
+// export exam  to pdf
+const exportExam = async ()=>{
+    const response = await $client.exam.exportExamToPdf.query({ id: id });
 
+     // Handle the response
+     const pdfBlob = new Blob([response], { type: 'application/pdf' });
+
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+    window.open(pdfUrl);
+};
 
 // publish the generated exam if the exam hasn't started yet (change status to published)
 const publishExam = async () => {
