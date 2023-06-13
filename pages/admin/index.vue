@@ -4,9 +4,9 @@
         <div class="flex">
 
             <AdminSideBar pageName="analytics" />
-            <div class="content middle  w-full mt-24">
-                <div class="my-5 w-full overflow-y-auto">
-                <div class="grid grid-cols-12 gap-6">
+            <div class=" content middle  justify-center mx-auto mt-24">
+                <div class="my-5 w-full">
+                <div class="">
                     <div class="col-span-12 2xl:col-span-9">
                     <div v-if="analytics"  class="grid grid-cols-12 gap-6">
                      <!-- BEGIN: General Report -->
@@ -164,7 +164,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
 
 <style scoped>
 .middle {
-    margin-left: 15vmax;
+    margin-left: 11vmax;
 }
 .w-full.overflow-y-auto {
   height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
