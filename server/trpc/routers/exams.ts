@@ -712,7 +712,12 @@ export const examRouter = router({
                             message: `Exam with id ${input.id} not found`
                         });
                     }
-             
+                    if(exam.status !== "gradeReleased"){
+                        throw new TRPCError({
+                            code: "BAD_REQUEST",
+                            message: `Exam grade is not yet Released.`
+                        });
+                    }
                     // add content to the pdf document
                     const addContentToPage = (page: PDFPage, content: any[]) => {
                         const { width, height } = page.getSize();
