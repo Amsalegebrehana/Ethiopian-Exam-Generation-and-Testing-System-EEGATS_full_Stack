@@ -158,7 +158,7 @@ export const analyticsRouter = router({
                 chartData.datasets[0].data.push(count);
               });
               chartData.datasets[0].backgroundColor = generateRandomColors(chartData.labels?.length || 0, unansweredCount > 0);
-              const grade = (item.TestSession[0].grade / item.numberOfQuestions) * 100;
+              const grade = item.TestSession[0].grade ;
               grades.push(grade);
 
               result.push({
@@ -176,6 +176,14 @@ export const analyticsRouter = router({
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
+                      title: {
+                        display: true,
+                        text: 'Question Category Distribution',
+                        font: {
+                          size: 16,
+                        },
+                        align:'end',
+                      },
                       legend: {
                         position: 'right',
 
@@ -189,9 +197,13 @@ export const analyticsRouter = router({
             const averageGrade = grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
             const highestGrade = Math.max(...grades);
             const lowestGrade = Math.min(...grades);
+            const totalMarks = grades.reduce((sum, grade) => sum + grade, 0);
+            const totalNumOfQuestions = result.reduce((sum, item) => sum + item.numOfQuestions, 0);
 
             return {
               result,
+              totalMarks,
+              totalNumOfQuestions,
               averageGrade,
               highestGrade,
               lowestGrade,
@@ -436,6 +448,7 @@ export const analyticsRouter = router({
                   TestTakerResponse: true,
                   Contributors: true,
                   category: true,
+                  choices: true,
                 },
               },
             },
@@ -458,7 +471,7 @@ export const analyticsRouter = router({
           const lowestGrade = Math.min(...exam.TestSession.map((session) => session.grade));
   
           // Analyze question performance
-          const questionPerformance: { contrId: string; title: string; percentageCorrect: number, contrName: string }[] = [];
+          const questionPerformance: { id: string; title: string; percentageCorrect: number, image:string, correctAnswer : string, choices :any  }[] = [];
   
           exam.Questions.forEach((question) => {
             const totalTestTakers = question.TestTakerResponse.length;
@@ -474,8 +487,10 @@ export const analyticsRouter = router({
             const percentageCorrect = (correctCount / totalTestTakers) * 100;
             questionPerformance.push({
               title: filter(question.title, 40),
-              contrId: question.contributorId,
-              contrName: question.Contributors.name,
+              image : question.image  || "",
+              id: question.id,
+              choices : question.choices,
+              correctAnswer : question.QuestionAnswer?.choiceId || "",
               percentageCorrect,
             });
   
@@ -485,9 +500,7 @@ export const analyticsRouter = router({
           const sortedQuestions = questionPerformance.sort(
             (a, b) => b.percentageCorrect - a.percentageCorrect
           );
-          const highestPerformingQuestions = sortedQuestions.slice(0, 3);
-          const lowestPerformingQuestions = sortedQuestions.slice(-3).reverse();
-  
+         
           const categoryCounts: CategoryCounts = {};
   
           exam.Questions.forEach((question) => {
@@ -524,8 +537,7 @@ export const analyticsRouter = router({
             averageGrade: (averageGrade / exam.numberOfQuestions) * 100,
             highestGrade: (highestGrade / exam.numberOfQuestions) * 100,
             lowestGrade: (lowestGrade / exam.numberOfQuestions) * 100,
-            highestPerformingQuestions,
-            lowestPerformingQuestions,
+            highestPerformingQuestions : sortedQuestions,
             statusDistribution: {
               data: chartData,
               options: {
@@ -534,7 +546,7 @@ export const analyticsRouter = router({
                 plugins: {
                   title: {
                     display: true,
-                    text: isEmptyDistribution ? 'No Question Found' : 'Question Status Distribution',
+                    text: isEmptyDistribution ? 'No Questions Found' : 'Question Category Distribution',
                     font: {
                       size: 14,
                       weight: 'bold',
