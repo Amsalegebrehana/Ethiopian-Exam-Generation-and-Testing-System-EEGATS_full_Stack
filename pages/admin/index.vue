@@ -164,7 +164,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
 
 <style scoped>
 .middle {
-    margin-left: 11vmax;
+    margin-left: 13vmax;
 }
 .w-full.overflow-y-auto {
   height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
