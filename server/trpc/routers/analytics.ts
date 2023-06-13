@@ -451,6 +451,15 @@ export const analyticsRouter = router({
                   choices: true,
                 },
               },
+              examGroup: {
+                select :{
+                  _count:{
+                    select:{
+                      TestTakers: true
+                    }
+                  }
+                }
+              },
             },
           });
   
@@ -464,7 +473,7 @@ export const analyticsRouter = router({
   
           // Calculate test taker statistics
           const totalTestTakers = exam.TestSession.length;
-          const passedTestTakers = exam.TestSession.filter((session) => ((session.grade / exam.numberOfQuestions) * 100) > 50).length;
+          const passedTestTakers = exam.TestSession.filter((session) => ((session.grade / exam.numberOfQuestions) * 100) > exam.gradePassPoint).length;
           const averageGrade =
             totalTestTakers > 0 ? exam.TestSession.reduce((acc, session) => acc + session.grade, 0) / totalTestTakers : 0;
           const highestGrade = Math.max(...exam.TestSession.map((session) => session.grade));
@@ -530,13 +539,15 @@ export const analyticsRouter = router({
           chartData.datasets[0].backgroundColor = generateRandomColors(chartData.labels?.length || 0, false);
           const isEmptyDistribution = Object.keys(categoryCounts).length === 0;
           return {
+            registeredTestTakers: exam.examGroup._count.TestTakers,
+            passGrade : exam.gradePassPoint,
             examId: exam.id,
             totalQuestions: exam.Questions.length,
             totalTestTakers,
             percentagePassed: (passedTestTakers / totalTestTakers) * 100,
-            averageGrade: (averageGrade / exam.numberOfQuestions) * 100,
-            highestGrade: (highestGrade / exam.numberOfQuestions) * 100,
-            lowestGrade: (lowestGrade / exam.numberOfQuestions) * 100,
+            averageGrade,
+            highestGrade,
+            lowestGrade,
             highestPerformingQuestions : sortedQuestions,
             statusDistribution: {
               data: chartData,
@@ -816,9 +827,27 @@ export const analyticsRouter = router({
         try{
           // Total Number of Examsx
           const totalExams = await ctx.prisma.exam.count();
+          const generatedExams = await ctx.prisma.exam.count({
+            where: {
+              status: 'generated'
+            }
+          });
+          const publishedExams = await ctx.prisma.exam.count({
+            where: {
+              status: 'published'
+            }
+          });
+          const gradeReleasedExams = await ctx.prisma.exam.count({
+            where: {
+              status: 'gradeReleased'
+            }
+          });
           
           // Total Number of Pools
           const totalPools = await ctx.prisma.pool.count();
+          const totalContributors = await ctx.prisma.contributors.count();
+          const totalExamGroups = await ctx.prisma.examGroup.count();
+          const totalTestTakers = await ctx.prisma.testTakers.count();
       
           // Exam Group Test Taker Distribution
           const examGroupDistribution = await ctx.prisma.examGroup.findMany({
@@ -841,9 +870,6 @@ export const analyticsRouter = router({
             testTakers: group.TestTakers.length,
           }));
       
-      
-      
-        ;
       
           // Generate Bar Chart Data for Exam Group Test Taker Distribution
           const examGroupChartLabels = examGroupData.map((item) => item.examGroup);
@@ -894,6 +920,12 @@ export const analyticsRouter = router({
           const isEmptyBarDistribution = examGroupData.length === 0;
   
           return {
+            totalContributors,
+            totalExamGroups,
+            totalTestTakers,
+            generatedExams,
+            publishedExams,
+            gradeReleasedExams,
            totalExams,
             totalPools,
             examGroupDistribution: {
@@ -911,7 +943,7 @@ export const analyticsRouter = router({
                       display: true,
                       text: 'Exam Groups',
                       font: {
-                        size: 16,
+                        size: 14,
                         weight : '600'
                       },
                     },
@@ -938,7 +970,7 @@ export const analyticsRouter = router({
                     align:'end',
                     text: isEmptyBarDistribution ? 'No Exam Group Data Found' : 'Exam Group Distribution',
                     font: {
-                      size: 22,
+                      size: 16,
                       weight: 'bold',
                     },
                   },
@@ -959,7 +991,7 @@ export const analyticsRouter = router({
                     align:'end',
                     text: isEmptyDistribution ? 'No Contributors Found' : 'Contributor Distribution',
                     font: {
-                      size: 22,
+                      size: 16,
                       weight: 'bold',
                     },
                   },
