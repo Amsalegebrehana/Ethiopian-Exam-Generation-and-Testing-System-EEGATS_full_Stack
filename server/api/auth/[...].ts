@@ -73,27 +73,27 @@ export default NuxtAuthHandler({
         if (credentials != null) {
           // Any object returned will be saved in `user` property of the JWT
           if (credentials?.role === "admin") {
-            if (credentials?.email && credentials?.password) {
+            if (credentials?.otp && credentials?.adminId) {
               const adminUser = await prisma.admin.findUnique({
                 where: {
-                  email: credentials.email,
+                  id: credentials.adminId,
                 },
               });
 
               if (adminUser !== null) {
                 const res = await confirmPasswordHash(
-                  credentials.password,
-                  adminUser.password
+                  credentials.otp,
+                  adminUser.otp
                 );
                 const user = {
                   id: adminUser.id,
                   name: adminUser.name,
                   role: "admin",
                 };
-                if (res === true) {
+                if (res === true && adminUser.otpExpiryDate > new Date())  {
                   return user;
                 } else {
-                  throw new Error("Invalid credentials");
+                  throw new Error("Invalid otp. Please try again");
                 }
               } else {
                 throw new Error("Invalid credentials");
