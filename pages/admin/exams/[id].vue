@@ -500,7 +500,6 @@ const exportExam = async ()=>{
 const publishExam = async () => {
 
     const updatedExam = await $client.exam.publishExam.mutate({ id: id });
-    console.log(updatedExam);
     
     publishBtn.value = false;
     // if the exam is published and the testing date is in the future then unpublishing exam is possible

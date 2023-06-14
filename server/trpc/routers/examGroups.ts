@@ -506,7 +506,6 @@ export const examGroupRouter = router({
                         return true;
 
                     } catch (error) {
-                        console.log("error", error)
                         throw new TRPCError({
                             code: 'INTERNAL_SERVER_ERROR',
                             message: 'INTERNAL_SERVER_ERROR',

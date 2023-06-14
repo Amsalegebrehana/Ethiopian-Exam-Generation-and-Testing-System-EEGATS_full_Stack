@@ -111,7 +111,42 @@ export const passwordHandlerRouter = router({
 
             }
         ),
+        
     // change Password procedure ends here
+
+    resetPassword: protectedProcedure
+        .input(
+            z.object({
+                id: z.string(),
+                newPassword: z.string(),
+            })
+        ).mutation(
+            async ({ ctx, input }) => {
+                const hashed = await bcrypt.hash(input.newPassword, 10);
+
+                // If user is testaker
+                if (ctx.session.role === "testtaker") {
+                    const data = await ctx.prisma.testTakers.update({
+                        where: {
+                            id: input.id,
+                        },
+                        data: {
+                            isFirstTime: false,
+                            password: hashed,
+                        },
+                    });
+                    return hashed;
+                } else {
+                    throw new TRPCError({
+                        code: 'UNAUTHORIZED',
+                        message: 'UNAUTHORIZED ACCESS.',
+                    })
+                }
+
+            }
+        ),
+
+
 
 
 

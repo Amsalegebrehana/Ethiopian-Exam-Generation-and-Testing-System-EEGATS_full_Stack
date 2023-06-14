@@ -493,7 +493,6 @@ export const contributorRouter = router({
               })
             }
             catch (err) {
-              console.log("Error: ", err);
             }
 
           }

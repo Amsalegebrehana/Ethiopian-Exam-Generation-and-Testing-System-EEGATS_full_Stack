@@ -77,7 +77,7 @@ const changePassword = async () => {
 
 <template>
     <div>
-        <TopBar role='admin' :id="id"/>
+        <TopBar role='contributor' :id="id"/>
         <div class="flex flex-row h-full">
             <div class="h-full items-center align-middle my-auto mx-auto">
                 <div class=" mt-28 justify-start mx-auto">

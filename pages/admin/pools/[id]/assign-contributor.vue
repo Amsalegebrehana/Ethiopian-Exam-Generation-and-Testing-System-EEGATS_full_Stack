@@ -103,7 +103,6 @@ const handleAssignQuestions = async () => {
 watch(catID, (newId: string, oldId: string) => {
     if (categoriesNow.value) {
         categoriesNow.value.filter(category => {
-            console.log("inside", category.id);
             if (category.id === catID.value) {
                 contrInfo.value.questionNumber = category.contributorAssignments[0] ? category.contributorAssignments[0].questionsRemaining : 0
             }
