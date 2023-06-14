@@ -4,7 +4,7 @@
         <div class="flex">
 
             <AdminSideBar pageName="examgroups" />
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 content middle mt-20 ">
                 <div class="flex flex-row  align-middle mt-10">
                     <NuxtLink :to="`/admin/examGroups/${examGroupId}`">
                         <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
@@ -184,3 +184,11 @@ const { data: analytics } = await useAsyncData(() => $client.analytics.getExamGr
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement)
 
 </script>
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>

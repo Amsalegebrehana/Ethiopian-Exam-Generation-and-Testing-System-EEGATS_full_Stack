@@ -18,9 +18,10 @@
                                        
                                     </div>
                                     <div class="grid grid-cols-12 gap-6 mt-5">
-                                        <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
-                                            <div class="report-box zoom-in">
-                                                <div class="box p-5">
+                                        <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y ">
+                                            <NuxtLink :to="`/admin/pools`">
+                                            <div class="report-box zoom-in ">
+                                                <div class="box p-5 ">
                                                     <div class="flex">
                                                         <i data-lucide="shopping-cart" class="report-box__icon text-primary"></i> 
                                                         <div class="ml-auto">
@@ -35,9 +36,11 @@
                                                     <div class="text-base text-slate-500 mt-1">Total Pools</div>
                                                 </div>
                                             </div>
+                                        </NuxtLink>
                                         </div>
                                    
                                         <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
+                                            <NuxtLink :to="`/admin/contributors`">
                                             <div class="report-box zoom-in">
                                                 <div class="box p-5">
                                                     <div class="flex">
@@ -53,8 +56,10 @@
                                                     <div class="text-base text-slate-500 mt-1">Total Contributors</div>
                                                 </div>
                                             </div>
+                                        </NuxtLink>
                                         </div>
                                         <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
+                                            <NuxtLink :to="`/admin/examGroups`">
                                             <div class="report-box zoom-in">
                                                 <div class="box p-5">
                                                     <div class="flex">
@@ -70,8 +75,10 @@
                                                     <div class="text-base text-slate-500 mt-1">Total Exam Groups</div>
                                                 </div>
                                             </div>
+                                            </NuxtLink>
                                         </div>
                                         <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
+                                            <NuxtLink :to="`/admin/testTakers`">
                                             <div class="report-box zoom-in">
                                                 <div class="box p-5">
                                                     <div class="flex">
@@ -86,6 +93,7 @@
                                                     <div class="text-base text-slate-500 mt-1">Total Test Takers</div>
                                                 </div>
                                             </div>
+                                            </NuxtLink>
                                         </div>
                                     </div>
                         </div>

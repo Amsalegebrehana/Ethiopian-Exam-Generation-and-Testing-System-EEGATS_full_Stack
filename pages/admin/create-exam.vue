@@ -1,10 +1,10 @@
 <template>
   <div >
     <AdminTopBar role="admin" />
-        <div class="flex">
+    <div class="flex" :class="{'fixed w-full' : isExamCreated}">
             <AdminSideBar pageName="exams" />
      
-            <div  class="w-full mx-6 mt-10 ">
+            <div class="w-full mx-6 content middle mt-20 ">
               <div class=" rounded-md mt-5 p-5 ">
               <div class="flex flex-row  align-middle mt-10"> 
                 <NuxtLink :to="`/admin/exams`">
@@ -186,14 +186,14 @@
             </div>
           </div>
              
-              <Modal v-if=" isExamCreated" type="success" :show="isExamCreated"  message="Exam successfully created!"/>
-              <Modal type="error" :show="!isExamCreated && returnedErrorMessage.length > 0" :toggle="toggleErrorModal" :message="returnedErrorMessage "/>
-              <!--alert for error message  -->
-            
-                </div>
-       
-              </div>
+          <!--alert for error message  -->
+          
         </div>
+        
+      </div>
+    </div>
+    <Modal v-if=" isExamCreated" type="success" :show="isExamCreated"  message="Exam successfully created!"/>
+    <Modal type="error" :show="!isExamCreated && returnedErrorMessage.length > 0" :toggle="toggleErrorModal" :message="returnedErrorMessage "/>
 
  
 </template>
@@ -432,6 +432,13 @@ const createExam = async () => {
 </script>
 
 <style scoped>
+
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
 
 .container {
   margin-top: 40px;
