@@ -79,10 +79,10 @@ const submitFeedback = async () => {
 <template>
     <div>
         <TopBar role="contributor" :id="contrId" />
-        <div class="flex">
+        <div class="flex" :class="{'fixed w-full' : showErrorModal || showSuccessModal}">
 
             <ContributorSideBar pageName="reviews" :contrId="contrId" />
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 content middle mt-20 ">
                 <div class="flex flex-row  align-middle mt-10">
                     <NuxtLink :to="`/contributor/${contrId}/reviews`">
                         <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
@@ -157,11 +157,19 @@ const submitFeedback = async () => {
                     </div>
 
                 </div>
-                <Modal type="success" :show="showSuccessModal" :toggle="toggleSuccessModal" message="Success!" />
-                <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
-
+                
             </div>
         </div>
     </div>
+    <Modal type="success" :show="showSuccessModal" :toggle="toggleSuccessModal" message="Success!" />
+    <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
 </template>
 
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>
