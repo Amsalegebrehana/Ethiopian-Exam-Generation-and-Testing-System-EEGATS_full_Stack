@@ -150,7 +150,42 @@ export async function sendStatusNotificationEmail({
     console.log("Error: ",err);
   }
   
+
+}
+
+// send OTP 
+export async function sendOtp({
+  email,
+  otp,
+}: {
+  email: string;
+  otp: string;
+}) {
   
+  try{
+
+    const testAccount = await nodemailer.createTestAccount();
+
+    const transporter = nodemailer.createTransport({
   
+      service: "gmail",
+      auth: {
+        user: "invite.eegts@gmail.com",
+        pass: process.env.MAILER_PASSWORD,
+      },
+    });
+    if(otp){
+      const info = await transporter.sendMail({
+        from:' <no-reply@eegts.com>',
+        to: email,
+        subject: "OTP for EEGTS ",
+        html: `<p>Greetings,<br></p> <p>Your OTP for EEGTS is ${otp}.<br></p><p>It will expire in 10 minutes.</p>`,
+      });
+    }
+
+
+  } catch(err){
+    console.log("Error: ", err);
+  }
 
 }
