@@ -7,17 +7,17 @@ import { parse } from 'csv-parse';
 import { TRPCError } from "@trpc/server";
 import pkg from 'pg';
 import { error } from "console";
-const { Pool } = pkg;
-const pool = new Pool({
-    user: process.env.DB2_USER,
-    host: process.env.DB2_HOST,
-    database: process.env.DB2_DATABASE,
-    password: process.env.DB2_PASSWORD,
-    port: 5432,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-})
+// const { Pool } = pkg;
+// const pool = new Pool({
+//     user: process.env.DB2_USER,
+//     host: process.env.DB2_HOST,
+//     database: process.env.DB2_DATABASE,
+//     password: process.env.DB2_PASSWORD,
+//     port: 5432,
+//     max: 20,
+//     idleTimeoutMillis: 30000,
+//     connectionTimeoutMillis: 2000,
+// })
 
 
 
@@ -425,106 +425,106 @@ export const examGroupRouter = router({
 
         }),
 
-    publishPractice: protectedProcedure
-        .input(
-            z.object({
-                examGroupId: z.string(),
-            })
-        )
-        .mutation(async ({ ctx, input }) => {
-            if (ctx.session.role === 'admin') {
-                const examGroup = await ctx.prisma.examGroup.findUnique({
-                    where: {
-                        id: input.examGroupId,
-                    },
-                    include: {
-                        Exam: {
-                            where: {
-                                status: 'gradeReleased'
-                            },
-                            include: {
-                                Questions: {
-                                    select: {
-                                        id: true,
-                                        title: true,
-                                        image: true,
-                                        choices: true,
-                                        QuestionAnswer: {
-                                            select: {
-                                                id: true,
-                                                questionId: true,
-                                                choiceId: true,
-                                            }
-                                        }
+    // publishPractice: protectedProcedure
+    //     .input(
+    //         z.object({
+    //             examGroupId: z.string(),
+    //         })
+    //     )
+    //     .mutation(async ({ ctx, input }) => {
+    //         if (ctx.session.role === 'admin') {
+    //             const examGroup = await ctx.prisma.examGroup.findUnique({
+    //                 where: {
+    //                     id: input.examGroupId,
+    //                 },
+    //                 include: {
+    //                     Exam: {
+    //                         where: {
+    //                             status: 'gradeReleased'
+    //                         },
+    //                         include: {
+    //                             Questions: {
+    //                                 select: {
+    //                                     id: true,
+    //                                     title: true,
+    //                                     image: true,
+    //                                     choices: true,
+    //                                     QuestionAnswer: {
+    //                                         select: {
+    //                                             id: true,
+    //                                             questionId: true,
+    //                                             choiceId: true,
+    //                                         }
+    //                                     }
 
-                                    }
-                                }
-                            }
-                        }
-                    }
-                })
-                if (examGroup) {
+    //                                 }
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             })
+    //             if (examGroup) {
 
-                    try {
-                        const client = await pool.connect()
+    //                 try {
+    //                     const client = await pool.connect()
 
-                        await client.query('INSERT INTO "ExamGroup" ("id", "name") VALUES ($1, $2)', [examGroup.id, examGroup.name]);
-
-
-                        for (const exam of examGroup.Exam) {
-
-                            // Insert exam
-                            await client.query('INSERT INTO "Exam" ("id", "name", "numberOfQuestions", "duration", "examGroupId") VALUES ($1, $2, $3, $4, $5)', [exam.id, exam.name, exam.numberOfQuestions, exam.duration, exam.examGroupId]);
-
-                            for (const question of exam.Questions) {
-
-                                // Insert question
-                                await client.query('INSERT INTO "Questions" ("id", "title", "image", "examId") VALUES ($1, $2, $3, $4)', [question.id, question.title, question.image, exam.id]);
-
-                                for (const choice of question.choices) {
-                                    // Insert choice
-                                    await client.query('INSERT INTO "Choice" ("id", "title", "image", "questionId") VALUES ($1, $2, $3, $4)', [choice.id, choice.title, choice.image, question.id]);
-                                }
-                                if(question.QuestionAnswer){
-                                    // Insert question answer
-                                    await client.query('INSERT INTO "QuestionAnswer" ("id", "questionId", "choiceId") VALUES ($1, $2, $3)', [question.QuestionAnswer.id, question.QuestionAnswer.questionId, question.QuestionAnswer.choiceId]);
-                                }
-                            }
-                        }
-
-                        await ctx.prisma.examGroup.update({
-                            where: {
-                                id: input.examGroupId,
-                            }
-                            ,
-                            data: {
-                                isPractice: true
-                            }
-                        });
-
-                        return true;
-
-                    } catch (error) {
-                        console.log("error", error)
-                        throw new TRPCError({
-                            code: 'INTERNAL_SERVER_ERROR',
-                            message: 'INTERNAL_SERVER_ERROR',
-                        })
-                    }
+    //                     await client.query('INSERT INTO "ExamGroup" ("id", "name") VALUES ($1, $2)', [examGroup.id, examGroup.name]);
 
 
+    //                     for (const exam of examGroup.Exam) {
 
-                }
-            } else {
+    //                         // Insert exam
+    //                         await client.query('INSERT INTO "Exam" ("id", "name", "numberOfQuestions", "duration", "examGroupId") VALUES ($1, $2, $3, $4, $5)', [exam.id, exam.name, exam.numberOfQuestions, exam.duration, exam.examGroupId]);
 
-                throw new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'UNAUTHORIZED ACCESS.',
-                })
-            }
+    //                         for (const question of exam.Questions) {
+
+    //                             // Insert question
+    //                             await client.query('INSERT INTO "Questions" ("id", "title", "image", "examId") VALUES ($1, $2, $3, $4)', [question.id, question.title, question.image, exam.id]);
+
+    //                             for (const choice of question.choices) {
+    //                                 // Insert choice
+    //                                 await client.query('INSERT INTO "Choice" ("id", "title", "image", "questionId") VALUES ($1, $2, $3, $4)', [choice.id, choice.title, choice.image, question.id]);
+    //                             }
+    //                             if(question.QuestionAnswer){
+    //                                 // Insert question answer
+    //                                 await client.query('INSERT INTO "QuestionAnswer" ("id", "questionId", "choiceId") VALUES ($1, $2, $3)', [question.QuestionAnswer.id, question.QuestionAnswer.questionId, question.QuestionAnswer.choiceId]);
+    //                             }
+    //                         }
+    //                     }
+
+    //                     await ctx.prisma.examGroup.update({
+    //                         where: {
+    //                             id: input.examGroupId,
+    //                         }
+    //                         ,
+    //                         data: {
+    //                             isPractice: true
+    //                         }
+    //                     });
+
+    //                     return true;
+
+    //                 } catch (error) {
+    //                     console.log("error", error)
+    //                     throw new TRPCError({
+    //                         code: 'INTERNAL_SERVER_ERROR',
+    //                         message: 'INTERNAL_SERVER_ERROR',
+    //                     })
+    //                 }
 
 
-        }),
+
+    //             }
+    //         } else {
+
+    //             throw new TRPCError({
+    //                 code: 'UNAUTHORIZED',
+    //                 message: 'UNAUTHORIZED ACCESS.',
+    //             })
+    //         }
+
+
+    //     }),
 
 
 
