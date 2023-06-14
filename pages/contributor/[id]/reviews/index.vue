@@ -72,10 +72,10 @@ const toggleErrorModal = () => {
 <template>
   <div>
     <TopBar role="contributor" :id="contrId" />
-    <div class="flex">
+    <div class="flex" :class="{'fixed w-full' : showErrorModal}">
 
       <ContributorSideBar pageName="reviews" :contrId="contrId" />
-      <div class="w-full mx-6">
+      <div class="w-full mx-6 content middle mt-20 ">
 
         <div class="grid grid-cols-12 gap-6 mt-5">
           <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ">
@@ -274,10 +274,18 @@ const toggleErrorModal = () => {
           </div>
         </div>
 
-        <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
-
+        
       </div>
     </div>
   </div>
+  <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
 </template>
 
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>

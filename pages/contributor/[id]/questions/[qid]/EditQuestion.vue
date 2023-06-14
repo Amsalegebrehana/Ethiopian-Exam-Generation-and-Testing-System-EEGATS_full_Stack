@@ -26,15 +26,15 @@ const questionInfo = ref({
 })
 
 questionInfo.value.title = questionDetail.question!.title == null? "" : questionDetail.question!.title;
-questionInfo.value.titleImage = questionDetail.question!.image == null? "" : questionDetail.question!.image;
+questionInfo.value.titleImage = questionDetail.question!.image == null? "" : questionDetail.question!.image.slice(79,);
 questionInfo.value.choiceTwo = questionDetail.choices[0].title;
 questionInfo.value.choiceOne = questionDetail.choices[1].title;
 questionInfo.value.choiceThree = questionDetail.choices[2].title;
 questionInfo.value.choiceFour = questionDetail.choices[3].title;
-questionInfo.value.choiceOneImage = questionDetail.choices[0].image == null? "" : questionDetail.choices[0].image;
-questionInfo.value.choiceTwoImage = questionDetail.choices[1].image == null? "" : questionDetail.choices[1].image;
-questionInfo.value.choiceThreeImage = questionDetail.choices[2].image == null? "" : questionDetail.choices[2].image;
-questionInfo.value.choiceFourImage = questionDetail.choices[3].image == null? "" : questionDetail.choices[3].image;
+questionInfo.value.choiceOneImage = questionDetail.choices[0].image == null? "" : questionDetail.choices[0].image.slice(79,);
+questionInfo.value.choiceTwoImage = questionDetail.choices[1].image == null? "" : questionDetail.choices[1].image.slice(79,);
+questionInfo.value.choiceThreeImage = questionDetail.choices[2].image == null? "" : questionDetail.choices[2].image.slice(79,);
+questionInfo.value.choiceFourImage = questionDetail.choices[3].image == null? "" : questionDetail.choices[3].image.slice(79,);
 questionInfo.value.categoryId = questionDetail.question!.catId;
 
 
@@ -128,7 +128,7 @@ const getSrc = (filepath: string) => {
                                     'text-slate-500 bg-slate-100': step !== 6
                                 }">
                                 3
-                            </span>
+                            </span>ave Draft
                             <div class=" text-base lg:mt-3 ml-3 lg:mx-auto text-slate-600 dark:text-slate-400"
                                 :class="{ 'font-medium': step === 6 }">
                                 Edit Correct Answer
@@ -337,7 +337,7 @@ const getSrc = (filepath: string) => {
                                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                                         </div>
                                         <div v-else>
-                                            Submit
+                                            Save as draft
                                         </div>
                                     </button>
                                 </div>

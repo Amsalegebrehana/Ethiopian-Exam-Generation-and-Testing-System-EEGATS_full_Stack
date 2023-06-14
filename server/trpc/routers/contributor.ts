@@ -493,7 +493,6 @@ export const contributorRouter = router({
               })
             }
             catch (err) {
-              console.log("Error: ", err);
             }
 
           }
@@ -692,7 +691,7 @@ export const contributorRouter = router({
           skip: input.skip,
           take: 6,
           orderBy: {
-            createdAt: "desc",
+            updatedAt: "desc",
           },
           select: {
             name: true,

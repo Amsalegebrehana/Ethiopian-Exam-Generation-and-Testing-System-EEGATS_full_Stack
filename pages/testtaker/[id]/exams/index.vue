@@ -9,10 +9,13 @@ const isReloading = ref(false);
 const searchText  = ref('');
 const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.testtaker.getExamsCount.query({ testTakerId }));
 const { data: exams, refresh: fetchExams, pending } = await useAsyncData(() => $client.testtaker.getExams.query({ testTakerId, skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
-
+const {data :score, refresh: fetchScore} = await useAsyncData(() => $client.testtaker.getTotalScore.query({testTakerId}));
 const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.testtaker.getExamsCount.query({ testTakerId, search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
 const { data: searchExams, refresh: fetchSearchExams, pending: pendingSearch } = await useAsyncData(() => $client.testtaker.getExams.query({ testTakerId, search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
+
   { watch: [page, searchText] });
+
+  const examGroupName = await $client.testtaker.getExamGroupName.query({testTakerId});
 
 const paginate = async (newPage: number) => {
     page.value = newPage;
@@ -38,11 +41,12 @@ const showGradeModal = ref(false);
 const toggleViewGradeModal = () => {
     showGradeModal.value = !showGradeModal.value;
 }
-const gradeInfo = ref({ name: '', score : 0, numberOfQuestions: 0});
-const GradeModal = async (name : string, score : number, numberOfQuestions: number) => {
+const gradeInfo = ref({ name: '', score : 0, numberOfQuestions: 0, passGrade:0});
+const GradeModal = async (name : string, score : number, numberOfQuestions: number, passGrade : number) => {
 gradeInfo.value.name = name;
 gradeInfo.value.score = score;
 gradeInfo.value.numberOfQuestions = numberOfQuestions;
+gradeInfo.value.passGrade = passGrade;
 showGradeModal.value = !showGradeModal.value;
 }
 
@@ -58,14 +62,17 @@ const resetSearch = () => {
         <TopBar role="testtaker" :id="testTakerId" />
         <div class="flex">
 
-            <div class="w-full mx-20">
+            <div class="w-full mx-20 mt-24">
 
 
-                <h2 class="intro-y text-lg font-medium mt-10">List of exams</h2>
+                <h2 class="intro-y text-2xl font-extrabold mt-10">{{ examGroupName!.name }} list</h2>
 
                 <div class="grid grid-cols-12 gap-6 mt-5">
                     <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ">
-                    <div></div>
+                    <div class="ml-auto">
+                        
+                        <p class="text-center mt-3 sm:mt-0 text-lg">Total Score : {{score?.totalScore}} / {{ score?.totalNumQuestions }}</p>
+                    </div>
                     
                     <div class=" ml-auto mt-3 sm:mt-0 ">
                         <div class="w-56 relative text-slate-500">
@@ -121,7 +128,7 @@ const resetSearch = () => {
                                             <div v-if="exam.TestSession[0]&& exam.TestSession[0].isSubmitted">
 
                                                 <div class="flex justify-center items-center">
-                                                    <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade, exam.numberOfQuestions )">
+                                                    <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade, exam.numberOfQuestions , exam.gradePassPoint)">
                                                         <Icon name="material-symbols:demography-rounded" class="w-4 h-4 mr-1"></Icon> View Grade
                                                     </a>
                                                     
@@ -266,7 +273,7 @@ const resetSearch = () => {
                                             <div v-if="exam.TestSession[0]&& exam.TestSession[0].isSubmitted">
 
                                                 <div class="flex justify-center items-center">
-                                                    <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade , exam.numberOfQuestions)">
+                                                    <a class="flex items-center mr-6" href="javascript:;" @click="GradeModal(exam.name, exam.TestSession[0].grade , exam.numberOfQuestions, exam.gradePassPoint)">
                                                         <Icon name="material-symbols:demography-rounded" class="w-4 h-4 mr-1"></Icon> View Grade
                                                     </a>
                                                     
@@ -396,9 +403,14 @@ const resetSearch = () => {
             <!--body-->
             <div class="relative p-6 flex-auto">
             
-              
+                    <p v-if="gradeInfo.score > gradeInfo.passGrade" class="text-center text-xl text-success">
+                        Passed!
+                    </p>
+                    <p v-else class="text-center text-xl text-danger">
+                        Failed!
+                    </p>
                     
-                    <p class="align-middle my-auto font-bold text-lg text-center p-20">You have scored {{ ( (gradeInfo.score / gradeInfo.numberOfQuestions )* 100).toFixed(2) }} % for {{ gradeInfo.name }} Exam</p>
+                    <p class="align-middle my-auto font-bold text-lg text-center pb-20 pt-5">You have scored {{ gradeInfo.score }} / {{ gradeInfo.numberOfQuestions }} for {{ gradeInfo.name }} Exam</p>
                  
               
             </div>

@@ -4,7 +4,7 @@
         <div class="flex">
 
             <AdminSideBar pageName="testtakers" />
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 mt-24">
                 <div class="flex flex-row  align-middle mt-10">
                     <NuxtLink :to="`/admin/testtakers`">
                         <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
@@ -13,34 +13,15 @@
                 </div>
                 <div class="container mx-auto py-8">
                     <div v-if="testTakerResults">
-                        <div class="flex flex-row justify-between mb-5 sticky p-5 rounded-md ">
+                        <div class="space-y-4 mb-2 sticky p-5 rounded-md mx-10 ">
 
-                            <h1 class="text-4xl text-primary font-semibold mb-4 mx-10"> {{
+                            <h1 class="text-4xl text-primary font-semibold mb-4 "> {{
                                 testTakerResults.username }}</h1>
+                                <h4 class="font-bold text-lg">
+                                    Total : {{ testTakerResults.totalMarks}} / {{ testTakerResults.totalNumOfQuestions}}
+                                </h4>
 
-                            <div class="flex flex-row space-x-10 mr-10">
-                                <div class="flex items-center">
-                                    <div class="w-12 h-12 bg-green-700 rounded-full flex-shrink-0"></div>
-                                    <div class="ml-2">
-                                        <p class="text-gray-600"> Highest Grade</p>
-                                        <p class="text-lg font-semibold">{{ testTakerResults.highestGrade.toFixed(2) }}%</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-12 h-12 bg-yellow-700 rounded-full flex-shrink-0"></div>
-                                    <div class="ml-2">
-                                        <p class="text-gray-600"> Average Grade</p>
-                                        <p class="text-lg font-semibold">{{ testTakerResults.averageGrade.toFixed(2) }}%</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-12 h-12 bg-red-700 rounded-full flex-shrink-0"></div>
-                                    <div class="ml-2">
-                                        <p class="text-gray-600"> Lowest Grade</p>
-                                        <p class="text-lg font-semibold">{{ testTakerResults.lowestGrade.toFixed(2) }}%</p>
-                                    </div>
-                                </div>
-                            </div>
+                           
 
 
                         </div>
@@ -60,7 +41,7 @@
                                                     <div class="w-12 h-12 bg-gray-500 rounded-full flex-shrink-0"></div>
                                                     <div class="ml-2">
                                                         <p class="text-gray-600">Grade</p>
-                                                        <p class="text-lg font-semibold">{{ result.grade.toFixed(2) }}%</p>
+                                                        <p class="text-lg font-semibold">{{ result.grade}} / {{ result.numOfQuestions }}</p>
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center justify-between">

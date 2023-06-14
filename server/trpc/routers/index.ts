@@ -12,7 +12,7 @@ import {examRouter} from './exams';
 import { analyticsRouter } from './analytics';
 import { passwordHandlerRouter } from './password_handler';
 import { PrismaClient } from '@prisma/client';
-
+import { login } from './login';
 
 import * as cron from "node-cron";
 
@@ -27,8 +27,8 @@ export const appRouter = router({
     category :  category,
     exam: examRouter,
     analytics: analyticsRouter,
-    passwordHandlerRouter: passwordHandlerRouter,       
-  
+    passwordHandlerRouter: passwordHandlerRouter,
+    login: login,
     
 });
 // / access prisma client

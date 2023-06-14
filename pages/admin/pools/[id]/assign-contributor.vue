@@ -103,7 +103,6 @@ const handleAssignQuestions = async () => {
 watch(catID, (newId: string, oldId: string) => {
     if (categoriesNow.value) {
         categoriesNow.value.filter(category => {
-            console.log("inside", category.id);
             if (category.id === catID.value) {
                 contrInfo.value.questionNumber = category.contributorAssignments[0] ? category.contributorAssignments[0].questionsRemaining : 0
             }
@@ -116,10 +115,10 @@ watch(catID, (newId: string, oldId: string) => {
 <template>
     <div>
         <AdminTopBar role="admin" />
-        <div class="flex">
+        <div class="flex" :class="{'fixed w-full' : showAssignModal}">
 
             <AdminSideBar pageName="pools" />
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 content middle mt-20 ">
                 <div class="flex flex-row  align-middle mt-10">
                     <NuxtLink :to="`/admin/pools/${poolId}`">
                         <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
@@ -132,7 +131,7 @@ watch(catID, (newId: string, oldId: string) => {
 
 
                         <div class="my-5 w-full">
-                            <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ">
+                            <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ml-5">
                                 <button v-on:click="AssignModal()" class="btn btn-primary shadow-md mr-auto"
                                     data-modal-target="authentication-modal" data-modal-toggle="authentication-modal">
                                     Assign
@@ -363,10 +362,10 @@ watch(catID, (newId: string, oldId: string) => {
                     <div class="w-4/12" v-if="analytics">
                         <h1 class="text-center text-4xl font-bold">{{ analytics.contributorName }}</h1>
                         <h6 class="text-center text-lg">{{ analytics.poolName }}</h6>
-                        <div class="bg-white rounded-lg shadow-lg p-6 mt-4">
+                        <div class=" rounded-lg shadow-lg p-6 mt-4">
                             <h2 class="text-2xl font-bold mb-4 text-gray-600">Questions</h2>
 
-                            <div class="grid grid-cols-2 gap-2 mt-4">
+                            <div class="grid grid-cols-2 gap-3 mt-4">
                                 <div class="bg-white rounded-lg shadow-lg p-6 justify-center">
                                     <div class="">
 
@@ -408,9 +407,9 @@ watch(catID, (newId: string, oldId: string) => {
 
 
                         </div>
-                        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+                        <div class=" rounded-lg shadow-lg p-6 mt-6">
                             <h2 class="text-2xl font-bold mb-4 text-gray-600">Reviews</h2>
-                            <div class="grid grid-cols-3 gap-2 mt-4">
+                            <div class="grid grid-cols-2 gap-3 mt-4">
                                 <div class="bg-white rounded-lg shadow-lg p-6 justify-center">
                                     <div class="">
 
@@ -447,26 +446,6 @@ watch(catID, (newId: string, oldId: string) => {
                                 </div>
 
 
-                                <div class="bg-white rounded-lg shadow-lg p-6 justify-center">
-                                    <div class="">
-
-                                        <div class="flex flex-row justify-between  items-center text-center">
-                                            <div class="text-left align-middle">
-                                                <Icon name="mdi:check-decagram-outline"
-                                                    class="h-10 w-10  my-2 text-primary align-middle"></Icon>
-                                            </div>
-                                            <div class="text-right align-middle ">
-                                                <h2 class="text-md font-bold text-gray-500">Approval Rate</h2>
-                                                <p class="text-2xl font-bold text-gray-800" v-if="analytics.approvingRate">
-                                                    {{
-                                                        analytics.approvingRate.toFixed(2) }}%</p>
-                                                <p v-else>-</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-
                             </div>
                         </div>
                     </div>
@@ -474,7 +453,7 @@ watch(catID, (newId: string, oldId: string) => {
                 </div>
 
 
-                <div v-if="analytics"
+                <div v-if="analytics && analytics.totalQuestionsCreated > 0"
                     class=" bg-white rounded-lg shadow-lg p-6 items-center mt-10 mx-auto flex flex-row justify-between w-11/12 space-x-20 ">
                     <div class="w-4/12">
 
@@ -491,8 +470,11 @@ watch(catID, (newId: string, oldId: string) => {
 
         </div>
 
+        
+    </div>
+    <div v-if="showAssignModal" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
         <div v-if="showAssignModal"
-            class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+            class="overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center items-center flex">
             <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
                 <!--content-->
                 <div
@@ -564,6 +546,13 @@ watch(catID, (newId: string, oldId: string) => {
                 </div>
             </div>
         </div>
-        <div v-if="showAssignModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
     </div>
 </template>
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>

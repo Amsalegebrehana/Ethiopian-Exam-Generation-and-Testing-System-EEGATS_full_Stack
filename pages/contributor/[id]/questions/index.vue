@@ -20,10 +20,10 @@ const questionToSubmit = ref();
 const page = ref(1);
 const searchPage = ref(1);
 const searchText = ref('');
+const showSubmitFailed = ref(false);
 
 const route = useRoute();
 const contrId = route.params.id as string;
-
 
 
 const { data: isAssigned } = await useAsyncData(() => $client.contributor.checkifAssigned.query({ contrId }));
@@ -90,14 +90,24 @@ async function onDelete() {
 
 async function onSubmit() {
     isSubmitLoading.value = !isSubmitLoading.value;
-    const submitQuestion = await $client.question.submitQuestion.mutate(questionToSubmit.value);
-    isSubmitLoading.value = !isSubmitLoading.value;
-    toggleSubmitWarning();
-    window.location.reload()
+    try {
+        const submitQuestion = await $client.question.submitQuestion.mutate(questionToSubmit.value);
+        isSubmitLoading.value = !isSubmitLoading.value;
+        toggleSubmitWarning();
+        window.location.reload()
+    } catch(error){
+        isSubmitLoading.value = !isSubmitLoading.value;
+        toggleSubmitWarning();
+        toggleSubmitFailed();
+    }
 }
 
 async function onViewMore() {
     showCatagoriesVisible.value = !showCatagoriesVisible.value
+}
+
+const toggleSubmitFailed = () => {
+    showSubmitFailed.value = !showSubmitFailed.value;
 }
 </script>
 
@@ -111,6 +121,29 @@ async function onViewMore() {
         </div>
         <!-- Begin Add Question -->
         <!-- End Add Question -->
+        <div v-if="showSubmitFailed"
+            class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
+            <div class="py-5 px-3 flex-col bg-white rounded-xl">
+                <div
+                    class="px-3 bg-white text-lg rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] flex h-[12vh] opacity-100 gap-4">
+                    <div class="px-3 flex-col">
+                        <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
+                            Question submission failed!
+                        </DialogTitle>
+                        <p class="py-3 text-sm text-gray-500"> Attempt to submit question did not go through. You do not have any more assignments left 
+                            under this category. </p>
+                        <div class="flex justify-center items-center">
+                        </div>
+                        <div class="sm:flex sm:flex-row-reverse gap-3">
+                            <button type="button" @click="toggleSubmitFailed()"
+                                class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div v-if="deleteWarningVisible"
             class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
             <div class="py-5 px-3 flex-col bg-white rounded-xl">
@@ -149,77 +182,80 @@ async function onViewMore() {
                 </div>
             </div>
         </div>
-        <div v-if="submitWarningVisible"
-            class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
-            <div class="py-5 px-3 flex-col bg-white rounded-xl">
-                <div
-                    class="px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] flex h-[12vh] opacity-100 gap-4">
-                    <div class="px-3 flex-col">
-                        <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
-                            Are you sure you want to submit this draft?
-                        </DialogTitle>
-                        <p class="py-3 text-sm text-gray-500"> You cannot edit your work once you have submited it. Please
-                            make sure the question and its choices are up to standards. </p>
-                        <div class="flex justify-center items-center">
-                        </div>
-                        <div class="sm:flex sm:flex-row-reverse gap-3">
-                            <svg v-if="isSubmitLoading" aria-hidden="true"
-                                class="w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-green-600"
-                                viewBox="0 0 100 101" fill="none">
-                                <path
-                                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                                    fill="currentColor" />
-                                <path
-                                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                                    fill="currentFill" />
-                            </svg>
-                            <button v-else @click="onSubmit"
-                                class="inline-flex text-sm font-semibold justify-center rounded-md px-3 py-2 bg-green-700 hover:bg-green-600 text-white">
-                                Submit
-                            </button>
-                            <button type="button" @click="toggleSubmitWarning()"
-                                class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
-                                Cancel
-                            </button>
-                        </div>
+    </div>
+    <div v-if="submitWarningVisible"
+        class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
+        <div class="py-5 px-3 flex-col bg-white rounded-xl">
+            <div
+                class="px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] flex h-[12vh] opacity-100 gap-4">
+                <div class="px-3 flex-col">
+                    <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
+                        Are you sure you want to submit this draft?
+                    </DialogTitle>
+                    <p class="py-3 text-sm text-gray-500"> You cannot edit your work once you have submited it. Please
+                        make sure the question and its choices are up to standards. </p>
+                    <div class="flex justify-center items-center">
                     </div>
-                </div>
-            </div>
-        </div>
-        <div v-if="showCatagoriesVisible"
-            class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
-            <div class="py-5 px-3 flex-col bg-white rounded-xl">
-                <div
-                    class="flex-col px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] h-[50vh] opacity-100 gap-4">
-                    <div class="p-4 flex justify-between w-[100%]">
-                        <DialogTitle as="h3" class="text-xl font-semibold leading-6 text-gray-900">
-                            Remaining Questions by Category
-                        </DialogTitle>
-                        <button @click="toggleShowCategory" class="float-right px-1">
-                            <Icon name="eva:close-outline" class="w-8 h-8 text-red-600"></Icon>
+                    <div class="sm:flex sm:flex-row-reverse gap-3">
+                        <svg v-if="isSubmitLoading" aria-hidden="true"
+                            class="w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-green-600"
+                            viewBox="0 0 100 101" fill="none">
+                            <path
+                                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                                fill="currentColor" />
+                            <path
+                                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                                fill="currentFill" />
+                        </svg>
+                        <button v-else @click="onSubmit"
+                            class="inline-flex text-sm font-semibold justify-center rounded-md px-3 py-2 bg-green-700 hover:bg-green-600 text-white">
+                            Submit
+                        </button>
+                        <button type="button" @click="toggleSubmitWarning()"
+                            class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                            Cancel
                         </button>
                     </div>
-                    <ul v-if="categories" class="w-[96%] h-[83%] p-4 divide-y overflow-auto">
-                        <li v-for="category in categories" class="pb-3 sm:pb-4">
-                            <div class="flex justify-between items-center space-x-4 py-4">
-                                <div class="w-20">
-                                    <p class="text-lg font-medium text-gray-900 truncate">
-                                        {{ category!.name }}
-                                    </p>
-                                </div>
-                                <div
-                                    class="px-5 self-end float-right text-lg inline-flex items-center font-semibold text-gray-900">
-                                    {{ category!.questionsRemaining }}
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
                 </div>
             </div>
         </div>
-        <div class="flex h-100vh">
+    </div>
+    <div v-if="showCatagoriesVisible"
+        class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
+        <div class="py-5 px-3 flex-col bg-white rounded-xl">
+            <div
+                class="flex-col px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] h-[50vh] opacity-100 gap-4">
+                <div class="p-4 flex justify-between w-[100%]">
+                    <DialogTitle as="h3" class="text-xl font-semibold leading-6 text-gray-900">
+                        Remaining Questions by Category
+                    </DialogTitle>
+                    <button @click="toggleShowCategory" class="float-right px-1">
+                        <Icon name="eva:close-outline" class="w-8 h-8 text-red-600"></Icon>
+                    </button>
+                </div>
+                <ul v-if="categories" class="w-[96%] h-[83%] p-4 divide-y overflow-auto">
+                    <li v-for="category in categories" class="pb-3 sm:pb-4">
+                        <div class="flex justify-between items-center space-x-4 py-4">
+                            <div class="w-20">
+                                <p class="text-lg font-medium text-gray-900 truncate">
+                                    {{ category!.name }}
+                                </p>
+                            </div>
+                            <div
+                                class="px-5 self-end float-right text-lg inline-flex items-center font-semibold text-gray-900">
+                                {{ category!.questionsRemaining }}
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div>
+        <TopBar role="contributor" :id="contrId" />
+       <div class="flex" :class="{'fixed w-full' : modalVisible || deleteWarningVisible || submitWarningVisible || showCatagoriesVisible}">
             <ContributorSideBar pageName="questions" :contrId="contrId" />
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 content middle mt-20 ">
                 <Loading v-if="isLoadingQ" />
                 <h2 class="intro-y text-lg font-medium mt-10">List of Questions</h2>
                 <div class="grid grid-cols-12 gap-6 mt-5">
@@ -235,7 +271,7 @@ async function onViewMore() {
                                 </div>
                             </button>
                             <NuxtLink :to="`/contributor/${contrId}/create-question`">
-                                <button class="btn btn-primary shadow-md mr-2" :disable="!isAssigned || canAddQuestion!">
+                                <button class="btn btn-primary shadow-md mr-2" :disable="!isAssigned || !canAddQuestion!">
                                     Add question
                                     <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
                                 </button>
@@ -416,3 +452,11 @@ async function onViewMore() {
             </div>
         </div>
 </div></template>
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>

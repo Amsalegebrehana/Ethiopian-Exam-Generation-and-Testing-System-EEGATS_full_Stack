@@ -22,7 +22,8 @@ const pool = new Pool({
 
 
 import { promisify } from "util";
-import { createObjectCsvStringifier } from "csv-writer";
+import { createObjectCsvStringifier, createObjectCsvWriter } from "csv-writer";
+import { th } from "date-fns/locale";
 
 
 
@@ -247,16 +248,19 @@ export const examGroupRouter = router({
         .mutation(async ({ ctx, input }) => {
 
             let requestSuccess = true;
+      
 
             https.get(input.inputPath, async (response) => {
                 response
                     .pipe(parse({ delimiter: ',', relax_quotes: true, from_line: 2 }))
                     .on('data', async (row) => {
 
+                    
+
                         const fullName = row[0].trim();
 
                         // Check if the fullName contains only letters
-                        if (!/^[a-zA-Z]+$/.test(fullName)) {
+                        if (!/^[a-zA-Z\s]+$/.test(fullName)) {
 
                             return
                         }
@@ -269,20 +273,21 @@ export const examGroupRouter = router({
 
                         const password = row[1] + String(Math.ceil(Math.random() * 10 ** 4)).padStart(4, '0');
                         row.push(password);
+                  
 
-
-
-                        const hashedPassword = await bcrypt.hash(password, 10);
+                        const hashedPassword = await bcrypt.hash(password, 10); 
+           
                         // create test taker
+
                         const createTestTakers = await ctx.prisma.testTakers.create({
                             data: {
-                                name: row[0],
-                                username: row[1],
-                                password: hashedPassword,
-                                examGroupId: input.examGroupId,
+                                name: row[0], 
+                                username: row[1], 
+                                password: hashedPassword, 
+                                examGroupId: input.examGroupId, 
                             },
                         });
-
+                       
                         const tempTestTakers = await ctx.prisma.temporaryTestTakers.create({
                             data: {
                                 name: row[0],
@@ -291,6 +296,7 @@ export const examGroupRouter = router({
                                 examGroupId: input.examGroupId,
                             },
                         });
+                  
 
                         if (!createTestTakers) {
 
@@ -314,8 +320,8 @@ export const examGroupRouter = router({
                         });
                     })
 
-            })
-                ;
+            });
+                
             return requestSuccess;
         })
     ,
@@ -505,7 +511,6 @@ export const examGroupRouter = router({
                         return true;
 
                     } catch (error) {
-                        console.log("error", error)
                         throw new TRPCError({
                             code: 'INTERNAL_SERVER_ERROR',
                             message: 'INTERNAL_SERVER_ERROR',
@@ -555,6 +560,100 @@ export const examGroupRouter = router({
             const csvData = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(testTakers);
 
             return csvData;
+        }),
+        // export grades by exam group id for each exam and respective test takers
+        exportGrades: protectedProcedure
+        .input(
+            z.object({
+                id: z.string(),
+            })
+        )
+        .query(async ({ ctx, input }) => {
+            if (ctx.session.role === "admin") {
+                const { id } = input;
+
+                // Query the test takers in the specified exam group
+                const testTakers = await ctx.prisma.testTakers.findMany({
+                  where: {
+                    examGroupId: id,
+                  },
+                  include: {
+                    TestSession: {
+                      include: {
+                        exam: true,
+                      },
+                    },
+                  },
+                });
+              
+                // filter exams from test takers unique exam ids and names 
+                const filteredExams = testTakers.flatMap((testTaker) => {
+                    // Skip exams  that have already been visited
+                    // iterate test takers using foreach
+                    const uniqueSessions = testTaker.TestSession.filter((session, index, self) =>
+                        self.findIndex((s) => s.exam.id === session.exam.id) === index
+                    );
+               
+                    const filteredResults = uniqueSessions.map((session) => ({
+                        id: session.exam.id,
+                        title: session.exam.name,
+                    }));
+
+                    return filteredResults;
+                });
+
+                    // remove duplicates from filteredExams 
+                const uniqueExams= filteredExams.filter((obj, index, self) => {
+                    const key = obj.id;
+                    return index === self.findIndex((el) => el.id === key);
+                });
+                      
+              
+                // Prepare CSV writer
+                const csvWriter = createObjectCsvWriter({
+                    path: 'grades.csv',
+                    header: [
+                      { id: 'testTaker', title: 'Test Taker' },
+                       ...uniqueExams.map((exam) => ({
+                            id: exam.id,
+                            title: exam.title,
+                        })),
+                    ],
+                  });
+          
+               // Prepare data for CSV
+                    // Prepare data for CSV
+                const data = testTakers.map((testTaker) => {
+
+                    const row: { [key: string]: any } = {
+                    testTaker: testTaker.name,
+                    };
+
+                    testTaker.TestSession.forEach((session) => {
+                    const { id } = session.exam;
+                    row[id] = session.grade !== undefined ? session.grade : 'Not Taken';
+                    });
+
+                    return row;
+                });
+
+               
+                // Write data to CSV file
+                await csvWriter.writeRecords(data);
+          
+                // Read the CSV file and return it
+                const file = fs.readFileSync('grades.csv', 'utf8');
+                fs.unlinkSync('grades.csv'); // Delete the temporary file
+          
+                return file;
+   
+            }
+            else {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "UNAUTHORIZED ACCESS.",
+                })
+            }
         }),
 
 });

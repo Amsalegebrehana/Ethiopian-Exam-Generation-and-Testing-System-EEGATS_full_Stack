@@ -1,8 +1,39 @@
 import { Choice, QuestionAnswer, Questions } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 import {QuestionStatus } from "@prisma/client";
+import nodemailer from "nodemailer";
+
+export async function sendNotification({
+    email,
+    url,
+    pool
+}: {
+    email: string;
+    url: string;
+    pool: string;
+}) {
+    const testAccount = await nodemailer.createTestAccount();
+
+    const transporter = nodemailer.createTransport({
+
+        service: "gmail",
+        auth: {
+            user: "invite.eegts@gmail.com",
+            pass: process.env.MAILER_PASSWORD,
+        },
+    });
+
+    const info = await transporter.sendMail({
+        from: ' <no-reply@eegts.com>',
+        to: email,
+        subject: "Contribute at EEGTS",
+        html: `<p>Greetings,<br></p> <p>You have been assigned to review more questions for the Ethiopian Exam Generation and Testing System's ${pool} pool.<br></p><p>Log into your account by clicking <a href="${url}">HERE</a></p>`,
+    });
+
+}
+
 export const questionRouter = router({
     addQuestion: publicProcedure.input(
         z.object({
@@ -88,7 +119,6 @@ export const questionRouter = router({
         return question;
         }}
     }catch (err){
-        console.log(err);
     }
      }),
     submitQuestion: publicProcedure
@@ -97,18 +127,32 @@ export const questionRouter = router({
      )
     .mutation(
         async ({ctx, input}) => {
-            const question = await ctx.prisma.questions.update({
+            var question = await ctx.prisma.questions.findUnique({
+                where: {
+                    id: input
+                }
+            })
+            const contrAssignment = await ctx.prisma.contributorAssignment.findFirst({
+                where: {
+                    contrId: question!.contributorId,
+                    catId: question!.catId,
+                }
+            })
+            if (contrAssignment != null && contrAssignment.questionsRemaining <= 0){
+                throw new TRPCError({
+                    code: 'BAD_REQUEST',
+                    message: "Contributor does not have remaining questions assigned in the given category",
+                })
+            }
+            question = await ctx.prisma.questions.update({
                 where: {
                     id: input
                 },
                 data: {
                     status: QuestionStatus.waiting
-                }
-            })
-            const contrAssignment = await ctx.prisma.contributorAssignment.findFirst({
-                where: {
-                    contrId: question.contributorId,
-                    catId: question.catId,
+                },
+                include :{
+                    pool : true,
                 }
             })
             await ctx.prisma.contributorAssignment.update({
@@ -120,21 +164,27 @@ export const questionRouter = router({
                 }
             });
             var reviewers =  await ctx.prisma.contributors.findMany({
+                where: {
+                    poolId: question.poolId,
+                    isActive: true,
+                },
                 orderBy : {
                     reviewsMade : 'asc',
                 },
                 take :5
             });
+
+            reviewers = reviewers.filter((item) => item.id != question!.contributorId);
             var reviewerSelected = reviewers[Math.floor(Math.random()*reviewers.length)];
-            if(reviewerSelected.id == question.contributorId){
-                reviewers = reviewers.filter((item) => item.id != question.contributorId);
-                reviewerSelected  = reviewers[Math.floor(Math.random()*reviewers.length)];
-            }
+            
             const review = await ctx.prisma.review.create({
                 data :{
                     questionId : question.id,
                     reviewerId : reviewerSelected.id,
                 
+                },
+                include:{
+                    Reviewers : true,
                 }
             }).then(async (data) => {
                 await ctx.prisma.contributors.update({
@@ -144,7 +194,11 @@ export const questionRouter = router({
                     data :{
                         reviewsMade : reviewerSelected.reviewsMade + 1
                     }
-                })}
+                })
+                const { auth } = useRuntimeConfig();
+                sendNotification({ email: data!.Reviewers.email, pool: question!.pool.name, url: `${auth.origin}/contributor/login` });
+            }
+
             );
         }
     ), 
@@ -297,6 +351,6 @@ export const questionRouter = router({
                     choiceId : input.correctChoice == 'choiceOne' ? input.choiceOneId : input.correctChoice == 'choiceTwo' ? input.choiceTwoId : input.correctChoice == 'choiceThree' ? input.choiceThreeId : input.choiceFourId
                 }
             });
-        })
+        }),
 
 });
