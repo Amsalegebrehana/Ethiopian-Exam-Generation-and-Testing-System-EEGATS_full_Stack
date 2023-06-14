@@ -159,11 +159,10 @@ export const questionRouter = router({
                 },
                 take :5
             });
+            
+            reviewers = reviewers.filter((item) => item.id != question.contributorId);
             var reviewerSelected = reviewers[Math.floor(Math.random()*reviewers.length)];
-            if(reviewerSelected.id == question.contributorId){
-                reviewers = reviewers.filter((item) => item.id != question.contributorId);
-                reviewerSelected  = reviewers[Math.floor(Math.random()*reviewers.length)];
-            }
+            
             const review = await ctx.prisma.review.create({
                 data :{
                     questionId : question.id,
