@@ -226,12 +226,16 @@ const handleDeletePool = async () => {
                                                 </td>
                                                 <td class="text-center">{{ pool._count.Questions }}</td>
 
-                                                <td class="table-report__action w-56">
+                                                <td class="table-report__action w-96">
                                                     <div class="flex justify-center items-center">
-                                                        <a class="flex items-center mr-6" href="javascript:;"
+                                                        <a class="flex items-center mr-6 text-primary" :href="`/admin/pools/${pool.id}`">
+                                                                    <Icon name="tabler:device-analytics"
+                                                                        class="w-4 h-4 mr-1"></Icon> View Details
+                                                                </a>
+                                                      
+                                                        <a class="flex items-center mr-6 text-success" href="javascript:;"
                                                             @click="EditModal(pool.id, pool.name)">
-                                                            <Icon name="eva:checkmark-square-outline" class="w-4 h-4 mr-1">
-                                                            </Icon> Edit
+                                                            <Icon name="material-symbols:edit-outline" class="w-4 h-4"></Icon> Edit
                                                         </a>
                                                         <a class="flex items-center text-danger" href="javascript:;"
                                                             @click="DeleteModal(pool.id, pool.name)">
@@ -321,12 +325,16 @@ const handleDeletePool = async () => {
                                                 </td>
                                                 <td class="text-center">{{ pool._count.Questions }}</td>
 
-                                                <td class="table-report__action w-56">
+                                                <td class="table-report__action w-96">
                                                     <div class="flex justify-center items-center">
-                                                        <a class="flex items-center mr-6" href="javascript:;"
+                                                        <a class="flex items-center mr-6 text-primary" :href="`/admin/pools/${pool.id}`">
+                                                                    <Icon name="tabler:device-analytics"
+                                                                        class="w-4 h-4 mr-1"></Icon> View Details
+                                                                </a>
+                                                      
+                                                        <a class="flex items-center mr-6 text-success" href="javascript:;"
                                                             @click="EditModal(pool.id, pool.name)">
-                                                            <Icon name="eva:checkmark-square-outline" class="w-4 h-4 mr-1">
-                                                            </Icon> Edit
+                                                            <Icon name="material-symbols:edit-outline" class="w-4 h-4"></Icon> Edit
                                                         </a>
                                                         <a class="flex items-center text-danger" href="javascript:;"
                                                             @click="DeleteModal(pool.id, pool.name)">

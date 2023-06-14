@@ -13,6 +13,7 @@ const deleteWarningVisible = ref(false);
 const isDeleteLoading = ref(false);
 const isSubmitLoading = ref(false);
 const isReloading = ref(false);
+const isLoadingQ = ref(false);
 const selectedQuestion = ref();
 const questionToDelete = ref();
 const questionToSubmit = ref();
@@ -27,17 +28,17 @@ const contrId = route.params.id as string;
 
 const { data: isAssigned } = await useAsyncData(() => $client.contributor.checkifAssigned.query({ contrId }));
 const { data: categories } = await useAsyncData(() => $client.contributor.getRemainingQuestionsByCategories.query({ contrId }));
-const questionsRemaining = categories.value == null? 0 : categories.value.reduce((sum, category) => sum + category.questionsRemaining, 0);
+const questionsRemaining = categories.value == null ? 0 : categories.value.reduce((sum, category) => sum + category.questionsRemaining, 0);
 const { data: count, refresh: fetchQuestionsCount } = await useAsyncData(() => $client.contributor.getContributorDraftCount.query(contrId));
-const { data: questions, refresh: fetchQuestions, pending} = await useAsyncData(() => $client.contributor.getContributorQuestions.query({contrId: contrId, skip: (page.value - 1) * 6}),
-      { watch: [page, searchText]} );
+const { data: questions, refresh: fetchQuestions, pending } = await useAsyncData(() => $client.contributor.getContributorQuestions.query({ contrId: contrId, skip: (page.value - 1) * 6 }),
+    { watch: [page, searchText] });
 const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.contributor.searchQuestionsCount.query({ search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
 const { data: searchQuestions, refresh: fetchSearchQuestions, pending: pendingSearch } = await useAsyncData(() => $client.contributor.searchContributorQuestions.query({ search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6, contributorId: contrId }),
     { watch: [page, searchText] });
 const { data: canAddQuestion } = await useAsyncData(async () => {
     const contrCount = await $client.contributor.getCountOfContributors.query();
     return contrCount > 2;
-    });
+});
 const paginate = async (newPage: number) => {
     page.value = newPage;
     isReloading.value = true;
@@ -61,7 +62,9 @@ const paginateSearch = async (newPage: number) => {
 }
 
 async function toggleModal(question: Questions) {
+    isLoadingQ.value = true;
     selectedQuestion.value = await $client.question.getQuestion.query(question.id);
+    isLoadingQ.value = false;
     modalVisible.value = !modalVisible.value;
 }
 
@@ -107,14 +110,6 @@ async function onViewMore() {
             <ViewQuestion :question="selectedQuestion" />
         </div>
         <!-- Begin Add Question -->
-        <div class="text-lg fixed z-[100] bottom-16 right-10 md:block mx-auto text-slate-500">
-            <NuxtLink :to="`/contributor/${contrId}/create-question`">
-                <button class="btn btn-primary shadow-md mr-2" :disable="!isAssigned || canAddQuestion!">
-                    Add question
-                    <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
-                </button>
-            </NuxtLink>
-        </div>
         <!-- End Add Question -->
         <div v-if="deleteWarningVisible"
             class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
@@ -194,7 +189,8 @@ async function onViewMore() {
         <div v-if="showCatagoriesVisible"
             class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
             <div class="py-5 px-3 flex-col bg-white rounded-xl">
-                <div class="flex-col px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] h-[50vh] opacity-100 gap-4">
+                <div
+                    class="flex-col px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] h-[50vh] opacity-100 gap-4">
                     <div class="p-4 flex justify-between w-[100%]">
                         <DialogTitle as="h3" class="text-xl font-semibold leading-6 text-gray-900">
                             Remaining Questions by Category
@@ -208,10 +204,11 @@ async function onViewMore() {
                             <div class="flex justify-between items-center space-x-4 py-4">
                                 <div class="w-20">
                                     <p class="text-lg font-medium text-gray-900 truncate">
-                                    {{ category!.name }}
+                                        {{ category!.name }}
                                     </p>
                                 </div>
-                                <div class="px-5 self-end float-right text-lg inline-flex items-center font-semibold text-gray-900">
+                                <div
+                                    class="px-5 self-end float-right text-lg inline-flex items-center font-semibold text-gray-900">
                                     {{ category!.questionsRemaining }}
                                 </div>
                             </div>
@@ -223,21 +220,31 @@ async function onViewMore() {
         <div class="flex h-100vh">
             <ContributorSideBar pageName="questions" :contrId="contrId" />
             <div class="w-full mx-6">
-
+                <Loading v-if="isLoadingQ" />
                 <h2 class="intro-y text-lg font-medium mt-10">List of Questions</h2>
                 <div class="grid grid-cols-12 gap-6 mt-5">
                     <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap justify-between items-center mt-2">
-                        <div class="flex gap-5">
-                            <span class="intro-y text-lg font-medium pt-7 pr-5">
-                                {{ questionsRemaining }} questions remaining
-                                <button @click="onViewMore">
-                                    <icon name="material-symbols:more-up" class="mx-2 w-7 h-7 text-blue-700"></icon>
+                        <div class="flex flex-col space-y-5">
+
+                            <button @click="onViewMore">
+                                <div class="flex gap-5">
+                                    <span class="intro-y text-lg font-medium pr-5">
+                                        {{ questionsRemaining }} questions remaining
+                                        <icon name="material-symbols:more-up" class="mx-2 w-7 h-7 text-blue-700"></icon>
+                                    </span>
+                                </div>
+                            </button>
+                            <NuxtLink :to="`/contributor/${contrId}/create-question`">
+                                <button class="btn btn-primary shadow-md mr-2" :disable="!isAssigned || canAddQuestion!">
+                                    Add question
+                                    <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
                                 </button>
-                            </span>
+                            </NuxtLink>
                         </div>
                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                             <div class="w-56 relative text-slate-500">
-                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." v-model="searchText"/>
+                                <input type="text" class="form-control w-56 box pr-10" placeholder="Search..."
+                                    v-model="searchText" />
                                 <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0">
                                 </Icon>
                             </div>
@@ -351,14 +358,15 @@ async function onViewMore() {
                         </table>
 
                     </div>
-                    
+
                     <!-- END: Data List -->
                     <!-- BEGIN: Pagination -->
                     <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                         <nav class="w-full sm:w-auto sm:mr-auto">
                             <ul v-if="searchText != ''" class="pagination">
                                 <li class="page-item">
-                                    <button class="page-link" v-on:click="paginateSearch(searchPage - 1)" :disabled="searchPage === 1">
+                                    <button class="page-link" v-on:click="paginateSearch(searchPage - 1)"
+                                        :disabled="searchPage === 1">
                                         <div class="flex flex-row align-middle justify-center items-center  ">
                                             <Icon name="mdi:chevron-left" class="h-4 w-4 align-middle">
                                             </Icon>
@@ -407,5 +415,4 @@ async function onViewMore() {
 
             </div>
         </div>
-    </div>
-</template>
+</div></template>

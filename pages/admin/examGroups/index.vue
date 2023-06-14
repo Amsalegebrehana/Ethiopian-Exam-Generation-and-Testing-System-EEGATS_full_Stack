@@ -63,10 +63,13 @@
                                         </td>
                                         <td class="text-center">{{ exgrp._count['Exam'] }}</td>
                                  
-                                        <td class="table-report__action w-56">
+                                        <td class="table-report__action w-96">
                                             <div class="flex justify-center items-center">
-                                                
-                                                <button class="text-success flex items-center mr-3 "  @click="EditModal(exgrp.id, exgrp.name)">
+                                                <a class="flex items-center mr-6 text-primary" :href="`/admin/examGroups/${exgrp.id}`">
+                                                                    <Icon name="tabler:device-analytics"
+                                                                        class="w-4 h-4 mr-1"></Icon> View Details
+                                                                </a>
+                                                <button class="text-success flex items-center mr-6"  @click="EditModal(exgrp.id, exgrp.name)">
                                                     <Icon name="material-symbols:edit-outline" class="w-4 h-4 mr-1"> </Icon> Edit
                                                 </button>
                                                

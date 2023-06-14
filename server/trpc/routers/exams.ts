@@ -5,6 +5,7 @@ import { addMinutes, isAfter } from "date-fns";
 // import isOverlapping  from 'date-fns';
 import { areIntervalsOverlapping } from 'date-fns'
 import { TRPCError } from "@trpc/server";
+import { PDFDocument, PDFPage, StandardFonts } from 'pdf-lib';
 
 
 // reuseble get exam group by Id here
@@ -670,6 +671,126 @@ export const examRouter = router({
             }
             ),
             
-   
+            // export exam to pdf with questions and answers
+            exportExamToPdf: protectedProcedure
+            .input(
+                z.object({
+                    id: z.string(),
+                })
+            )
+            .query(async ({ ctx, input }) => {
+
+                if(ctx.session.role === 'admin'){
+
+                    // get exam by id and include the questions and answers
+                    const exam = await ctx.prisma.exam.findUnique({
+                        where: {
+                            id: input.id,
+                        },
+                        include: {
+                            Questions: {
+                                include: {
+                                    choices: true,
+                                    QuestionAnswer: {
+                                        select: {
+                                            choiceId : true,
+                                            // then include the choice title
+                                            choice: {
+                                                select: {
+                                                    title: true,
+                                                },
+                                            },
+                                        }
+                                    }
+                                },
+                            },
+                        },
+                    });
+                    if (!exam) {
+                        throw new TRPCError({
+                            code: "NOT_FOUND",
+                            message: `Exam with id ${input.id} not found`
+                        });
+                    }
+                    if(exam.status !== "gradeReleased"){
+                        throw new TRPCError({
+                            code: "BAD_REQUEST",
+                            message: `Exam grade is not yet Released.`
+                        });
+                    }
+                    // add content to the pdf document
+                    const addContentToPage = (page: PDFPage, content: any[]) => {
+                        const { width, height } = page.getSize();
+                        const fontSize = 12;
+                    
+                        let yOffset = height - 50;
+                    
+                        content.forEach((line) => {
+                        page.drawText(line, {
+                            x: 50,
+                            y: yOffset,
+                            font,
+                            size: fontSize,
+                        });
+                        yOffset -= 20;
+                        });
+                    
+                        return page;
+                    };
+                    
+                    // create a new pdf document
+                    const pdfDoc = await PDFDocument.create();
+                    let currentPage = pdfDoc.addPage();
+                    
+                    // Set the font used for the document
+                    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                    
+                    // Initialize an array to store the content lines
+                    let contentLines: any[] = [];
+                    
+                    // Add the exam ID to the content lines
+                    // make the name bold by adding <b> tag
+                    
+                    contentLines.push(`Exam Name: ${exam.name}`);
+                    
+                    // iterate the questions, the choices, and the answers
+                    exam.Questions.forEach((question, index) => {
+                        contentLines.push(`Question ${index + 1}: ${question.title}`);
+                    
+                        question.choices.forEach((choice, choiceIndex) => {
+                        contentLines.push(` ${choiceIndex + 1}: ${choice.title}`);
+                        });
+                    
+                        contentLines.push(`Answer: ${question.QuestionAnswer?.choice.title}`);
+                    
+                        // Check if the current page is filled
+                        if (contentLines.length >= 50) {
+                            currentPage = addContentToPage(currentPage, contentLines);
+                            contentLines = [];
+                        
+                            // Add a new page
+                            currentPage = pdfDoc.addPage();
+                        }
+                    });
+                    
+                    // Add remaining content to the final page
+                    if (contentLines.length > 0) {
+                        currentPage = addContentToPage(currentPage, contentLines);
+                    }
+                    
+                    // save the pdf document
+                    const pdfBytes = await pdfDoc.save();
+                    
+                    return pdfBytes;
+  
+
+                }else{
+                    throw new TRPCError({
+                        code: "UNAUTHORIZED",
+                        message: "UNAUTHORIZED ACCESS.",
+                }
+                )}
+            }),
+
 });
 

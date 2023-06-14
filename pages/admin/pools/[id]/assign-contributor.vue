@@ -410,7 +410,7 @@ watch(catID, (newId: string, oldId: string) => {
                         </div>
                         <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
                             <h2 class="text-2xl font-bold mb-4 text-gray-600">Reviews</h2>
-                            <div class="grid grid-cols-3 gap-2 mt-4">
+                            <div class="grid grid-cols-2 gap-2 mt-4">
                                 <div class="bg-white rounded-lg shadow-lg p-6 justify-center">
                                     <div class="">
 
@@ -446,25 +446,6 @@ watch(catID, (newId: string, oldId: string) => {
                                     </div>
                                 </div>
 
-
-                                <div class="bg-white rounded-lg shadow-lg p-6 justify-center">
-                                    <div class="">
-
-                                        <div class="flex flex-row justify-between  items-center text-center">
-                                            <div class="text-left align-middle">
-                                                <Icon name="mdi:check-decagram-outline"
-                                                    class="h-10 w-10  my-2 text-primary align-middle"></Icon>
-                                            </div>
-                                            <div class="text-right align-middle ">
-                                                <h2 class="text-md font-bold text-gray-500">Approval Rate</h2>
-                                                <p class="text-2xl font-bold text-gray-800" v-if="analytics.approvingRate">
-                                                    {{
-                                                        analytics.approvingRate.toFixed(2) }}%</p>
-                                                <p v-else>-</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
 
 
                             </div>
