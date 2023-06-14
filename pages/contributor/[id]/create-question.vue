@@ -85,7 +85,7 @@ const getSrc = (filepath: string) => {
         <div class="flex">
 
             <ContributorSideBar pageName="questions" :contrId="contrId" />
-            <div class="w-10/12 mx-6 ">
+            <div class="w-10/12 mx-6 content middle mt-20 ">
 
                 <div class="flex flex-row  align-middle mt-10">
                     <NuxtLink :to="`/contributor/${contrId}/questions`">
@@ -369,4 +369,12 @@ const getSrc = (filepath: string) => {
         </div>
     </div>
 </template>
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>
 
