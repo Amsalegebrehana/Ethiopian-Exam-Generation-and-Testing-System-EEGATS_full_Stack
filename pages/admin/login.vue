@@ -17,7 +17,7 @@
                     <div class="w-8/12 mt-32 justify-center mx-auto">
                         <span class="mt-5 text-red-500">{{ formError }}</span>
 
-                        <div class="intro-x mt-8">
+                        <div  class="intro-x mt-8">
 
                             <span class="mt-5 text-red-500">{{ errors.email }}</span>
                             <div class="input-group my-2  w-96">
@@ -47,11 +47,7 @@
 
 
                         </div>
-                        <!-- <div class="intro-x flex text-slate-600 dark:text-slate-500 text-xs sm:text-sm mt-4">
-                    <div></div>
-                    <a href="" class="ml-auto">Forgot Password?</a>
-                </div> -->
-
+                        
 
                         <button class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center mt-8"
                             :disabled="isLoading">
@@ -62,7 +58,7 @@
                                 Sign In
                             </div>
                         </button>
-
+                        
                     </div>
                 </form>
             </div>
@@ -77,6 +73,8 @@ import { toFormValidator } from '@vee-validate/zod';
 import * as zod from 'zod';
 definePageMeta({ auth: false })
 const { getSession } = useSession();
+const { $client } = useNuxtApp();
+
 onMounted(() => {
     const inputFields = document.querySelectorAll('input');
     inputFields.forEach((input) => {
@@ -84,6 +82,7 @@ onMounted(() => {
     });
 });
 const isLoading = ref(false);
+
 const validationSchema = toFormValidator(
     zod.object({
         email: zod.string().nonempty('This is required').email({ message: 'Must be a valid email' }),
@@ -106,30 +105,29 @@ const { handleSubmit, errors } = useForm({
 );
 const { value: email } = useField('email');
 const { value: password } = useField('password');
-const onSubmit = handleSubmit(values => {
-
-    mySignInHandler({ email: values.email, password: values.password, role: 'admin' })
-});
-
-const { signIn } = useSession()
-const mySignInHandler = async ({ email, password, role }: { email: string, password: string, role: string }) => {
+const onSubmit = handleSubmit(async (values) => {
     formError.value = '';
     isLoading.value = true
     try {
-        const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: 'http://localhost:3000/admin' })
-        if (error) {
-            if (error == 'Multiple failed attempts, you account has been locked, please contact system admin' || error == 'Invalid credentials') {
-                formError.value = error;
-            } else {
-                formError.value = 'Something went wrong, please try again';
-            }
-        } else {
-            return navigateTo(url, { external: true })
+        
+        const response = await $client.login.loginUser.mutate({ email: values.email, password: values.password, role: 'admin' });
+        if(response){
+            // navigate to otp page
+            isLoading.value = false
+            navigateTo(`/admin/otpPage?id=${response.id}`)
         }
-    } catch (error) {
+        else{
+            formError.value = 'Something went wrong, please try again';
+        }
 
+    } catch (error) {
+        formError.value = 'Something went wrong, please try again';
     }
-    isLoading.value = false
-}
+
+
+    
+});
+
+
 
 </script>

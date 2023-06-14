@@ -13,6 +13,8 @@ model Admin {
   name     String
   email    String @unique
   password String
+  otp      String   @default("123456")
+  otpExpiryDate DateTime @default(now())
 }
 
 model Pool {
@@ -31,9 +33,9 @@ model Pool {
 model ExamGroup {
   id         String       @id @default(uuid())
   name       String       @unique
-  isPractice Boolean      @default(false)
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
+  isPractice Boolean      @default(false)
   Exam       Exam[]
   TestTakers TestTakers[]
 }
@@ -49,6 +51,8 @@ model Contributors {
   updatedAt              DateTime                @updatedAt
   reviewsMade            Int                     @default(0)
   failedAttempts         Int                     @default(0)
+  otp                   String   @default("123456")
+  otpExpiryDate DateTime @default(now())
   contributorAssignments ContributorAssignment[]
   pool                   Pool                    @relation(fields: [poolId], references: [id])
   Questions              Questions[]
@@ -56,22 +60,22 @@ model Contributors {
 }
 
 model Exam {
-  id                String              @id @default(uuid()) 
-  name              String              @unique 
-  numberOfQuestions Int                 @default(0) 
-  duration          Float               @default(0) 
+  id                String              @id @default(uuid())
+  name              String              @unique
+  numberOfQuestions Int                 @default(0)
+  duration          Float               @default(0)
   testingDate       DateTime
   examReleaseDate   DateTime
   status            ExamStatus
-  gradePassPoint    Int                 @default(0)
   poolId            String
   examGroupId       String
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  gradePassPoint    Int                 @default(0)
   examGroup         ExamGroup           @relation(fields: [examGroupId], references: [id])
   pool              Pool                @relation(fields: [poolId], references: [id])
-  Questions         Questions[] 
-  TestSession       TestSession[] 
+  Questions         Questions[]
+  TestSession       TestSession[]
   TestTakerResponse TestTakerResponse[]
 }
 
@@ -85,20 +89,20 @@ model TestTakers {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   failedAttempts    Int                 @default(0)
+  isFirstTime       Boolean             @default(true)
   TestSession       TestSession[]
   TestTakerResponse TestTakerResponse[]
   examGroup         ExamGroup           @relation(fields: [examGroupId], references: [id])
 }
 
-model TemporaryTestTakers{
-  id                String              @id @default(uuid())
-  name              String
-  username          String              @unique
-  password          String
-  examGroupId       String
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
- 
+model TemporaryTestTakers {
+  id          String   @id @default(uuid())
+  name        String
+  username    String   @unique
+  password    String
+  examGroupId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Choice {

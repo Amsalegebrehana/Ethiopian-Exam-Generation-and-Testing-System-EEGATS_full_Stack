@@ -98,31 +98,26 @@ const { handleSubmit, errors } = useForm({
 );
 const { value: email } = useField('email');
 const { value: password } = useField('password');
-const onSubmit = handleSubmit(values => {
-
-    mySignInHandler({ email: values.email, password: values.password, role: 'contributor' })
-});
-const { signIn } = useSession()
-const mySignInHandler = async ({ email, password, role }) => {
-    formError.value = '';
-    isLoading.value = true;
-    try{
-        const { data: contrId } = await useAsyncData(() => $client.contributor.getContributorId.query({ email }));
-        const { error, url } = await signIn('credentials', { email, password, role, redirect: false, callbackUrl: `http://localhost:3000/contributor/${contrId._rawValue}/questions` })
-        if (error) {
-            if(error == 'Multiple failed attempts, you account has been locked, please contact system admin'  || error == 'Invalid credentials') {
-                formError.value = error;
-            } else {
-                formError.value = 'Something went wrong, please try again';
-            }
-        } else {
-            return navigateTo(url, { external: true })
+const onSubmit = handleSubmit(async (values) => {
+    isLoading.value = true
+    try {
+        const response = await $client.login.loginUser.mutate({ email: values.email, password: values.password, role: 'contributor' });
+        if(response){
+            // navigate to otp page
+            isLoading.value = false
+            navigateTo(`/contributor/otpPage?id=${response.id}`)
         }
-    }catch(e){
-        
+        else{
+            formError.value = 'Something went wrong, please try again';
+        }
+
+    } catch (error) {
+        formError.value = 'Something went wrong, please try again';
+
     }
-    isLoading.value = false;
-}
+    isLoading.value = false
+    
+});
 
 
 </script>
