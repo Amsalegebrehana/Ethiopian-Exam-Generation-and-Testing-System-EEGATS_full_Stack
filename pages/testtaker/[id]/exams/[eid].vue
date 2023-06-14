@@ -189,6 +189,25 @@ const tableData = computed(() => {
     return tableData;
 },
 );
+
+const disableCopyPaste = () => {
+    // Disable context menu
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+    });
+    
+    // Disable keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Check for copy shortcut and ctr+shift+i
+        if ((e.ctrlKey && e.key == "c") || (e.ctrlKey && e.shiftKey && e.key == "I")) {
+        e.preventDefault();
+    }
+  });
+};
+
+onMounted(() => {
+  disableCopyPaste();
+});
 </script>
 
 <template>
