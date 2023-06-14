@@ -5,24 +5,39 @@
 
             <AdminSideBar pageName="examgroups" />
             <div class="w-full mx-6" v-if="examGroup">
-                <div class="mx-5">
-                    <h2 class="intro-y text-lg font-medium mt-10">{{ examGroup.name }}</h2>
+                <div class="flex flex-row w-full align-middle justify-between  mt-10">
+                    <div class="justify-start flex flex-row">
+
+                        <NuxtLink :to="`/admin/examGroups`">
+                            <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
+                        </NuxtLink>
+                        <h2 class="intro-y text-lg font-medium ">{{ examGroup.name }}</h2>
+                    </div>
+
+
+                    <div class="flex flex-row justify-end">
+                        <a class="btn btn-primary shadow-md mt-5 mr-4 text-white"
+                            :href="`/admin/examGroups/${examGroupId}/analytics`">Analytics
+                            <Icon name="tabler:device-analytics" class="w-6 h-6 ml-2 text-white"></Icon>
+                        </a>
+
+                    </div>
                 </div>
 
                 <div class="mx-5 mt-5">
                     <ul class="nav nav-link-tabs" role="tablist">
                         <li id="example-5-tab" class="nav-item flex-1" role="presentation">
                             <button class="nav-link w-full py-2 " @click="activeTab = 1"
-                                :class="{ 'active': activeTab === 1 }" data-tw-toggle="pill" data-tw-target="#example-tab-5"
+                                :class="{ 'active text-xl': activeTab === 1 }" data-tw-toggle="pill" data-tw-target="#example-tab-5"
                                 type="button" role="tab" aria-controls="example-tab-5" aria-selected="true">
-                                Test Takers List
+                                Test Takers
                             </button>
                         </li>
                         <li id="example-6-tab" class="nav-item flex-1" role="presentation">
                             <button class="nav-link w-full py-2" @click="activeTab = 2"
-                                :class="{ 'active': activeTab === 2 }" data-tw-toggle="pill" data-tw-target="#example-tab-6"
+                                :class="{ 'active text-xl': activeTab === 2 }" data-tw-toggle="pill" data-tw-target="#example-tab-6"
                                 type="button" role="tab" aria-controls="example-tab-6" aria-selected="true">
-                                Exams List
+                                Exams
                             </button>
                         </li>
                     </ul>

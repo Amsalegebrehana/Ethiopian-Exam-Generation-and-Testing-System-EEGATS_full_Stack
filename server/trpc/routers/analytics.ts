@@ -132,7 +132,7 @@ export const analyticsRouter = router({
                 ranking = testTakerIndex + 1;
               }
               item.TestTakerResponse.forEach((response) => {
-                const categoryName =  response.questions.category.name.length > 20?  response.questions.category.name.slice(0,19) + '...' : response.questions.category.name;
+                const categoryName = response.questions.category.name.length > 20 ? response.questions.category.name.slice(0, 19) + '...' : response.questions.category.name;
 
                 if (categoryCounts.hasOwnProperty(categoryName)) {
                   categoryCounts[categoryName]++;
@@ -158,7 +158,7 @@ export const analyticsRouter = router({
                 chartData.datasets[0].data.push(count);
               });
               chartData.datasets[0].backgroundColor = generateRandomColors(chartData.labels?.length || 0, unansweredCount > 0);
-              const grade = item.TestSession[0].grade ;
+              const grade = item.TestSession[0].grade;
               grades.push(grade);
 
               result.push({
@@ -182,7 +182,7 @@ export const analyticsRouter = router({
                         font: {
                           size: 16,
                         },
-                        align:'end',
+                        align: 'end',
                       },
                       legend: {
                         position: 'right',
@@ -238,7 +238,7 @@ export const analyticsRouter = router({
                 Contributors: {
                   include: { Questions: true },
                   orderBy: { Questions: { _count: 'desc' } },
-  
+
                 },
                 Category: {
                   include: { questions: true },
@@ -247,28 +247,28 @@ export const analyticsRouter = router({
                 Exam: true
               }
             });
-  
+
             if (!pool) {
               throw new TRPCError({
                 code: 'NOT_FOUND',
                 message: 'Pool not found',
-  
+
               });
             }
-  
+
             const contributorCount: number = pool.Contributors.length;
-  
+
             const categoryDistribution: { categoryName: string; totalQuestions: number }[] = pool.Category.map(
               (category) => ({
                 categoryName: category.name,
                 totalQuestions: category.questions.length
               })
             );
-  
+
             const examCount: number = pool.Exam.length;
-  
+
             const totalQuestions: number = pool.Category.reduce((total, category) => total + category.questions.length, 0);
-  
+
             const topContributors: { contributorName: string; contributionPercentage: number }[] = pool.Contributors
               .map(contributor => ({
                 contributorName: contributor.name,
@@ -276,8 +276,8 @@ export const analyticsRouter = router({
               }))
               .sort((a, b) => b.contributionPercentage - a.contributionPercentage)
               .slice(0, 3);
-  
-  
+
+
             const topCategories: { categoryName: string; totalQuestions: number }[] = pool.Category
               .sort((a, b) => b.questions.length - a.questions.length)
               .map((category) => ({
@@ -285,9 +285,9 @@ export const analyticsRouter = router({
                 totalQuestions: category.questions.length
               }))
               .slice(0, 3);
-  
+
             const questionStatusMetrics: { [status: string]: number } = {};
-  
+
             pool.Category.forEach((category) => {
               category.questions.forEach((question) => {
                 if (!questionStatusMetrics[question.status]) {
@@ -296,7 +296,7 @@ export const analyticsRouter = router({
                 questionStatusMetrics[question.status]++;
               });
             });
-  
+
             const chartData: ChartData<"doughnut", number[], unknown> = {
               labels: [],
               datasets: [{
@@ -304,16 +304,16 @@ export const analyticsRouter = router({
                 backgroundColor: [],
               }],
             };
-  
+
             Object.entries(questionStatusMetrics).forEach(([status, count], index) => {
               chartData.labels?.push(status);
               chartData.datasets[0].data.push(count);
             });
             chartData.datasets[0].backgroundColor = generateRandomColors(chartData.labels?.length || 0, false);
-  
-            const categoryLabels: string[] = categoryDistribution.map((category) => category.categoryName.length > 20? category.categoryName.slice(0,19) + '...' :category.categoryName);
+
+            const categoryLabels: string[] = categoryDistribution.map((category) => category.categoryName.length > 20 ? category.categoryName.slice(0, 19) + '...' : category.categoryName);
             const categoryCounts: number[] = categoryDistribution.map((category) => category.totalQuestions);
-  
+
             const categoryDistributionChartData: ChartData<"bar", number[], unknown> = {
               labels: categoryLabels,
               datasets: [
@@ -325,10 +325,10 @@ export const analyticsRouter = router({
               ]
             };
             const totalApprovedQuestions: number = questionStatusMetrics.approved || 0;
-  
+
             const isEmptyDistribution = Object.keys(questionStatusMetrics).length === 0;
             const isEmptyBarDistribution = Object.keys(categoryCounts).length === 0;
-  
+
             return {
               contributorCount,
               categoryDistribution,
@@ -354,7 +354,7 @@ export const analyticsRouter = router({
                     },
                     legend: {
                       position: 'right',
-  
+
                     },
                   },
                 } as ChartConfiguration<'doughnut'>['options']
@@ -366,7 +366,7 @@ export const analyticsRouter = router({
                   maintainAspectRatio: true,
                   scales: {
                     x: {
-                      grid:{
+                      grid: {
                         display: false
                       },
                       display: true,
@@ -375,13 +375,13 @@ export const analyticsRouter = router({
                         text: 'Categories',
                         font: {
                           size: 16,
-                          weight : '600'
+                          weight: '600'
                         },
                       },
-                      
+
                     },
                     y: {
-                      grid:{
+                      grid: {
                         display: false
                       },
                       display: true,
@@ -390,7 +390,7 @@ export const analyticsRouter = router({
                         text: 'Number of Questions',
                         font: {
                           size: 16,
-                          weight : '600'
+                          weight: '600'
                         },
                       },
                     },
@@ -415,16 +415,16 @@ export const analyticsRouter = router({
             console.error('Error retrieving pool data:', error);
             throw error;
           }
-        
+
         } else {
           throw new TRPCError({
             code: 'UNAUTHORIZED',
             message: 'UNAUTHORIZED ACCESS.',
-  
+
           });
         }
-  
-      
+
+
 
       }
     ),
@@ -452,9 +452,9 @@ export const analyticsRouter = router({
                 },
               },
               examGroup: {
-                select :{
-                  _count:{
-                    select:{
+                select: {
+                  _count: {
+                    select: {
                       TestTakers: true
                     }
                   }
@@ -462,15 +462,15 @@ export const analyticsRouter = router({
               },
             },
           });
-  
+
           if (!exam) {
             throw new TRPCError({
               code: 'NOT_FOUND',
               message: 'Exam not found',
-  
+
             });
           }
-  
+
           // Calculate test taker statistics
           const totalTestTakers = exam.TestSession.length;
           const passedTestTakers = exam.TestSession.filter((session) => ((session.grade / exam.numberOfQuestions) * 100) > exam.gradePassPoint).length;
@@ -478,52 +478,52 @@ export const analyticsRouter = router({
             totalTestTakers > 0 ? exam.TestSession.reduce((acc, session) => acc + session.grade, 0) / totalTestTakers : 0;
           const highestGrade = Math.max(...exam.TestSession.map((session) => session.grade));
           const lowestGrade = Math.min(...exam.TestSession.map((session) => session.grade));
-  
+
           // Analyze question performance
-          const questionPerformance: { id: string; title: string; percentageCorrect: number, image:string, correctAnswer : string, choices :any  }[] = [];
-  
+          const questionPerformance: { id: string; title: string; percentageCorrect: number, image: string, correctAnswer: string, choices: any }[] = [];
+
           exam.Questions.forEach((question) => {
             const totalTestTakers = question.TestTakerResponse.length;
             let correctCount = 0;
-  
+
             question.TestTakerResponse.forEach((response) => {
               const isCorrect = response.isCorrect || false;
               if (isCorrect) {
                 correctCount++;
               }
             });
-  
+
             const percentageCorrect = (correctCount / totalTestTakers) * 100;
             questionPerformance.push({
               title: filter(question.title, 40),
-              image : question.image  || "",
+              image: question.image || "",
               id: question.id,
-              choices : question.choices,
-              correctAnswer : question.QuestionAnswer?.choiceId || "",
+              choices: question.choices,
+              correctAnswer: question.QuestionAnswer?.choiceId || "",
               percentageCorrect,
             });
-  
+
           });
-  
+
           // Sort and extract question performance data
           const sortedQuestions = questionPerformance.sort(
             (a, b) => b.percentageCorrect - a.percentageCorrect
           );
-         
+
           const categoryCounts: CategoryCounts = {};
-  
+
           exam.Questions.forEach((question) => {
-            const categoryName = question.category.name.length > 20?  question.category.name.slice(0,19) + '...' : question.category.name;
-  
+            const categoryName = question.category.name.length > 20 ? question.category.name.slice(0, 19) + '...' : question.category.name;
+
             if (categoryCounts.hasOwnProperty(categoryName)) {
               categoryCounts[categoryName]++;
             } else {
               categoryCounts[categoryName] = 1;
             }
           });
-  
-  
-  
+
+
+
           const chartData: ChartData<"doughnut", number[], unknown> = {
             labels: [],
             datasets: [{
@@ -531,7 +531,7 @@ export const analyticsRouter = router({
               backgroundColor: [],
             }],
           };
-  
+
           Object.entries(categoryCounts).forEach(([category, count], index) => {
             chartData.labels?.push(category);
             chartData.datasets[0].data.push(count);
@@ -540,7 +540,7 @@ export const analyticsRouter = router({
           const isEmptyDistribution = Object.keys(categoryCounts).length === 0;
           return {
             registeredTestTakers: exam.examGroup._count.TestTakers,
-            passGrade : exam.gradePassPoint,
+            passGrade: exam.gradePassPoint,
             examId: exam.id,
             totalQuestions: exam.Questions.length,
             totalTestTakers,
@@ -548,7 +548,7 @@ export const analyticsRouter = router({
             averageGrade,
             highestGrade,
             lowestGrade,
-            highestPerformingQuestions : sortedQuestions,
+            highestPerformingQuestions: sortedQuestions,
             statusDistribution: {
               data: chartData,
               options: {
@@ -565,21 +565,21 @@ export const analyticsRouter = router({
                   },
                   legend: {
                     position: 'right',
-  
+
                   },
                 },
               } as ChartConfiguration<'doughnut'>['options']
             },
-  
+
           };
         } catch (error) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Exam not found',
-  
+
           });
         }
-        
+
       } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
@@ -587,7 +587,7 @@ export const analyticsRouter = router({
 
         });
       }
-      
+
 
     }),
 
@@ -623,12 +623,12 @@ export const analyticsRouter = router({
               name: true,
             },
           });
-  
+
           if (!contributor) {
             throw new TRPCError({
               code: 'NOT_FOUND',
               message: 'Contributor not found',
-  
+
             });
           }
           const statusDistribution: Record<string, number> = {
@@ -637,7 +637,7 @@ export const analyticsRouter = router({
             reviewing: 0,
             drafting: 0,
           };
-  
+
           contributor.Questions.forEach((question) => {
             switch (question.status) {
               case "approved":
@@ -656,15 +656,15 @@ export const analyticsRouter = router({
                 break;
             }
           });
-  
-  
-          
+
+
+
           const totalAssignedQuestions = contributor.contributorAssignments.reduce((total, assignment) => total + assignment.questionsRemaining, 0);
-        
+
           const submittedReviews = contributor.Reviews.filter((review) => review.isReviewed);
-  
+
           const approvingRate = submittedReviews.filter((review) => review.questions.status === 'approved').length;
-  
+
           const chartData: ChartData<"doughnut", number[], unknown> = {
             labels: [],
             datasets: [{
@@ -672,37 +672,37 @@ export const analyticsRouter = router({
               backgroundColor: [],
             }],
           };
-  
+
           Object.entries(statusDistribution).forEach(([status, count], index) => {
             chartData.labels?.push(status);
             chartData.datasets[0].data.push(count);
           });
           chartData.datasets[0].backgroundColor = generateRandomColors(chartData.labels?.length || 0, false);
-  
-  
+
+
           const consolidatedCategories: {
             categoryName: string;
             totalQuestions: number;
           }[] = [];
-  
+
           contributor.Questions.forEach((question) => {
             const category: Category = question.category;
             const categoryName: string = category.name;
-  
+
             const existingCategoryIndex = consolidatedCategories.findIndex(
               (consolidatedCategory) => consolidatedCategory.categoryName === categoryName
             );
-  
+
             if (existingCategoryIndex !== -1) {
               consolidatedCategories[existingCategoryIndex].totalQuestions++;
             } else {
               consolidatedCategories.push({ categoryName, totalQuestions: 1 });
             }
           });
-  
-          const categoryLabels: string[] = consolidatedCategories.map((category) => category.categoryName.length > 20 ? category.categoryName.slice(0,19)+ '...' : category.categoryName,);
+
+          const categoryLabels: string[] = consolidatedCategories.map((category) => category.categoryName.length > 20 ? category.categoryName.slice(0, 19) + '...' : category.categoryName,);
           const categoryCounts: number[] = consolidatedCategories.map((category) => category.totalQuestions);
-  
+
           const categoryDistributionChartData: ChartData<"bar", number[], unknown> = {
             labels: categoryLabels,
             datasets: [
@@ -713,25 +713,25 @@ export const analyticsRouter = router({
               }
             ]
           };
-  
+
           const isEmptyDistribution = statusDistribution.accepted === 0 && statusDistribution.rejected === 0 && statusDistribution.waitingReview === 0 && statusDistribution.inDraft === 0;
           const isEmptyBarDistribution = Object.keys(categoryCounts).length === 0;
-  
-  
-  
-  
+
+
+
+
           return {
-           
-            totalQuestionsCreated : contributor.Questions.length,
+
+            totalQuestionsCreated: contributor.Questions.length,
             totalAssignedQuestions,
-            approvingRate : (approvingRate / submittedReviews.length) * 100,
-            totalReviewsAssigned : contributor.Reviews.length,
+            approvingRate: (approvingRate / submittedReviews.length) * 100,
+            totalReviewsAssigned: contributor.Reviews.length,
             submittedReviews: submittedReviews.length,
             poolName: contributor.pool.name,
             contributorName: contributor.name,
             statusDistribution: {
               data: chartData,
-              options:  {
+              options: {
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
@@ -745,7 +745,7 @@ export const analyticsRouter = router({
                   },
                   legend: {
                     position: 'right',
-  
+
                   },
                 },
               } as ChartConfiguration<'doughnut'>['options']
@@ -757,7 +757,7 @@ export const analyticsRouter = router({
                 maintainAspectRatio: true,
                 scales: {
                   x: {
-                    grid:{
+                    grid: {
                       display: false
                     },
                     display: true,
@@ -766,13 +766,13 @@ export const analyticsRouter = router({
                       text: 'Categories',
                       font: {
                         size: 16,
-                        weight : '600'
+                        weight: '600'
                       },
                     },
-                    
+
                   },
                   y: {
-                    grid:{
+                    grid: {
                       display: false
                     },
                     display: true,
@@ -781,7 +781,7 @@ export const analyticsRouter = router({
                       text: 'Number of Questions',
                       font: {
                         size: 16,
-                        weight : '600'
+                        weight: '600'
                       },
                     },
                   },
@@ -806,7 +806,7 @@ export const analyticsRouter = router({
           console.error("Error retrieving contributor data:", error);
           throw error;
         }
-        
+
       } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
@@ -814,17 +814,17 @@ export const analyticsRouter = router({
 
         });
       }
-      
-      
 
-     
+
+
+
 
     }),
 
-    getDashboardAnalytics : protectedProcedure
-    .query(async({ctx,input})=>{
+  getDashboardAnalytics: protectedProcedure
+    .query(async ({ ctx, input }) => {
       if (ctx.session.role === 'admin') {
-        try{
+        try {
           // Total Number of Examsx
           const totalExams = await ctx.prisma.exam.count();
           const generatedExams = await ctx.prisma.exam.count({
@@ -842,13 +842,13 @@ export const analyticsRouter = router({
               status: 'gradeReleased'
             }
           });
-          
+
           // Total Number of Pools
           const totalPools = await ctx.prisma.pool.count();
           const totalContributors = await ctx.prisma.contributors.count();
           const totalExamGroups = await ctx.prisma.examGroup.count();
           const totalTestTakers = await ctx.prisma.testTakers.count();
-      
+
           // Exam Group Test Taker Distribution
           const examGroupDistribution = await ctx.prisma.examGroup.findMany({
             include: {
@@ -864,17 +864,17 @@ export const analyticsRouter = router({
               }
             }
           });
-      
+
           const examGroupData = examGroupDistribution.map((group) => ({
-            examGroup: group.name.length > 20 ? group.name.slice(0,19)+ '...' : group.name,
+            examGroup: group.name.length > 20 ? group.name.slice(0, 19) + '...' : group.name,
             testTakers: group.TestTakers.length,
           }));
-      
-      
+
+
           // Generate Bar Chart Data for Exam Group Test Taker Distribution
           const examGroupChartLabels = examGroupData.map((item) => item.examGroup);
           const examGroupChartValues = examGroupData.map((item) => item.testTakers);
-      
+
           const examGroupChartData = {
             labels: examGroupChartLabels,
             datasets: [
@@ -885,7 +885,7 @@ export const analyticsRouter = router({
               },
             ],
           };
-      
+
           // Generate Doughnut Chart Data for Contributor Distribution
           const contributorDistribution = await ctx.prisma.pool.findMany({
             include: {
@@ -905,9 +905,9 @@ export const analyticsRouter = router({
             (count, pool) => count + pool.Contributors.length,
             0
           )
-          
+
           const contributorChartData = {
-            labels: contributorDistribution.map((pool) => pool.name.length > 20 ? pool.name.slice(0,19)+ '...' : pool.name),
+            labels: contributorDistribution.map((pool) => pool.name.length > 20 ? pool.name.slice(0, 19) + '...' : pool.name),
             datasets: [
               {
                 data: contributorDistribution.map((pool) => pool.Contributors.length),
@@ -916,9 +916,9 @@ export const analyticsRouter = router({
             ],
           };
 
-          const isEmptyDistribution = contributorCount=== 0;
+          const isEmptyDistribution = contributorCount === 0;
           const isEmptyBarDistribution = examGroupData.length === 0;
-  
+
           return {
             totalContributors,
             totalExamGroups,
@@ -926,7 +926,7 @@ export const analyticsRouter = router({
             generatedExams,
             publishedExams,
             gradeReleasedExams,
-           totalExams,
+            totalExams,
             totalPools,
             examGroupDistribution: {
               data: examGroupChartData,
@@ -935,7 +935,7 @@ export const analyticsRouter = router({
                 maintainAspectRatio: false,
                 scales: {
                   x: {
-                    grid:{
+                    grid: {
                       display: false
                     },
                     display: true,
@@ -944,13 +944,13 @@ export const analyticsRouter = router({
                       text: 'Exam Groups',
                       font: {
                         size: 14,
-                        weight : '600'
+                        weight: '600'
                       },
                     },
-                    
+
                   },
                   y: {
-                    grid:{
+                    grid: {
                       display: false
                     },
                     display: true,
@@ -959,7 +959,7 @@ export const analyticsRouter = router({
                       text: 'Number of Test Takers',
                       font: {
                         size: 16,
-                        weight : '600'
+                        weight: '600'
                       },
                     },
                   },
@@ -967,7 +967,7 @@ export const analyticsRouter = router({
                 plugins: {
                   title: {
                     display: true,
-                    align:'end',
+                    align: 'end',
                     text: isEmptyBarDistribution ? 'No Exam Group Data Found' : 'Exam Group Distribution',
                     font: {
                       size: 16,
@@ -988,7 +988,7 @@ export const analyticsRouter = router({
                 plugins: {
                   title: {
                     display: true,
-                    align:'end',
+                    align: 'end',
                     text: isEmptyDistribution ? 'No Contributors Found' : 'Contributor Distribution',
                     font: {
                       size: 16,
@@ -996,7 +996,7 @@ export const analyticsRouter = router({
                     },
                   },
                   legend: {
-                    position:'right',
+                    position: 'right',
                     // align:'end'
                   },
                 },
@@ -1008,7 +1008,7 @@ export const analyticsRouter = router({
           throw error;
         }
 
-        
+
       } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
@@ -1019,14 +1019,27 @@ export const analyticsRouter = router({
 
     }),
 
-    getExamGroupAnalytics : protectedProcedure
+  getExamGroupAnalytics: protectedProcedure
     .input(z.object({
       examGroupId: z.string()
     }))
-    .query(async({ctx,input})=>{
+    .query(async ({ ctx, input }) => {
       if (ctx.session.role === 'admin') {
         try {
-          // Fetch all test takers within the exam group along with their test sessions and associated exams
+          const {totalNumOfQuestions, totalPassPoint, totalExams} = await ctx.prisma.exam.findMany({
+            where: {
+              examGroupId: input.examGroupId
+            },
+            select : {
+              numberOfQuestions: true, 
+              gradePassPoint : true
+            }
+          }).then((data) => {
+            const totalNumOfQuestions = data.reduce((sum, exam) => sum + exam.numberOfQuestions, 0)
+            const totalPassPoint = data.reduce((sum, exam) => sum + exam.gradePassPoint, 0)
+            const totalExams = data.length;
+            return {totalNumOfQuestions, totalPassPoint, totalExams}}
+          );
           const testTakers = await ctx.prisma.testTakers.findMany({
             where: { examGroupId: input.examGroupId },
             include: {
@@ -1040,14 +1053,16 @@ export const analyticsRouter = router({
               createdAt: "asc",
             },
           });
-      
+          
           let totalScores: number[] = [];
-      
-          // Calculate the aggregated scores for each test taker and collect exam details
+          let numPassed = 0;
           const testTakerStats = testTakers.map((testTaker) => {
             const aggregatedScore = testTaker.TestSession.reduce((sum, session) => sum + session.grade, 0);
             totalScores.push(aggregatedScore);
-      
+            if(aggregatedScore > totalPassPoint){
+              numPassed++;
+            }
+
             return {
               testTakerId: testTaker.id,
               testTakerName: testTaker.name,
@@ -1055,37 +1070,42 @@ export const analyticsRouter = router({
                 examId: session.exam.id,
                 examName: session.exam.name,
                 score: session.grade,
+                color : generateRandomColors(1, false)[0], 
+                totQuestions : session.exam.numberOfQuestions,
               })),
+              totalScore : aggregatedScore,
             };
           });
-      
-          // Sort the test taker stats by total score in descending order
+
           testTakerStats.sort((a, b) => {
             const scoreA = a.exams.reduce((sum, exam) => sum + exam.score, 0);
             const scoreB = b.exams.reduce((sum, exam) => sum + exam.score, 0);
             return scoreB - scoreA;
           });
-      
-          // Get the top 10 test takers
+
           const topTestTakers = testTakerStats.slice(0, 10);
-      
-          // Calculate the top aggregated score and the least aggregated score
+
           const topScore = Math.max(...totalScores);
           const leastScore = Math.min(...totalScores);
-      
+          
           return {
             topScore,
             leastScore,
             topTestTakers,
+            totalNumOfQuestions,
+            totalPassPoint,
+            totalTestTakers: testTakers.length,
+            totalExams ,
+            percentagePassed : (numPassed / testTakers.length) * 100,
           };
         } catch (error) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'NOT_FOUND',
-  
+
           });
-        } 
-        
+        }
+
       } else {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
@@ -1093,5 +1113,5 @@ export const analyticsRouter = router({
 
         });
       }
-    })  
+    })
 });
