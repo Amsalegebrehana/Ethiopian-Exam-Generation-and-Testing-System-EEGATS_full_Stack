@@ -9,17 +9,16 @@
 
                 <h2 class="intro-y text-lg font-medium mt-10">List of Contributors</h2>
                 <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ">
-                                       
-                                        <div class=" ml-auto mt-3 sm:mt-0 ">
-                                            <div class="w-56 relative text-slate-500">
-                                                <input type="text" class="form-control w-56 box pr-10"
-                                                    placeholder="Search..." v-model="searchTextContr" @change="resetSearch" />
-                                                <Icon name="carbon:search"
-                                                    class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
 
-                                            </div>
-                                        </div>
-                                    </div>
+                    <div class=" ml-auto mt-3 sm:mt-0 ">
+                        <div class="w-56 relative text-slate-500">
+                            <input type="text" class="form-control w-56 box pr-10" placeholder="Search..."
+                                v-model="searchTextContr" @change="resetSearch" />
+                            <Icon name="carbon:search" class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0"></Icon>
+
+                        </div>
+                    </div>
+                </div>
                 <div class="w-full mt-10">
 
                     <div v-if="searchTextContr != ''">
@@ -90,6 +89,21 @@
                                                         <Icon name="material-symbols:key-rounded" class="w-4 h-4 mr-1">
                                                         </Icon> Reset Password
                                                     </a>
+                                                    <div v-if="contributor.isActive">
+
+                                                        <a class="flex items-center text-danger" href="javascript:;"
+                                                            @click="DeleteContModal(contributor.id, contributor.name, contributor.isActive)">
+                                                            <Icon name="fluent-mdl2:cancel" class="w-4 h-4 mr-1">
+                                                            </Icon> Disable
+                                                        </a>
+                                                    </div>
+                                                    <div v-else>
+                                                        <a class="flex items-center text-success" href="javascript:;"
+                                                            @click="DeleteContModal(contributor.id, contributor.name, contributor.isActive)">
+                                                            <Icon name="fluent:checkmark-20-filled" class="w-4 h-4 mr-1">
+                                                            </Icon> Enable
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
@@ -206,6 +220,21 @@
                                                         <Icon name="material-symbols:key-rounded" class="w-4 h-4 mr-1">
                                                         </Icon> Reset Password
                                                     </a>
+                                                    <div v-if="contributor.isActive">
+
+                                                        <a class="flex items-center text-danger" href="javascript:;"
+                                                            @click="DeleteContModal(contributor.id, contributor.name, contributor.isActive)">
+                                                            <Icon name="fluent-mdl2:cancel" class="w-4 h-4 mr-1">
+                                                            </Icon> Disable
+                                                        </a>
+                                                    </div>
+                                                    <div v-else>
+                                                        <a class="flex items-center text-success" href="javascript:;"
+                                                            @click="DeleteContModal(contributor.id, contributor.name, contributor.isActive)">
+                                                            <Icon name="fluent:checkmark-20-filled" class="w-4 h-4 mr-1">
+                                                            </Icon> Enable
+                                                        </a>
+                                                    </div>
 
                                                 </div>
                                             </td>
@@ -256,59 +285,116 @@
                     </div>
                 </div>
                 <div v-if="showResetPasswordModal"
-        class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
-        <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
-            <!--content-->
-            <div
-                class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-                <!--header-->
-                <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
-                    <!-- <h3 class="text-3xl font-semibold">
+                    class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+                    <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
+                        <!--content-->
+                        <div
+                            class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                            <!--header-->
+                            <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
+                                <!-- <h3 class="text-3xl font-semibold">
                     Modal Title
                 </h3> -->
-                    <button
-                        class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                        type="button" v-on:click="toggleResetPasswordModal()" :disabled="isLoadingResetPassword">
-                        <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
-                    </button>
-                </div>
-                <!--body-->
-                <div class="relative p-6 flex-auto">
-                    <div class="align-middle justify-center items-center w-full text-center">
-                        <div v-if="isLoadingResetPassword">
-                            <p class="text-2xl font-bold">
-                                Resetting password
-                            </p>
-                            <Icon name="eos-icons:bubble-loading" class="w-10 h-10 text-primary m-3"></Icon>
-                        </div>
-                        <div v-else>
-                            <div class="flex flex-row align-middle">
-                                <p class="w-8/12 align-middle my-auto font-bold text-lg">New Password</p>
-                                <div class="input-group mt-2  w-96">
-                                    <input class="form-control bg-slate-100 p-2" id="copyInput" :value="newPassword" />
+                                <button
+                                    class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                                    type="button" v-on:click="toggleResetPasswordModal()"
+                                    :disabled="isLoadingResetPassword">
+                                    <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
+                                </button>
+                            </div>
+                            <!--body-->
+                            <div class="relative p-6 flex-auto">
+                                <div class="align-middle justify-center items-center w-full text-center">
+                                    <div v-if="isLoadingResetPassword">
+                                        <p class="text-2xl font-bold">
+                                            Resetting password
+                                        </p>
+                                        <Icon name="eos-icons:bubble-loading" class="w-10 h-10 text-primary m-3"></Icon>
+                                    </div>
+                                    <div v-else>
+                                        <div class="flex flex-row align-middle">
+                                            <p class="w-8/12 align-middle my-auto font-bold text-lg">New Password</p>
+                                            <div class="input-group mt-2  w-96">
+                                                <input class="form-control bg-slate-100 p-2" id="copyInput"
+                                                    :value="newPassword" />
 
-                                    <button @click="copy()" class="input-group-text">
-                                        <Icon v-if="isCopied" name="lucide:copy-check" class="w-6 h-6 text-primary">
-                                        </Icon>
-                                        <Icon v-else name="lucide:copy" class="w-6 h-6 text-slate-500"></Icon>
-                                    </button>
+                                                <button @click="copy()" class="input-group-text">
+                                                    <Icon v-if="isCopied" name="lucide:copy-check"
+                                                        class="w-6 h-6 text-primary">
+                                                    </Icon>
+                                                    <Icon v-else name="lucide:copy" class="w-6 h-6 text-slate-500"></Icon>
+                                                </button>
 
+                                            </div>
+
+
+                                        </div>
+                                    </div>
                                 </div>
-
+                            </div>
+                            <!--footer-->
+                            <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
 
                             </div>
                         </div>
                     </div>
                 </div>
-                <!--footer-->
-                <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
+                <div v-if="showResetPasswordModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                <div v-if="showDeleteContModal" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
+                    <div v-if="showDeleteContModal"
+                        class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+                        <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
+                            <!--content-->
+                            <div
+                                class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                                <!--header-->
+                                <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
+                                    <!-- <h3 class="text-3xl font-semibold">
+                                            Modal Title
+                                        </h3> -->
+                                    <button
+                                        class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                                        type="button" v-on:click="toggleDeleteContModal()">
+                                        <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
+                                    </button>
+                                </div>
+                                <!--body-->
+                                <div class="relative p-6 flex-auto">
 
+                                    <div class="flex flex-row items-center space-x-4 mx-auto">
+                                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                                        <p class=" font-bold text-lg text-center">Are you sure you want to
+                                            {{ contrInfo.isActive ? 'disable' : 'enable' }} {{ contrInfo.name
+                                            }}'s contributor account?'</p>
+                                    </div>
+                                </div>
+                                <!--footer-->
+                                <div
+                                    class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b space-x-6">
+                                    <button @click="toggleDeleteContModal()"
+                                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
+                                        :class="{ 'hidden': isLoading }" :disabled="isLoading">
+                                        Cancel
+                                    </button>
+
+                                    <button @click="handleDisableContributor()"
+                                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
+                                        :disabled="isLoading">
+                                        <div v-if="isLoading">
+                                            <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+                                        </div>
+                                        <div v-else>
+                                            {{ contrInfo.isActive ? 'Disable' : 'Enable' }}
+                                        </div>
+                                    </button>
+
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div v-if="showResetPasswordModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
-    
             </div>
         </div>
 
@@ -396,5 +482,40 @@ const copy = () => {
             console.error('Failed to copy text:', error);
         });
 }
+
+const isLoading = ref(false);
+const contrInfo = ref({
+    questionNumber: 0,
+    id: '',
+    name: '',
+    isActive: true
+});
+const showDeleteContModal = ref(false)
+const toggleDeleteContModal = () => {
+    contrInfo.value.id = '';
+    contrInfo.value.name = '';
+    showDeleteContModal.value = !showDeleteContModal.value;
+}
+const DeleteContModal = async (contrId: string, contrName: string, isActive: boolean) => {
+
+    contrInfo.value.id = contrId;
+    contrInfo.value.name = contrName;
+    contrInfo.value.isActive = isActive;
+    showDeleteContModal.value = !showDeleteContModal.value;
+
+}
+const handleDisableContributor = async () => {
+    isLoading.value = true;
+    await $client.contributor.disableContributor.mutate({ id: contrInfo.value.id });
+    isReloading.value = true;
+    isLoading.value = false;
+    showDeleteContModal.value = false;
+    contrInfo.value.id = '';
+    contrInfo.value.name = '';
+    await fetchContributors();
+    await fetchCountContr();
+    isReloading.value = false;
+}
+
 
 </script>

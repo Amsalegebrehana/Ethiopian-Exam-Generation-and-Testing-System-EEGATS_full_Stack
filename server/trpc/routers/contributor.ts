@@ -692,7 +692,7 @@ export const contributorRouter = router({
           skip: input.skip,
           take: 6,
           orderBy: {
-            createdAt: "desc",
+            updatedAt: "desc",
           },
           select: {
             name: true,

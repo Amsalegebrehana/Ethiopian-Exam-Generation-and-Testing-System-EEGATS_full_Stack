@@ -94,18 +94,18 @@ const submitFeedback = async () => {
 
 
 
-                    <div>
+                    <div class="mt-10">
                         <h4 class="intro-y text-md font-medium ">Subject: {{ question.pool.name }}</h4>
                         <h4 class="intro-y text-md font-medium ">Question Category: {{ question.category.name }}</h4>
-                        <div v-html="question.title" class="p-2"></div>
+                        <div v-html="question.title" class="p-2 mt-5"></div>
                         <img v-if="question.image" :src=question.image style="width: 10em; height: 10em;" />
                     </div>
 
-                    <div v-for="choice in question.choices" :key="choice.id">
+                    <div v-for="choice in question.choices" :key="choice.id" class="ml-5">
 
                         <div class="flex flex-row align-middle my-1">
                             <input id="radio_1" type="radio" name="radio" :value="choice.id"
-                                v-model="question.QuestionAnswer[0].choiceId" :disabled="true">
+                                v-model="question.QuestionAnswer!.choiceId" :disabled="true">
                             <label class="pl-2 " for="radio_1">
 
 
@@ -117,9 +117,9 @@ const submitFeedback = async () => {
                     </div>
                 </div>
 
-                <div>
-                    <h2 class="intro-y text-lg font-medium ">Review:-</h2>
-                    <ol>
+                <div class="mt-10">
+                    <h2 class="intro-y text-lg font-medium mt-10 ">Review:-</h2>
+                    <ol class="ml-5">
                         <li v-for="metric in reviewMetrics">
                             <form>
                                 <div class="flex flex-row py-2">
