@@ -1017,7 +1017,81 @@ export const analyticsRouter = router({
         });
       }
 
-    })
+    }),
 
+    getExamGroupAnalytics : protectedProcedure
+    .input(z.object({
+      examGroupId: z.string()
+    }))
+    .query(async({ctx,input})=>{
+      if (ctx.session.role === 'admin') {
+        try {
+          // Fetch all test takers within the exam group along with their test sessions and associated exams
+          const testTakers = await ctx.prisma.testTakers.findMany({
+            where: { examGroupId: input.examGroupId },
+            include: {
+              TestSession: {
+                include: {
+                  exam: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: "asc",
+            },
+          });
+      
+          let totalScores: number[] = [];
+      
+          // Calculate the aggregated scores for each test taker and collect exam details
+          const testTakerStats = testTakers.map((testTaker) => {
+            const aggregatedScore = testTaker.TestSession.reduce((sum, session) => sum + session.grade, 0);
+            totalScores.push(aggregatedScore);
+      
+            return {
+              testTakerId: testTaker.id,
+              testTakerName: testTaker.name,
+              exams: testTaker.TestSession.map((session) => ({
+                examId: session.exam.id,
+                examName: session.exam.name,
+                score: session.grade,
+              })),
+            };
+          });
+      
+          // Sort the test taker stats by total score in descending order
+          testTakerStats.sort((a, b) => {
+            const scoreA = a.exams.reduce((sum, exam) => sum + exam.score, 0);
+            const scoreB = b.exams.reduce((sum, exam) => sum + exam.score, 0);
+            return scoreB - scoreA;
+          });
+      
+          // Get the top 10 test takers
+          const topTestTakers = testTakerStats.slice(0, 10);
+      
+          // Calculate the top aggregated score and the least aggregated score
+          const topScore = Math.max(...totalScores);
+          const leastScore = Math.min(...totalScores);
+      
+          return {
+            topScore,
+            leastScore,
+            topTestTakers,
+          };
+        } catch (error) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'NOT_FOUND',
+  
+          });
+        } 
+        
+      } else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
 
+        });
+      }
+    })  
 });
