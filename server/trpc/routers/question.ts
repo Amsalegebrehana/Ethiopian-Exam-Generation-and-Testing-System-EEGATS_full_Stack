@@ -154,12 +154,16 @@ export const questionRouter = router({
                 }
             });
             var reviewers =  await ctx.prisma.contributors.findMany({
+                where: {
+                    poolId: question.poolId,
+                    isActive: true,
+                },
                 orderBy : {
                     reviewsMade : 'asc',
                 },
                 take :5
             });
-            
+
             reviewers = reviewers.filter((item) => item.id != question.contributorId);
             var reviewerSelected = reviewers[Math.floor(Math.random()*reviewers.length)];
             
