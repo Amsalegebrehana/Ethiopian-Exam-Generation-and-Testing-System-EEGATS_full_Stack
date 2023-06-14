@@ -88,7 +88,6 @@ export const questionRouter = router({
         return question;
         }}
     }catch (err){
-        console.log(err);
     }
      }),
     submitQuestion: publicProcedure

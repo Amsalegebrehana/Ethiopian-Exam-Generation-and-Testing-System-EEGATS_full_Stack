@@ -1,6 +1,5 @@
 <script setup lang="ts">
 
-const { $client } = useNuxtApp();
 const props = defineProps(['role', 'id']);
 const dropdown = ref(true);
 
@@ -18,7 +17,7 @@ const delayToggleDropdown = () => {
 }
 
 const session = await getSession();
-console.log(session?.user?.name);
+
 
 </script>
 
@@ -54,11 +53,14 @@ console.log(session?.user?.name);
                         <div :hidden="dropdown"
                             class="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5"
                             role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
-                            <a :href="role === 'admin' ? `/${role}/changePassword` : `/${role}/${id}/changePassword`"
-                                class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1"
-                                id="user-menu-item-0">Change Password</a>
 
-                            <button @click="signOut({ redirect: true, callbackUrl: '/' })" href="#"
+                            <div v-if="session?.role === 'testtaker' && !session?.isFirstTime">
+                                <a :href="role === 'admin' ? `/${role}/changePassword` : `/${role}/${id}/changePassword`"
+                                    class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1"
+                                    id="user-menu-item-0">Change Password</a>
+                            </div>
+
+                            <button :hidden="true" @click="signOut({ redirect: true, callbackUrl: '/' })" href="#"
                                 class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1"
                                 id="user-menu-item-1">Sign out</button>
 

@@ -37,7 +37,6 @@ const creatingSession = ref(false);
 const loadingQuestion = ref(false);
 const questionListStore = useQuestionListStore();
 const handlesubmit = () => {
-    console.log("submitting exam");
     isLoadingSubmitExam.value = true;
     $client.testtaker.submitExam.mutate({ testTakerId, examId });
     navigateTo(`/testtaker/${testTakerId}/exams`)
@@ -121,7 +120,6 @@ const handleStartExam = async () => {
             handleResumeSession();
         }
     }catch(e){
-        console.log(e);
         creatingSession.value = false;
        showErrorText.value = true; 
     }

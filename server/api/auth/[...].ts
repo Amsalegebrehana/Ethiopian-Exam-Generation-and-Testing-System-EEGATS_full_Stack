@@ -30,6 +30,7 @@ export default NuxtAuthHandler({
         token.jwt = user ? (user as any).access_token || "" : "";
         token.id = user ? user.id || "" : "";
         token.role = user ? (user as any).role || "" : "";
+        token.isFirstTime = user ? (user as any).isFirstTime || "" : "";
         typeof window !== 'undefined' ? localStorage.setItem("userId", token.id as string) : null;
 
       }
@@ -39,6 +40,7 @@ export default NuxtAuthHandler({
     session: async ({ session, token }) => {
       (session as any).role = token.role;
       (session as any).uid = token.id;
+      (session as any).isFirstTime = token.isFirstTime;
       return Promise.resolve(session);
     },
   },
@@ -165,6 +167,7 @@ export default NuxtAuthHandler({
                   id: testTakerUser.id,
                   name: testTakerUser.name,
                   role: "testtaker",
+                  isFirstTime: testTakerUser.isFirstTime,
                 };
                 if (res === true) {
                   await prisma.testTakers.update({

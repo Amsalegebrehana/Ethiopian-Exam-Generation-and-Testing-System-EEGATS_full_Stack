@@ -31,11 +31,8 @@ export async function sendNewInvite({
     });
   }
   catch(err){
-    console.log("Error2: ", err);
   }
   
-
-  // console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
 }
 export async function sendReturnEmail({
   email,
@@ -99,7 +96,6 @@ export async function sendNotificationEmail({
     });
   }
   catch(err){
-    console.log("Error: ", err);
   }
   
 
@@ -147,7 +143,6 @@ export async function sendStatusNotificationEmail({
     }
   }
   catch(err){
-    console.log("Error: ",err);
   }
   
   
