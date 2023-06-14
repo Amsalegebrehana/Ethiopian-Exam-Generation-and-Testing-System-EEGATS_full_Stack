@@ -84,6 +84,7 @@
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.1",
     "nuxt-icon": "^0.2.6",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.11.0",
     "pg-promise": "^11.5.0",
     "pinia": "^2.0.33",
