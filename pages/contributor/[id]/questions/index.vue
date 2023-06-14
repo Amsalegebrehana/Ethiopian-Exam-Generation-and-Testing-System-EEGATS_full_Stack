@@ -20,10 +20,10 @@ const questionToSubmit = ref();
 const page = ref(1);
 const searchPage = ref(1);
 const searchText = ref('');
+const showSubmitFailed = ref(false);
 
 const route = useRoute();
 const contrId = route.params.id as string;
-
 
 
 const { data: isAssigned } = await useAsyncData(() => $client.contributor.checkifAssigned.query({ contrId }));
@@ -90,14 +90,24 @@ async function onDelete() {
 
 async function onSubmit() {
     isSubmitLoading.value = !isSubmitLoading.value;
-    const submitQuestion = await $client.question.submitQuestion.mutate(questionToSubmit.value);
-    isSubmitLoading.value = !isSubmitLoading.value;
-    toggleSubmitWarning();
-    window.location.reload()
+    try {
+        const submitQuestion = await $client.question.submitQuestion.mutate(questionToSubmit.value);
+        isSubmitLoading.value = !isSubmitLoading.value;
+        toggleSubmitWarning();
+        window.location.reload()
+    } catch(error){
+        isSubmitLoading.value = !isSubmitLoading.value;
+        toggleSubmitWarning();
+        toggleSubmitFailed();
+    }
 }
 
 async function onViewMore() {
     showCatagoriesVisible.value = !showCatagoriesVisible.value
+}
+
+const toggleSubmitFailed = () => {
+    showSubmitFailed.value = !showSubmitFailed.value;
 }
 </script>
 
@@ -111,6 +121,29 @@ async function onViewMore() {
         </div>
         <!-- Begin Add Question -->
         <!-- End Add Question -->
+        <div v-if="showSubmitFailed"
+            class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
+            <div class="py-5 px-3 flex-col bg-white rounded-xl">
+                <div
+                    class="px-3 bg-white text-lg rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] flex h-[12vh] opacity-100 gap-4">
+                    <div class="px-3 flex-col">
+                        <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
+                            Question submission failed!
+                        </DialogTitle>
+                        <p class="py-3 text-sm text-gray-500"> Attempt to submit question did not go through. You do not have any more assignments left 
+                            under this category. </p>
+                        <div class="flex justify-center items-center">
+                        </div>
+                        <div class="sm:flex sm:flex-row-reverse gap-3">
+                            <button type="button" @click="toggleSubmitFailed()"
+                                class="inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div v-if="deleteWarningVisible"
             class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
             <div class="py-5 px-3 flex-col bg-white rounded-xl">

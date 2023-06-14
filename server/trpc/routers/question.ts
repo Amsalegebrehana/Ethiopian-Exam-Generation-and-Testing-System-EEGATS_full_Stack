@@ -1,7 +1,7 @@
 import { Choice, QuestionAnswer, Questions } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 import {QuestionStatus } from "@prisma/client";
 import nodemailer from "nodemailer";
 
@@ -128,7 +128,24 @@ export const questionRouter = router({
      )
     .mutation(
         async ({ctx, input}) => {
-            const question = await ctx.prisma.questions.update({
+            var question = await ctx.prisma.questions.findUnique({
+                where: {
+                    id: input
+                }
+            })
+            const contrAssignment = await ctx.prisma.contributorAssignment.findFirst({
+                where: {
+                    contrId: question!.contributorId,
+                    catId: question!.catId,
+                }
+            })
+            if (contrAssignment != null && contrAssignment.questionsRemaining <= 0){
+                throw new TRPCError({
+                    code: 'BAD_REQUEST',
+                    message: "Contributor does not have remaining questions assigned in the given category",
+                })
+            }
+            question = await ctx.prisma.questions.update({
                 where: {
                     id: input
                 },
@@ -137,12 +154,6 @@ export const questionRouter = router({
                 },
                 include :{
                     pool : true,
-                }
-            })
-            const contrAssignment = await ctx.prisma.contributorAssignment.findFirst({
-                where: {
-                    contrId: question.contributorId,
-                    catId: question.catId,
                 }
             })
             await ctx.prisma.contributorAssignment.update({
@@ -164,7 +175,7 @@ export const questionRouter = router({
                 take :5
             });
 
-            reviewers = reviewers.filter((item) => item.id != question.contributorId);
+            reviewers = reviewers.filter((item) => item.id != question!.contributorId);
             var reviewerSelected = reviewers[Math.floor(Math.random()*reviewers.length)];
             
             const review = await ctx.prisma.review.create({
@@ -186,7 +197,7 @@ export const questionRouter = router({
                     }
                 })
                 const { auth } = useRuntimeConfig();
-                sendNotification({ email: data!.Reviewers.email, pool: question.pool.name, url: `${auth.origin}/contributor/login` });
+                sendNotification({ email: data!.Reviewers.email, pool: question!.pool.name, url: `${auth.origin}/contributor/login` });
             }
 
             );
@@ -341,6 +352,6 @@ export const questionRouter = router({
                     choiceId : input.correctChoice == 'choiceOne' ? input.choiceOneId : input.correctChoice == 'choiceTwo' ? input.choiceTwoId : input.correctChoice == 'choiceThree' ? input.choiceThreeId : input.choiceFourId
                 }
             });
-        })
+        }),
 
 });
