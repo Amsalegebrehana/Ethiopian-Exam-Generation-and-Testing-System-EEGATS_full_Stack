@@ -1,4 +1,5 @@
 <template>
+    <div v-if="show" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
           <div v-if="show"
             class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
             <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
@@ -12,7 +13,7 @@
                                             </h3> -->
                         <button
                             class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                            type="button" @click="toggle">
+                            type="button" @on-click="toggle">
                             <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
                         </button>
                     </div>
@@ -32,7 +33,8 @@
                 </div>
             </div>
         </div>
-        <div v-if="show" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+    </div>
+      
   </template>
   
   <script setup lang="ts">
