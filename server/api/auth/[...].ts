@@ -100,10 +100,10 @@ export default NuxtAuthHandler({
               }
             }
           } else if (credentials?.role === "contributor") {
-            if (credentials?.email && credentials?.password) {
+            if (credentials?.otp && credentials?.contrId) {
               const contributorUser = await prisma.contributors.findUnique({
                 where: {
-                  email: credentials.email,
+                  id: credentials.contrId,
                 },
               });
               if (contributorUser !== null && contributorUser?.isActive) {
@@ -111,15 +111,15 @@ export default NuxtAuthHandler({
                   throw new Error("Multiple failed attempts, you account has been locked, please contact system admin");
                 }
                 const res = await confirmPasswordHash(
-                  credentials.password,
-                  contributorUser.password
+                  credentials.otp,
+                  contributorUser.otp
                 );
                 const user = {
                   id: contributorUser.id,
                   name: contributorUser.name,
                   role: "contributor",
                 };
-                if (res === true) {
+                if (res === true && contributorUser.otpExpiryDate > new Date()) {
                   await prisma.contributors.update({
                     where: {
                       id: contributorUser.id,

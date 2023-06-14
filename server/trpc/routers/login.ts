@@ -20,10 +20,9 @@ export const login = router({
         )
         .mutation(async ({ctx, input})=>{
 
-            console.log("here")
-            
+          
                 if (input.role === 'admin'){
-                    console.log(input.email)
+                  
                     // find admin user from admin table
                     const adminUser = await ctx.prisma.admin.findUnique({
                         where: {
@@ -31,7 +30,7 @@ export const login = router({
                         },
                     });
 
-                    console.log("adminUser", adminUser);
+                  
                     if (!adminUser) {
                         throw new TRPCError({
                             code: 'NOT_FOUND',
@@ -40,8 +39,6 @@ export const login = router({
                     }
                     // check the password with the hashed password 
                     const res = await bcrypt.compare(input.password, adminUser.password);
-
-                    console.log("res", res);
 
                     if (res === false) {
                         throw new TRPCError({
@@ -61,13 +58,13 @@ export const login = router({
                             otpExpiryDate: expiryTime,
                         },
                     });
-                    console.log("otp updated", otp);
+                  
                     //  send email with otp admin email
                     await sendOtp({
                         email: adminUser.email,
                         otp,
                     });
-                    console.log("otp sent");
+                   
 
                     return updatesAdmin;
                     
@@ -90,7 +87,7 @@ export const login = router({
                     // check if password matches
                     const res = await bcrypt.compare(input.password, contributorUser.password);
 
-                    if (res === false) {
+                    if (!res ) {
                         throw new TRPCError({
                             code: 'BAD_REQUEST',
                             message: 'Invalid credentials.',
