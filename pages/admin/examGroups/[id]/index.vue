@@ -5,24 +5,39 @@
 
             <AdminSideBar pageName="examgroups" />
             <div class="w-full mx-6" v-if="examGroup">
-                <div class="mx-5">
-                    <h2 class="intro-y text-lg font-medium mt-10">{{ examGroup.name }}</h2>
+                <div class="flex flex-row w-full align-middle justify-between  mt-10">
+                    <div class="justify-start flex flex-row">
+
+                        <NuxtLink :to="`/admin/examGroups`">
+                            <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
+                        </NuxtLink>
+                        <h2 class="intro-y text-lg font-medium ">{{ examGroup.name }}</h2>
+                    </div>
+
+
+                    <div class="flex flex-row justify-end">
+                        <a class="btn btn-primary shadow-md mt-5 mr-4 text-white"
+                            :href="`/admin/examGroups/${examGroupId}/analytics`">Analytics
+                            <Icon name="tabler:device-analytics" class="w-6 h-6 ml-2 text-white"></Icon>
+                        </a>
+
+                    </div>
                 </div>
 
                 <div class="mx-5 mt-5">
                     <ul class="nav nav-link-tabs" role="tablist">
                         <li id="example-5-tab" class="nav-item flex-1" role="presentation">
                             <button class="nav-link w-full py-2 " @click="activeTab = 1"
-                                :class="{ 'active': activeTab === 1 }" data-tw-toggle="pill" data-tw-target="#example-tab-5"
+                                :class="{ 'active text-xl': activeTab === 1 }" data-tw-toggle="pill" data-tw-target="#example-tab-5"
                                 type="button" role="tab" aria-controls="example-tab-5" aria-selected="true">
-                                Test Takers List
+                                Test Takers
                             </button>
                         </li>
                         <li id="example-6-tab" class="nav-item flex-1" role="presentation">
                             <button class="nav-link w-full py-2" @click="activeTab = 2"
-                                :class="{ 'active': activeTab === 2 }" data-tw-toggle="pill" data-tw-target="#example-tab-6"
+                                :class="{ 'active text-xl': activeTab === 2 }" data-tw-toggle="pill" data-tw-target="#example-tab-6"
                                 type="button" role="tab" aria-controls="example-tab-6" aria-selected="true">
-                                Exams List
+                                Exams
                             </button>
                         </li>
                     </ul>
@@ -54,15 +69,13 @@
                                         </div>
 
                                     </div>
+                                   
                                     <div
                                         class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center justify-end mt-2">
-                                        <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
-                                            <div class="w-56 relative text-slate-500">
-                                                <button @click="exportTableData()"
-                                                    class="btn btn-success text-white shadow-md mr-2">Export Table
-                                                    Data</button>
-                                            </div>
-                                        </div>
+                                         <div class="flex items-center sm:ml-auto mt-3 sm:mt-0">
+                                        <button class="btn box flex items-center text-slate-600 dark:text-slate-300 shadow" @click="exportTableData()">  <Icon name="material-symbols:export-notes-outline" class="hidden sm:block w-4 h-4 mr-2 text-primary"></Icon> Export Credential </button>
+                                        <button class="ml-3 btn box flex items-center text-slate-600 dark:text-slate-300 shadow" @click="exportData()"><Icon name="material-symbols:export-notes-outline" class="hidden sm:block w-4 h-4 mr-2 text-primary"></Icon> Export Grade </button>
+                                    </div>
                                     </div>
 
 
@@ -526,6 +539,35 @@ const generateTestTakers = async () => {
 };
 
 getTestTakers();
+
+const exportData = async()=>{
+    try {
+    const response = await $client.examGroup.exportGrades.query({ id: examGroupId });
+    // const response = await $client.examGroup.exportGrades.query({ id: examGroupId });
+
+    // Create a Blob from the response data
+    const blob = new Blob([response], { type: 'text/csv' });
+
+    // Create a temporary URL for the Blob
+    const url = URL.createObjectURL(blob);
+
+    // Create a link element
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'grades.csv';
+
+    // Simulate a click to trigger the download
+    link.click();
+
+    // Clean up the URL object
+    URL.revokeObjectURL(url);
+    // const blob = new Blob([response], { type: 'text/csv;charset=utf-8' });
+    // saveAs(blob, 'grades.csv');
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 const exportTableData = async() => {
 
    try {
