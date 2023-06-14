@@ -4,8 +4,9 @@
         <div class="flex">
 
             <AdminSideBar pageName="analytics" />
-            <div class="content">
-                <div class="grid grid-cols-12 gap-6">
+            <div class=" content middle  justify-center mx-auto mt-24">
+                <div class="my-5 w-full">
+                <div class="">
                     <div class="col-span-12 2xl:col-span-9">
                     <div v-if="analytics"  class="grid grid-cols-12 gap-6">
                      <!-- BEGIN: General Report -->
@@ -14,12 +15,13 @@
                                         <h2 class="text-lg font-medium truncate mr-5">
                                             General Report
                                         </h2>
-                                        <a href="" class="ml-auto flex items-center text-primary"> <i data-lucide="refresh-ccw" class="w-4 h-4 mr-3"></i> Reload Data </a>
+                                       
                                     </div>
                                     <div class="grid grid-cols-12 gap-6 mt-5">
-                                        <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
-                                            <div class="report-box zoom-in">
-                                                <div class="box p-5">
+                                        <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y ">
+                                            <NuxtLink :to="`/admin/pools`">
+                                            <div class="report-box zoom-in ">
+                                                <div class="box p-5 ">
                                                     <div class="flex">
                                                         <i data-lucide="shopping-cart" class="report-box__icon text-primary"></i> 
                                                         <div class="ml-auto">
@@ -34,9 +36,11 @@
                                                     <div class="text-base text-slate-500 mt-1">Total Pools</div>
                                                 </div>
                                             </div>
+                                        </NuxtLink>
                                         </div>
                                    
                                         <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
+                                            <NuxtLink :to="`/admin/contributors`">
                                             <div class="report-box zoom-in">
                                                 <div class="box p-5">
                                                     <div class="flex">
@@ -52,8 +56,10 @@
                                                     <div class="text-base text-slate-500 mt-1">Total Contributors</div>
                                                 </div>
                                             </div>
+                                        </NuxtLink>
                                         </div>
                                         <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
+                                            <NuxtLink :to="`/admin/examGroups`">
                                             <div class="report-box zoom-in">
                                                 <div class="box p-5">
                                                     <div class="flex">
@@ -69,8 +75,10 @@
                                                     <div class="text-base text-slate-500 mt-1">Total Exam Groups</div>
                                                 </div>
                                             </div>
+                                            </NuxtLink>
                                         </div>
                                         <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
+                                            <NuxtLink :to="`/admin/testTakers`">
                                             <div class="report-box zoom-in">
                                                 <div class="box p-5">
                                                     <div class="flex">
@@ -85,19 +93,20 @@
                                                     <div class="text-base text-slate-500 mt-1">Total Test Takers</div>
                                                 </div>
                                             </div>
+                                            </NuxtLink>
                                         </div>
                                     </div>
                         </div>
                         <!-- END: General Report -->
                      <!-- BEGIN: General Report -->
-                       <div class="col-span-12 mt-8">
+                       <div class="col-span-12 mt-8 mx-5">
                                     <div class="intro-y flex items-center h-10">
                                         <h2 class="text-lg font-medium truncate mr-5">
                                             Distribution
                                         </h2>
-                                        <a href="" class="ml-auto flex items-center text-primary"> <i data-lucide="refresh-ccw" class="w-4 h-4 mr-3"></i> Reload Data </a>
+                                       
                                     </div>
-                                    <div class="grid grid-cols-12 gap-6 mt-5">
+                                    <div class="grid grid-cols-12 gap-10 mt-5">
                                         
                                        
                                         <div class="col-span-12 col-span-6  intro-y">
@@ -131,7 +140,7 @@
                                         <h2 class="text-lg font-medium truncate mr-5">
                                             Exams
                                         </h2>
-                                        <a href="" class="ml-auto flex items-center text-primary"> <i data-lucide="refresh-ccw" class="w-4 h-4 mr-3"></i> Reload Data </a>
+                                       
                                     </div>
                         <div class="grid grid-cols-3 w-full col-span-12 space-x-5 mt-10">
                             <div class="box p-5 zoom-in">
@@ -181,7 +190,7 @@
                 </div>
                 </div>
                 </div>
-
+            </div>
             </div>
 
         </div>
@@ -211,3 +220,12 @@ const { data: analytics } = await useAsyncData(() => $client.analytics.getDashbo
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement)
 
 </script>
+
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>

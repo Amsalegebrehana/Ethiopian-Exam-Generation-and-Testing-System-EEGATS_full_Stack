@@ -1,8 +1,8 @@
 <template>
     <div>
 
-<aside class="w-48 h-screen " aria-label="Sidebar">
-    <div class="px-3 py-4 overflow-y-auto rounded h-full bg-gray-50">
+<aside class="w-48 h-screen fixed" aria-label="Sidebar">
+    <div class="px-3 py-4 overflow-y-auto rounded h-full  mt-24">
         <ul class="space-y-2">
             <li>
                 <NuxtLink :to="`/contributor/${contrId}/questions`"

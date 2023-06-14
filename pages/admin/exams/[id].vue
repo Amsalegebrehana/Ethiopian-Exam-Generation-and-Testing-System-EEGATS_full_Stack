@@ -1,43 +1,45 @@
 <template>
-    <div>
-        <AdminTopBar role="admin" />
-        <div class="flex overflow-y-auto h-[90vh]">
-            <div v-if="selectedQuestion && isOpen"
-                            class="absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] max-w-full h-[100%]  ">
-                            <div class="p-3 flex-col bg-white rounded-xl">
-                                <div class="">
-                                    <button @click="onToggle" class="float-right px-1">
-                                        <Icon name="eva:close-outline" class="w-8 h-8 text-red-600"></Icon>
-                                    </button>
-                                </div>
-                                <div
-                                    class="p-5 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[70em] max-w-[70em] flex h-[50vh] opacity-100 gap-4 text-lg">
-                                    <div class="flex-1 overflow-scroll">
-                                        <div v-html="selectedQuestion.title" class="py-5" />
-                                        <img v-if="selectedQuestion.image" :src=selectedQuestion.image
-                                            style="width: 10em; height: 10em;" />
-                                        <div v-for="choice in selectedQuestion.choices" :key="choice.id" class="ml-5">
+     <div v-if="selectedQuestion && isOpen" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
+    <div v-if="selectedQuestion && isOpen"
+                    class="absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] max-w-full h-[100%]  ">
+                    <div class="p-3 flex-col bg-white rounded-xl">
+                        <div class="">
+                            <button @click="onToggle" class="float-right px-1">
+                                <Icon name="eva:close-outline" class="w-8 h-8 text-red-600"></Icon>
+                            </button>
+                        </div>
+                        <div
+                            class="p-5 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[70em] max-w-[70em] flex h-[50vh] opacity-100 gap-4 text-lg">
+                            <div class="flex-1 overflow-scroll">
+                                <div v-html="selectedQuestion.title" class="py-5" />
+                                <img v-if="selectedQuestion.image" :src=selectedQuestion.image
+                                    style="width: 10em; height: 10em;" />
+                                <div v-for="choice in selectedQuestion.choices" :key="choice.id" class="ml-5">
 
-                                            <div class="flex flex-row align-middle my-1 mt-5 ml-5">
-                                                <input id="radio_1" type="radio" name="radio" :value="choice.id"
-                                                    v-model="selectedQuestion.correctAnswer" :disabled="true">
-                                                <label class="pl-2 " for="radio_1">
+                                    <div class="flex flex-row align-middle my-1 mt-5 ml-5">
+                                        <input id="radio_1" type="radio" name="radio" :value="choice.id"
+                                            v-model="selectedQuestion.correctAnswer" :disabled="true">
+                                        <label class="pl-2 " for="radio_1">
 
 
-                                                    <div v-html="choice.title" class="px-2"></div>
-                                                    <img v-if="choice.image" :src=choice.image
-                                                        style="width: 10em; height: 10em;" />
+                                            <div v-html="choice.title" class="px-2"></div>
+                                            <img v-if="choice.image" :src=choice.image
+                                                style="width: 10em; height: 10em;" />
 
-                                                </label>
-                                            </div>
-                                        </div>
-
+                                        </label>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+    <div>
+        <AdminTopBar role="admin" />
+        <div class="flex" :class="{'fixed w-full' : selectedQuestion && isOpen}">
             <AdminSideBar pageName="exams" />
-            <div class="w-full m-6 ">
+            <div class="w-full mx-6 content middle mt-20 ">
                 <div class=" rounded-md mt-5 p-5 ">
                     <div class="flex flex-row  align-middle ">
                         <NuxtLink :to="`/admin/exams`">
@@ -54,7 +56,7 @@
 
                             <h1 class="text-4xl font-bold ml-6">{{ exam.name }}</h1>
                             <div class="flex flex-row justify-end">
-                                <button v-if="exam.status === 'gradeReleased' " class="btn box flex items-center text-slate-600 dark:text-slate-300 shadow" @click="exportExam()">  <Icon name="material-symbols:export-notes-outline" class="hidden sm:block w-4 h-4 mr-2 text-primary"></Icon> Export pdf </button>
+                                <button v-if="exam.status === 'gradeReleased' " class="btn box flex items-center text-slate-600 dark:text-slate-300 shadow" @click="exportExam()">  <Icon name="material-symbols:export-notes-outline" class="hidden sm:block w-4 h-4 mr-2 text-primary"></Icon> Export PDF </button>
 
                                 <button v-if="publishBtn" class="btn btn-success shadow-md mt-5 mr-4 text-white"
                                     @click="publishExam">Publish</button>
@@ -500,7 +502,6 @@ const exportExam = async ()=>{
 const publishExam = async () => {
 
     const updatedExam = await $client.exam.publishExam.mutate({ id: id });
-    console.log(updatedExam);
     
     publishBtn.value = false;
     // if the exam is published and the testing date is in the future then unpublishing exam is possible
@@ -547,3 +548,11 @@ const examStatus = (status: string) => {
 
 
 </script>
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>
