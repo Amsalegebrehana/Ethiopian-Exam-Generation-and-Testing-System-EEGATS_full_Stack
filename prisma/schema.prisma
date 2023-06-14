@@ -85,7 +85,6 @@ model TestTakers {
   username          String              @unique
   password          String
   examGroupId       String
-  isFirstTime       Boolean             @default(true)  
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   failedAttempts    Int                 @default(0)
