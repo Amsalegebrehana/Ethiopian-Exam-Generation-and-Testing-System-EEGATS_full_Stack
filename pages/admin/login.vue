@@ -82,9 +82,7 @@ onMounted(() => {
     });
 });
 const isLoading = ref(false);
-const showOtpInput = ref(false);
 
-const otp = ref('');
 const validationSchema = toFormValidator(
     zod.object({
         email: zod.string().nonempty('This is required').email({ message: 'Must be a valid email' }),
@@ -127,7 +125,7 @@ const onSubmit = handleSubmit(async (values) => {
     }
 
 
-    // mySignInHandler({ email: values.email, password: values.password, role: 'admin' })
+    
 });
 
 
