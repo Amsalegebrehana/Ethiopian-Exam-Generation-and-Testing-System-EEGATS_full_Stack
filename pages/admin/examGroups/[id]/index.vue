@@ -1,10 +1,10 @@
 <template>
     <div>
         <AdminTopBar role="admin" />
-        <div class="flex">
+        <div class="flex" :class="{'fixed w-full' : istestTakerCreated || showErrorModal || showPracticeModal || showAddModal}">
 
-            <AdminSideBar pageName="examgroups" />
-            <div class="w-full mx-6" v-if="examGroup">
+            <AdminSideBar pageName="" />
+            <div v-if="examGroup" class="w-full mx-6 content middle mt-20">
                 <div class="flex flex-row w-full align-middle justify-between  mt-10">
                     <div class="justify-start flex flex-row">
 
@@ -47,12 +47,11 @@
                             <div class="w-full mx-6">
 
 
-                                <h2 class="intro-y text-lg font-medium mt-10">List of test takers</h2>
                                 <div class="grid grid-cols-12 gap-6 mt-5 ">
                                     <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2">
 
                                         <button v-on:click="toggleAddModal()"
-                                            class="btn btn-primary shadow-md mr-2">Generate credintials
+                                            class="btn btn-primary shadow-md mr-2">Generate credentials
                                             <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white">
                                             </Icon>
                                         </button>
@@ -208,178 +207,181 @@
             </div>
         </div>
         <!-- csv file add modal -->
-        <div v-if="showAddModal"
-            class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
-            <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
-                <!--content-->
-                <div
-                    class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-                    <!--header-->
-                    <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
-
-                        <button
-                            class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                            type="button" v-on:click="toggleAddModal()">
-                            <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
-                        </button>
-                    </div>
-                    <!--body-->
-                    <div class="relative p-6 flex-auto">
-
-                        <div class="flex flex-row align-middle mt-2">
-
-                            <p class="w-8/12 align-middle my-auto font-bold text-md">Upload CSV file</p>
-
-
-                            <Uploadfile v-model:path="filepath" />
-                            {{ filepath }}
-                        </div>
-                    </div>
-                    <!--footer-->
-                    <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
-
-                        <button @click="generateTestTakers()"
-                            class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading">
-                            <div v-if="isLoading">
-                                <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
-                            </div>
-                            <div v-else>
-                                Add
-                            </div>
-                        </button>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div v-if="showResetPasswordModal"
-            class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
-            <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
-                <!--content-->
-                <div
-                    class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-                    <!--header-->
-                    <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
-                        <!-- <h3 class="text-3xl font-semibold">
-                    Modal Title
-                </h3> -->
-                        <button
-                            class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                            type="button" v-on:click="toggleResetPasswordModal()" :disabled="isLoadingResetPassword">
-                            <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
-                        </button>
-                    </div>
-                    <!--body-->
-                    <div class="relative p-6 flex-auto">
-                        <div class="align-middle justify-center items-center w-full text-center">
-                            <div v-if="isLoadingResetPassword">
-                                <p class="text-2xl font-bold">
-                                    Resetting password
-                                </p>
-                                <Icon name="eos-icons:bubble-loading" class="w-10 h-10 text-primary m-3"></Icon>
-                            </div>
-                            <div v-else>
-                                <div class="flex flex-row align-middle">
-                                    <p class="w-8/12 align-middle my-auto font-bold text-lg">New Password</p>
-                                    <div class="input-group mt-2  w-96">
-                                        <input class="form-control bg-slate-100 p-2" id="copyInput" :value="newPassword" />
-
-                                        <button @click="copy()" class="input-group-text">
-                                            <Icon v-if="isCopied" name="lucide:copy-check" class="w-6 h-6 text-primary">
-                                            </Icon>
-                                            <Icon v-else name="lucide:copy" class="w-6 h-6 text-slate-500"></Icon>
-                                        </button>
-
-                                    </div>
-
-                    
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!--footer-->
-                    <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div v-if="showResetPasswordModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
-        <div v-if="showPracticeModal"
-            class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
-            <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
-                <!--content-->
-                <div
-                    class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-                    <!--header-->
-                    <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
-                        <!-- <h3 class="text-3xl font-semibold">
-                    Modal Title
-                </h3> -->
-                        <button
-                            class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                            type="button" v-on:click="togglePracticeModal()" :disabled="isLoadingPractice">
-                            <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
-                        </button>
-                    </div>
-                    <!--body-->
-                    <div class="relative p-6 flex-auto">
-                        <div class="align-middle justify-center items-center w-full text-center">
-                            <div v-if="isLoadingPractice">
-                                <p class="text-2xl font-bold">
-                                    Publishing Practice Exams
-                                </p>
-                                <Icon name="eos-icons:bubble-loading" class="w-10 h-10 text-primary m-3"></Icon>
-                            </div>
-                            <div v-else>
-                                <div class="relative p-6 flex-auto">
-
-                                    <div class="flex flex-row items-center space-x-4 mx-auto">
-                                        <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
-                                        <p class=" font-bold text-lg text-center">Are you sure you want to publish all exams in "{{
-                                            examGroup.name }} as practice exams?"</p>
-                                    </div>
-                                </div>
-                                <!--footer-->
-                                <div
-                                    class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b space-x-6">
-                                    <button @click="togglePracticeModal()"
-                                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
-                                        :class="{ 'hidden': isLoading }" :disabled="isLoading">
-                                        Cancel
-                                    </button>
-
-                                    <button @click="handlePractice()"
-                                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
-                                        :disabled="isLoading">
-                                        <div v-if="isLoading ">
-                                            <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
-                                        </div>
-                                        <div v-else>
-                                            Publish
-                                        </div>
-                                    </button>
-
-
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!--footer-->
-                    <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
-
-                    </div>
-                </div>
-            </div>
-            <div v-if="showResetPasswordModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
-            <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
-            <Modal type="success" :show="istestTakerCreated"  message="Test Takers data successfully created!"/>
-            
-        </div>
-        <div v-if="showPracticeModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
-        <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
     </div>
+    <div v-if="showAddModal" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
+    <div v-if="showAddModal"
+        class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+        <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
+            <!--content-->
+            <div
+                class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                <!--header-->
+                <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
+
+                    <button
+                        class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                        type="button" v-on:click="toggleAddModal()">
+                        <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
+                    </button>
+                </div>
+                <!--body-->
+                <div class="relative p-6 flex-auto">
+
+                    <div class="flex flex-row align-middle mt-2">
+
+                        <p class="w-8/12 align-middle my-auto font-bold text-md">Upload CSV file</p>
+
+
+                        <Uploadfile v-model:path="filepath" />
+                        {{ filepath }}
+                    </div>
+                </div>
+                <!--footer-->
+                <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
+
+                    <button @click="generateTestTakers()"
+                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading">
+                        <div v-if="isLoading">
+                            <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+                        </div>
+                        <div v-else>
+                            Add
+                        </div>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div v-if="showResetPasswordModal" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
+    <div v-if="showResetPasswordModal"
+        class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+        <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
+            <!--content-->
+            <div
+                class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                <!--header-->
+                <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
+                    <!-- <h3 class="text-3xl font-semibold">
+                Modal Title
+            </h3> -->
+                    <button
+                        class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                        type="button" v-on:click="toggleResetPasswordModal()" :disabled="isLoadingResetPassword">
+                        <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
+                    </button>
+                </div>
+                <!--body-->
+                <div class="relative p-6 flex-auto">
+                    <div class="align-middle justify-center items-center w-full text-center">
+                        <div v-if="isLoadingResetPassword">
+                            <p class="text-2xl font-bold">
+                                Resetting password
+                            </p>
+                            <Icon name="eos-icons:bubble-loading" class="w-10 h-10 text-primary m-3"></Icon>
+                        </div>
+                        <div v-else>
+                            <div class="flex flex-row align-middle">
+                                <p class="w-8/12 align-middle my-auto font-bold text-lg">New Password</p>
+                                <div class="input-group mt-2  w-96">
+                                    <input class="form-control bg-slate-100 p-2" id="copyInput" :value="newPassword" />
+
+                                    <button @click="copy()" class="input-group-text">
+                                        <Icon v-if="isCopied" name="lucide:copy-check" class="w-6 h-6 text-primary">
+                                        </Icon>
+                                        <Icon v-else name="lucide:copy" class="w-6 h-6 text-slate-500"></Icon>
+                                    </button>
+
+                                </div>
+
+                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--footer-->
+                <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div v-if="showPracticeModal" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
+    <div v-if="showPracticeModal"
+        class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+        <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
+            <!--content-->
+            <div
+                class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                <!--header-->
+                <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
+                    <!-- <h3 class="text-3xl font-semibold">
+                Modal Title
+            </h3> -->
+                    <button
+                        class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                        type="button" v-on:click="togglePracticeModal()" :disabled="isLoadingPractice">
+                        <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
+                    </button>
+                </div>
+                <!--body-->
+                <div class="relative p-6 flex-auto">
+                    <div class="align-middle justify-center items-center w-full text-center">
+                        <div v-if="isLoadingPractice">
+                            <p class="text-2xl font-bold">
+                                Publishing Practice Exams
+                            </p>
+                            <Icon name="eos-icons:bubble-loading" class="w-10 h-10 text-primary m-3"></Icon>
+                        </div>
+                        <div v-else>
+                            <div class="relative p-6 flex-auto">
+
+                                <div class="flex flex-row items-center space-x-4 mx-auto">
+                                    <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                                    <p class=" font-bold text-lg text-center">Are you sure you want to publish all exams in "{{
+                                        examGroup.name }} as practice exams?"</p>
+                                </div>
+                            </div>
+                            <!--footer-->
+                            <div
+                                class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b space-x-6">
+                                <button @click="togglePracticeModal()"
+                                    class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
+                                    :class="{ 'hidden': isLoading }" :disabled="isLoading">
+                                    Cancel
+                                </button>
+
+                                <button @click="handlePractice()"
+                                    class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
+                                    :disabled="isLoading">
+                                    <div v-if="isLoading ">
+                                        <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
+                                    </div>
+                                    <div v-else>
+                                        Publish
+                                    </div>
+                                </button>
+
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--footer-->
+                <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
+    <Modal type="success" :show="istestTakerCreated"  message="Test Takers data successfully created!"/>
+    
+    <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
 </template>
 
 <script setup lang="ts">
@@ -499,6 +501,7 @@ const getTestTakers = async () => {
 }
 
 const generateTestTakers = async () => {
+   
   isLoading.value = true;
 
   const inputPath = 'https://ixzzkpsnlfushkyptszh.supabase.co/storage/v1/object/public/eegts-files/' + `${filepath.value}`
@@ -506,9 +509,10 @@ const generateTestTakers = async () => {
     // const doc = new GoogleSpreadsheet(spreadsheetId);
     
     const testTakersCredentials = await $client.examGroup.generateCredentials.mutate({ examGroupId: examGroupId, inputPath: inputPath});
+    
 
     if (testTakersCredentials) {
-      
+
         // after   istestTakerCreated is true show success modal then wait 2 seconds then reload window
         istestTakerCreated.value = true;
         setTimeout(() => {
@@ -644,3 +648,11 @@ const copy = () => {
 
 
 </script>
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>

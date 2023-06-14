@@ -24,7 +24,8 @@ const session = await getSession();
 
 
 <template>
-    <div class="w-screen">
+    <div class=" w-screen fixed z-50 bg-white">
+        
         <div class="mx-10">
             <div class=" mt-4 bg-blue-100 h-10 rounded-lg shadow-md bg-cover bg-center w-11/12 mx-auto">
             </div>

@@ -4,7 +4,7 @@
         <div class="flex"> 
 
             <AdminSideBar pageName="exams"/>
-            <div class="w-full mx-6">
+            <div class="w-full mx-6 content middle mt-20 ">
             
             
                 <h2 class="intro-y text-lg font-medium mt-10">List of exams</h2>
@@ -36,3 +36,12 @@ const { $client } = useNuxtApp();
 
 
 </script>
+
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>

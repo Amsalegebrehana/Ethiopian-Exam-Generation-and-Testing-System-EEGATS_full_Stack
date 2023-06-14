@@ -137,6 +137,35 @@ export const testTakerRouter = router({
         })
       }
     }),
+    // get Exam group name
+    getExamGroupName: protectedProcedure
+    .input(z.object({
+      testTakerId: z.string(),
+    }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.role === 'testtaker' && ctx.session.uid === input.testTakerId) {
+        const testTaker = await ctx.prisma.testTakers.findUnique({
+          where: {
+            id: input.testTakerId,
+          }
+        });
+        const data = await ctx.prisma.examGroup.findUnique({
+          where: {
+            id: testTaker?.examGroupId
+          },
+          select: {
+            name: true
+          },
+        });
+        return data;
+      } else {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'UNAUTHORIZED ACCESS.',
+        })
+      }
+    }),
+    
   getExams: protectedProcedure
     .input(
       z.object({
@@ -164,7 +193,8 @@ export const testTakerRouter = router({
               mode: 'insensitive'
             },
             examGroup: {
-              id: testTaker?.examGroupId
+              id: testTaker?.examGroupId,
+
             },
             status: {
               not: 'generated'
@@ -178,7 +208,9 @@ export const testTakerRouter = router({
 
               },
 
-            }
+
+            },
+            
           }
 
         });

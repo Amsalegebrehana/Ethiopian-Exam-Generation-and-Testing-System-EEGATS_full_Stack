@@ -12,7 +12,10 @@ const { data: exams, refresh: fetchExams, pending } = await useAsyncData(() => $
 const {data :score, refresh: fetchScore} = await useAsyncData(() => $client.testtaker.getTotalScore.query({testTakerId}));
 const { data: searchCount, refresh: fetchSearchCount } = await useAsyncData(() => $client.testtaker.getExamsCount.query({ testTakerId, search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
 const { data: searchExams, refresh: fetchSearchExams, pending: pendingSearch } = await useAsyncData(() => $client.testtaker.getExams.query({ testTakerId, search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }),
+
   { watch: [page, searchText] });
+
+  const examGroupName = await $client.testtaker.getExamGroupName.query({testTakerId});
 
 const paginate = async (newPage: number) => {
     page.value = newPage;
@@ -59,15 +62,16 @@ const resetSearch = () => {
         <TopBar role="testtaker" :id="testTakerId" />
         <div class="flex">
 
-            <div class="w-full mx-20">
+            <div class="w-full mx-20 mt-24">
 
 
-                <h2 class="intro-y text-lg font-medium mt-10">List of exams</h2>
+                <h2 class="intro-y text-2xl font-extrabold mt-10">{{ examGroupName!.name }} list</h2>
 
                 <div class="grid grid-cols-12 gap-6 mt-5">
                     <div class="intro-y col-span-12 flex flex-row sm:flex-nowrap items-center mt-2 ">
                     <div class="ml-auto">
-                        <p class="text-center mt-3 sm:mt-0 ">Total Score : {{score?.totalScore}} / {{ score?.totalNumQuestions }}</p>
+                        
+                        <p class="text-center mt-3 sm:mt-0 text-lg">Total Score : {{score?.totalScore}} / {{ score?.totalNumQuestions }}</p>
                     </div>
                     
                     <div class=" ml-auto mt-3 sm:mt-0 ">

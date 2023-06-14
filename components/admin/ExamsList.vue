@@ -64,7 +64,7 @@
                                                                 </div>
                                                             </td>
                                                             <td class="">{{ testingDateformat(exam.testingDate) }}</td>
-                                                            <td class="">{{ exam.duration }}</td>
+                                                            <td class="text-center">{{ exam.duration }}</td>
                                                     <td class="table-report__action w-60">
                                                         <div class="flex justify-center items-center">
                                                             <a class="flex items-center mr-6 text-primary" :href="`/admin/exams/${exam.id}`">
