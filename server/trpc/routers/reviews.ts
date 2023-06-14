@@ -324,7 +324,7 @@ export const reviewsRouter = router({
                         },
                     });
                     const { auth } = useRuntimeConfig();
-                    sendNotification({ email: contributor!.id, pool: pool!.name, url: `${auth.origin}/contributor/login` });
+                    sendNotification({ email: contributor!.email, pool: pool!.name, url: `${auth.origin}/contributor/login` });
 
                     return data;
                 }

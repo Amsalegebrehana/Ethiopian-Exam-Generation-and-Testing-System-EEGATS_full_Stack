@@ -3,6 +3,37 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 import {QuestionStatus } from "@prisma/client";
+import nodemailer from "nodemailer";
+
+export async function sendNotification({
+    email,
+    url,
+    pool
+}: {
+    email: string;
+    url: string;
+    pool: string;
+}) {
+    const testAccount = await nodemailer.createTestAccount();
+
+    const transporter = nodemailer.createTransport({
+
+        service: "gmail",
+        auth: {
+            user: "invite.eegts@gmail.com",
+            pass: process.env.MAILER_PASSWORD,
+        },
+    });
+
+    const info = await transporter.sendMail({
+        from: ' <no-reply@eegts.com>',
+        to: email,
+        subject: "Contribute at EEGTS",
+        html: `<p>Greetings,<br></p> <p>You have been assigned to review more questions for the Ethiopian Exam Generation and Testing System's ${pool} pool.<br></p><p>Log into your account by clicking <a href="${url}">HERE</a></p>`,
+    });
+
+}
+
 export const questionRouter = router({
     addQuestion: publicProcedure.input(
         z.object({
@@ -103,6 +134,9 @@ export const questionRouter = router({
                 },
                 data: {
                     status: QuestionStatus.waiting
+                },
+                include :{
+                    pool : true,
                 }
             })
             const contrAssignment = await ctx.prisma.contributorAssignment.findFirst({
@@ -135,6 +169,9 @@ export const questionRouter = router({
                     questionId : question.id,
                     reviewerId : reviewerSelected.id,
                 
+                },
+                include:{
+                    Reviewers : true,
                 }
             }).then(async (data) => {
                 await ctx.prisma.contributors.update({
@@ -144,7 +181,11 @@ export const questionRouter = router({
                     data :{
                         reviewsMade : reviewerSelected.reviewsMade + 1
                     }
-                })}
+                })
+                const { auth } = useRuntimeConfig();
+                sendNotification({ email: data!.Reviewers.email, pool: question.pool.name, url: `${auth.origin}/contributor/login` });
+            }
+
             );
         }
     ), 
