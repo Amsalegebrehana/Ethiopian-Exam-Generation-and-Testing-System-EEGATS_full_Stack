@@ -10,8 +10,8 @@ const { $client } = useNuxtApp()
 const page = ref(1);
 const searchPage = ref(1);
 const searchText = ref('');
-const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.testtaker.getTestTakersCount.query({}),{ watch: [page, searchText] });
-const { data: testTakers, refresh: fetchTestTakers, pending } = await useAsyncData(() => $client.testtaker.getTestTakers.query({ skip: (page.value - 1) * 6 }),{ watch: [page, searchText] });
+const { data: count, refresh: fetchCount } = await useAsyncData(() => $client.testtaker.getTestTakersCount.query({}), { watch: [page, searchText] });
+const { data: testTakers, refresh: fetchTestTakers, pending } = await useAsyncData(() => $client.testtaker.getTestTakers.query({ skip: (page.value - 1) * 6 }), { watch: [page, searchText] });
 const { data: searchcount, refresh: fetchSearchCount } = await useAsyncData(() => $client.testtaker.getTestTakersCount.query({ search: searchText.value !== '' ? searchText.value : undefined }), { watch: [searchPage, searchText] });
 const { data: searchTestTakers, refresh: fetchSearchTestTakers, pending: pendingSearch } = await useAsyncData(() => $client.testtaker.getTestTakers.query({ search: searchText.value !== '' ? searchText.value : undefined, skip: (searchPage.value - 1) * 6 }), { watch: [searchPage, searchText] });
 
@@ -97,10 +97,10 @@ const copy = () => {
 <template>
     <div>
         <AdminTopBar role="admin" />
-        <div class="flex">
+        <div class="flex" :class="{'fixed w-full' : showResetPasswordModal || showSuccessModal || showErrorModal ||isReloading}">
 
             <AdminSideBar pageName="testtakers" />
-            <div class="w-full mx-6 mt-24">
+            <div class="w-full mx-6 content middle mt-20 ">
 
                 <h2 class="intro-y text-lg font-medium mt-10">List of Test Takers</h2>
 
@@ -126,65 +126,73 @@ const copy = () => {
                                 </div>
                                 <div v-if="searchTestTakers?.length !== 0">
 
-                                       
-                                    <table class="table table-report -mt-2">
-                                            <thead>
-                                                <tr>
-                                                    <th class="whitespace-nowrap"></th>
-                                                    <th class="whitespace-nowrap">Name</th>
-                                                    <th class="text-center whitespace-nowrap">Admission number</th>
-                                                    <th class="text-center whitespace-nowrap">Exam Group</th>
-                                                    <th></th>
-                                                    <th class="text-center whitespace-nowrap">ACTIONS</th>
-                                                    
-                                                
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="student in searchTestTakers" :key="student.id" class="intro-x">
-                                                    <td class="w-10">
-                                                        <NuxtLink :to="`/admin/testtakers/${student.id}`">
-                                                        <Icon name="iconoir:page" class="w-6 h-6"></Icon>
-                                                        </NuxtLink>
-                                                    </td>
-                                                    <td>
-                                                        <NuxtLink :to="`/admin/testtakers/${student.id}`" class="font-medium whitespace-nowrap">{{
-                                                        student.name.length > 40 ? student.name.slice(0,39) + "..." : student.name
-                                                        }}</NuxtLink>
-                            
-                                                    </td>
-                                                    <td class="text-center">{{ student.username}}</td>
-                                                    <td class="text-center">{{ student.examGroup.name.length > 40 ? student.examGroup.name.slice(0,39)  + "..." : student.examGroup.name}}</td>
-                                                    
-                                                    <td class="w-16">
-                                                            <div v-if="student.failedAttempts >= 3" class="mx-auto">
-                                                                <div
-                                                                    class="bg-red-500 text-white px-2 py-1 rounded-xl text-center w-16">
-                                                                    <p>Locked</p>
-                                                                </div>
-                                                            </div>
-                                                        </td>
 
-                                                    <td class="table-report__action w-96">
-                                                            <div class="flex justify-center items-center">
-                                                                <a class="flex items-center mr-6 text-primary" :href="`/admin/testtakers/${student.id}`">
-                                                                    <Icon name="tabler:device-analytics"
-                                                                        class="w-4 h-4 mr-1"></Icon> View Details
-                                                                </a>
-                                                               
-                                                              
-                                                                <a class="flex items-center mr-6" href="javascript:;"
-                                                                    @click="ResetPasswordModal(student.id)">
-                                                                    <Icon name="material-symbols:key-rounded"
-                                                                        class="w-4 h-4 mr-1"></Icon> Reset Password
-                                                                </a>
-                                                              
-                                                            </div>
-                                                        </td>
-                                                
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                    <table class="table table-report -mt-2">
+                                        <thead>
+                                            <tr>
+                                                <th class="whitespace-nowrap"></th>
+                                                <th class="whitespace-nowrap">Name</th>
+                                                <th class="text-center whitespace-nowrap">Admission number</th>
+                                                <th class="text-center whitespace-nowrap">Exam Group</th>
+                                                <th></th>
+                                                <th class="text-center whitespace-nowrap">ACTIONS</th>
+
+
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="student in searchTestTakers" :key="student.id" class="intro-x">
+                                                <td class="w-10">
+                                                    <NuxtLink :to="`/admin/testtakers/${student.id}`">
+                                                        <Icon name="iconoir:page" class="w-6 h-6"></Icon>
+                                                    </NuxtLink>
+                                                </td>
+                                                <td>
+                                                    <NuxtLink :to="`/admin/testtakers/${student.id}`"
+                                                        class="font-medium whitespace-nowrap">{{
+                                                            student.name.length > 40 ? student.name.slice(0, 39) + "..." :
+                                                            student.name
+                                                        }}</NuxtLink>
+
+                                                </td>
+                                                <td class="text-center">{{ student.username }}</td>
+                                                <td class="text-center">
+                                                    <NuxtLink :to="`/admin/testtakers/${student.id}`"
+                                                        class=" whitespace-nowrap">{{
+                                                            student.examGroup.name.length > 40 ?
+                                                            student.examGroup.name.slice(0, 39) + "..." :
+                                                            student.examGroup.name }}</NuxtLink>
+                                                </td>
+                                                <td class="w-16">
+                                                    <div v-if="student.failedAttempts >= 3" class="mx-auto">
+                                                        <div
+                                                            class="bg-red-500 text-white px-2 py-1 rounded-xl text-center w-16">
+                                                            <p>Locked</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <td class="table-report__action w-96">
+                                                    <div class="flex justify-center items-center">
+                                                        <a class="flex items-center mr-6 text-primary"
+                                                            :href="`/admin/testtakers/${student.id}`">
+                                                            <Icon name="tabler:device-analytics" class="w-4 h-4 mr-1">
+                                                            </Icon> View Details
+                                                        </a>
+
+
+                                                        <a class="flex items-center mr-6" href="javascript:;"
+                                                            @click="ResetPasswordModal(student.id)">
+                                                            <Icon name="material-symbols:key-rounded" class="w-4 h-4 mr-1">
+                                                            </Icon> Reset Password
+                                                        </a>
+
+                                                    </div>
+                                                </td>
+
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                     <div class="flex flex-row mt-3">
                                         <div class="md:block  text-slate-500">
 
@@ -195,7 +203,8 @@ const copy = () => {
                                                 <ul class="pagination">
 
                                                     <li class="page-item">
-                                                        <button class="page-link" v-on:click="paginateSearch(searchPage - 1)"
+                                                        <button class="page-link"
+                                                            v-on:click="paginateSearch(searchPage - 1)"
                                                             :disabled="searchPage === 1">
                                                             <div
                                                                 class="flex flex-row align-middle justify-center items-center  ">
@@ -206,7 +215,8 @@ const copy = () => {
                                                         </button>
                                                     </li>
                                                     <li class="page-item">
-                                                        <button class="page-link" v-on:click="paginateSearch(searchPage + 1)"
+                                                        <button class="page-link"
+                                                            v-on:click="paginateSearch(searchPage + 1)"
                                                             :disabled="(searchPage) * 6 >= searchcount!">
                                                             <div
                                                                 class="flex flex-row align-middle justify-center items-center">
@@ -235,65 +245,74 @@ const copy = () => {
                                 </div>
                                 <div v-if="testTakers?.length !== 0">
 
-                                   
+
                                     <table class="table table-report -mt-2">
-                                            <thead>
-                                                <tr>
-                                                    <th class="whitespace-nowrap"></th>
-                                                    <th class="whitespace-nowrap">Name</th>
-                                                    <th class="text-center whitespace-nowrap">Admission number</th>
-                                                    <th class="text-center whitespace-nowrap">Exam Group</th>
+                                        <thead>
+                                            <tr>
+                                                <th class="whitespace-nowrap"></th>
+                                                <th class="whitespace-nowrap">Name</th>
+                                                <th class="text-center whitespace-nowrap">Admission number</th>
+                                                <th class="text-center whitespace-nowrap">Exam Group</th>
 
-                                                    <th></th>
-                                                    <th class="text-center whitespace-nowrap">ACTIONS</th>
-                                                    
-                                                
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="student in testTakers" :key="student.id" class="intro-x">
-                                                    <td class="w-10">
-                                                        <NuxtLink :to="`/admin/testtakers/${student.id}`">
+                                                <th></th>
+                                                <th class="text-center whitespace-nowrap">ACTIONS</th>
+
+
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="student in testTakers" :key="student.id" class="intro-x">
+                                                <td class="w-10">
+                                                    <NuxtLink :to="`/admin/testtakers/${student.id}`">
                                                         <Icon name="iconoir:page" class="w-6 h-6"></Icon>
-                                                        </NuxtLink>
-                                                    </td>
-                                                    <td>
-                                                        <NuxtLink :to="`/admin/testtakers/${student.id}`" class="font-medium whitespace-nowrap">{{
-                                                        student.name.length > 40 ? student.name.slice(0,39) + "..." : student.name
+                                                    </NuxtLink>
+                                                </td>
+                                                <td>
+                                                    <NuxtLink :to="`/admin/testtakers/${student.id}`"
+                                                        class="font-medium whitespace-nowrap">{{
+                                                            student.name.length > 40 ? student.name.slice(0, 39) + "..." :
+                                                            student.name
                                                         }}</NuxtLink>
-                            
-                                                    </td>
-                                                    <td class="text-center">{{ student.username}}</td>
-                                                    <td class="text-center">{{ student.examGroup.name.length > 40 ? student.examGroup.name.slice(0,39)  + "..."  : student.examGroup.name}}</td>
-                                                    <td class="w-16">
-                                                            <div v-if="student.failedAttempts >= 3" class="mx-auto">
-                                                                <div
-                                                                    class="bg-red-500 text-white px-2 py-1 rounded-xl text-center w-16">
-                                                                    <p>Locked</p>
-                                                                </div>
-                                                            </div>
-                                                        </td>
 
-                                                    <td class="table-report__action w-96">
-                                                            <div class="flex justify-center items-centerm mr-6">
-                                                                
-                                                          <a class="flex items-center mr-6 text-primary" :href="`/admin/testtakers/${student.id}`">
-                                                                    <Icon name="tabler:device-analytics"
-                                                                        class="w-4 h-4 mr-1"></Icon> View Details
-                                                                </a>
-                                                               
-                                                                <a class="flex items-center mr-6" href="javascript:;"
-                                                                    @click="ResetPasswordModal(student.id)">
-                                                                    <Icon name="material-symbols:key-rounded"
-                                                                        class="w-4 h-4 mr-1"></Icon> Reset Password
-                                                                </a>
-                                                              
-                                                            </div>
-                                                        </td>
-                                                
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                                </td>
+                                                <td class="text-center">{{ student.username }}</td>
+                                                <td class="text-center">
+                                                    <NuxtLink :to="`/admin/testtakers/${student.id}`"
+                                                        class=" whitespace-nowrap">{{
+                                                            student.examGroup.name.length > 40 ?
+                                                            student.examGroup.name.slice(0, 39) + "..." :
+                                                            student.examGroup.name }}</NuxtLink>
+                                                </td>
+                                                <td class="w-16">
+                                                    <div v-if="student.failedAttempts >= 3" class="mx-auto">
+                                                        <div
+                                                            class="bg-red-500 text-white px-2 py-1 rounded-xl text-center w-16">
+                                                            <p>Locked</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <td class="table-report__action w-96">
+                                                    <div class="flex justify-center items-centerm mr-6">
+
+                                                        <a class="flex items-center mr-6 text-primary"
+                                                            :href="`/admin/testtakers/${student.id}`">
+                                                            <Icon name="tabler:device-analytics" class="w-4 h-4 mr-1">
+                                                            </Icon> View Details
+                                                        </a>
+
+                                                        <a class="flex items-center mr-6" href="javascript:;"
+                                                            @click="ResetPasswordModal(student.id)">
+                                                            <Icon name="material-symbols:key-rounded" class="w-4 h-4 mr-1">
+                                                            </Icon> Reset Password
+                                                        </a>
+
+                                                    </div>
+                                                </td>
+
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                     <div class="flex flex-row mt-3">
                                         <div class="md:block  text-slate-500">
 
@@ -344,40 +363,45 @@ const copy = () => {
 
                 </div>
 
-           
 
-              
-                <div v-if="isReloading"
-                    class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
-                    <div class="relative  my-6 mx-auto max-w-10xl">
-                        <!--content-->
-                        <div class="border-0 rounded-lg relative flex flex-col w-full outline-none focus:outline-none">
-                            <!--header-->
-                            <div class="flex items-start justify-between p-5 rounded-t">
+
+            </div>
+            
+        </div>
+    </div>
+        <div v-if="isReloading" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
+            <div v-if="isReloading"
+                class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+                <div class="relative  my-6 mx-auto max-w-10xl">
+                    <!--content-->
+                    <div class="border-0 rounded-lg relative flex flex-col w-full outline-none focus:outline-none">
+                        <!--header-->
+                        <div class="flex items-start justify-between p-5 rounded-t">
                             <!-- <h3 class="text-3xl font-semibold">
-                                                Modal Title
-                                            </h3> -->
+                                        Modal Title
+                                    </h3> -->
                             <!-- <button
-                                                class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                                type="button" v-on:click="toggleDeleteModal()">
-                                                <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
-                                            </button> -->
+                                        class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                                        type="button" v-on:click="toggleDeleteModal()">
+                                        <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
+                                    </button> -->
                         </div>
                         <!--body-->
                         <div class="relative p-6 flex-auto">
-
-
+    
+    
                             <div class="flex flex-row items-center space-x-4 mx-auto">
                                 <Icon name="eos-icons:bubble-loading" class="w-20 h-20 text-primary"></Icon>
-
+    
                             </div>
                         </div>
                         <!--footer-->
-
+    
                     </div>
                 </div>
             </div>
-            <div v-if="isReloading" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
+        </div>
+        <div v-if="showResetPasswordModal" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
             <div v-if="showResetPasswordModal"
                 class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
                 <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
@@ -387,11 +411,12 @@ const copy = () => {
                         <!--header-->
                         <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
                             <!-- <h3 class="text-3xl font-semibold">
-                    Modal Title
-                </h3> -->
+            Modal Title
+        </h3> -->
                             <button
                                 class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                                type="button" v-on:click="toggleResetPasswordModal()" :disabled="isLoadingResetPassword">
+                                type="button" v-on:click="toggleResetPasswordModal()"
+                                :disabled="isLoadingResetPassword">
                                 <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
                             </button>
                         </div>
@@ -410,33 +435,39 @@ const copy = () => {
                                         <div class="input-group mt-2  w-96">
                                             <input class="form-control bg-slate-100 p-2" id="copyInput"
                                                 :value="newPassword" />
-
+    
                                             <button @click="copy()" class="input-group-text">
-                                                <Icon v-if="isCopied" name="lucide:copy-check" class="w-6 h-6 text-primary">
+                                                <Icon v-if="isCopied" name="lucide:copy-check"
+                                                    class="w-6 h-6 text-primary">
                                                 </Icon>
-                                                <Icon v-else name="lucide:copy" class="w-6 h-6 text-slate-500"></Icon>
+                                                <Icon v-else name="lucide:copy" class="w-6 h-6 text-slate-500">
+                                                </Icon>
                                             </button>
-
+    
                                         </div>
-
-
+    
+    
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <!--footer-->
-                        <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
-
-                        </div>
+                    <!--footer-->
+                    <div class="flex items-center justify-center p-6 border-solid border-slate-200 rounded-b">
+    
                     </div>
                 </div>
             </div>
-            <div v-if="showResetPasswordModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
-
-            <Modal type="success" :show="showSuccessModal" :toggle="toggleSuccessModal" message="Success!" />
-            <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
         </div>
-
     </div>
-</div>
-</template>
+    
+    <Modal type="success" :show="showSuccessModal" :toggle="toggleSuccessModal" message="Success!" />
+    <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal" :message="errorText" />
+  </template>
+  <style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>

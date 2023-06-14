@@ -15,7 +15,7 @@
                                         <h2 class="text-lg font-medium truncate mr-5">
                                             General Report
                                         </h2>
-                                        <a href="" class="ml-auto flex items-center text-primary"> <i data-lucide="refresh-ccw" class="w-4 h-4 mr-3"></i> Reload Data </a>
+                                       
                                     </div>
                                     <div class="grid grid-cols-12 gap-6 mt-5">
                                         <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
@@ -91,14 +91,14 @@
                         </div>
                         <!-- END: General Report -->
                      <!-- BEGIN: General Report -->
-                       <div class="col-span-12 mt-8">
+                       <div class="col-span-12 mt-8 mx-5">
                                     <div class="intro-y flex items-center h-10">
                                         <h2 class="text-lg font-medium truncate mr-5">
                                             Distribution
                                         </h2>
-                                        <a href="" class="ml-auto flex items-center text-primary"> <i data-lucide="refresh-ccw" class="w-4 h-4 mr-3"></i> Reload Data </a>
+                                       
                                     </div>
-                                    <div class="grid grid-cols-12 gap-6 mt-5">
+                                    <div class="grid grid-cols-12 gap-10 mt-5">
                                         
                                        
                                         <div class="col-span-12 col-span-6  intro-y">
@@ -132,7 +132,7 @@
                                         <h2 class="text-lg font-medium truncate mr-5">
                                             Exams
                                         </h2>
-                                        <a href="" class="ml-auto flex items-center text-primary"> <i data-lucide="refresh-ccw" class="w-4 h-4 mr-3"></i> Reload Data </a>
+                                       
                                     </div>
                         <div class="grid grid-cols-3 w-full col-span-12 space-x-5 mt-10">
                             <div class="box p-5 zoom-in">
