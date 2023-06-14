@@ -235,7 +235,7 @@ async function onViewMore() {
                                 </div>
                             </button>
                             <NuxtLink :to="`/contributor/${contrId}/create-question`">
-                                <button class="btn btn-primary shadow-md mr-2" :disable="!isAssigned || canAddQuestion!">
+                                <button class="btn btn-primary shadow-md mr-2" :disable="!isAssigned || !canAddQuestion!">
                                     Add question
                                     <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
                                 </button>
