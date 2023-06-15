@@ -345,7 +345,7 @@ const handleDisableContributor = async () => {
 <template>
     <div>
         <AdminTopBar role="admin" />
-        <div class="flex" :class="{'fixed w-full' : showAddModal || showDeleteCatModal || showDeleteContModal || showEditModal || showError || showInviteModal}">
+        <div class="flex" :class="{'fixed w-full' : showAddModal || showDeleteCatModal || showDeleteContModal || showEditModal || showErrorModal || showInviteModal}">
 
             <AdminSideBar pageName="pools" />
             <div class="w-full mx-6 content middle mt-20 ">

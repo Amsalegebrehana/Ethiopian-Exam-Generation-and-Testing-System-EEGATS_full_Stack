@@ -335,7 +335,7 @@ const getSrc = (filepath: string) => {
                                     Previous
                                 </button>
                                 <div v-if="correctAnswer.length > 2" class="flex-end flex gap-4">
-                                    <button @click="handleSave()" class="btn btn-primary">
+                                    <button @click="handleSave()" class="btn btn-primary" :disabled="isSubmitLoading || isSaveLoading">
                                         <div v-if="isSaveLoading">
                                             <Icon name="eos-icons:bubble-loading" class="w-20 h-6"></Icon>
                                         </div>
@@ -343,7 +343,7 @@ const getSrc = (filepath: string) => {
                                             Save as draft
                                         </div>
                                     </button>
-                                    <button @click="handleSubmit()" class="btn btn-primary">
+                                    <button @click="handleSubmit()" class="btn btn-primary" :disabled="isSubmitLoading || isSaveLoading">
                                         <div v-if="isSubmitLoading">
                                             <Icon name="eos-icons:bubble-loading" class="w-20 h-6"></Icon>
                                         </div>

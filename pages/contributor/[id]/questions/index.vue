@@ -187,7 +187,7 @@ const toggleSubmitFailed = () => {
         class="text-xl absolute z-[100] inset-0 flex items-center justify-center px-[1em] bg-[#00000076] py-36 max-w-full max-h-screen">
         <div class="py-5 px-3 flex-col bg-white rounded-xl">
             <div
-                class="px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] flex h-[12vh] opacity-100 gap-4">
+                class="px-3 bg-white rounded-xl sm:min-w-[100%] lg:min-w-[37em] max-w-[37em] flex h-[15vh] opacity-100 gap-4">
                 <div class="px-3 flex-col">
                     <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
                         Are you sure you want to submit this draft?

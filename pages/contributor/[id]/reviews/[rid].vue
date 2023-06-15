@@ -65,6 +65,10 @@ const submitFeedback = async () => {
         if (res) {
             isLoading.value = false;
             showSuccessModal.value = true;
+            setTimeout(() => {
+                showSuccessModal.value = false;
+            }, 2000);
+            return navigateTo(`/contributor/${contrId}/reviews`);
         } else {
         }
 

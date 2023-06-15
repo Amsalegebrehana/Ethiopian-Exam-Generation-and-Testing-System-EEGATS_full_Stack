@@ -872,7 +872,11 @@ export const contributorRouter = router({
 
     getCountOfContributors: publicProcedure
     .query(async({ctx, input}) => {
-        const count = await ctx.prisma.contributors.count({});
+      const count = await ctx.prisma.contributors.count({
+        where: {
+            isActive : true
+          }
+        });
         return count;
     })
 
