@@ -297,6 +297,16 @@ export const reviewsRouter = router({
                             }
                         }
                     });
+                    await ctx.prisma.category.update({
+                        where: {
+                            id: question.catId
+                        },
+                        data: {
+                            numOfQuestions: {
+                                increment: 1,
+                            }
+                        }
+                    });
                     return data;
                 } else {
                     const contAss = await ctx.prisma.contributorAssignment.update({

@@ -46,6 +46,9 @@ const submitFeedback = async () => {
             errorText.value = "Please choose an option for all the metrics!";
             showErrorModal.value = true;
             isLoading.value = false;
+            setTimeout(() => {
+                showErrorModal.value = false;
+            }, 2000);
             process.exit();
         }
 
@@ -69,6 +72,9 @@ const submitFeedback = async () => {
         isLoading.value = false;
         errorText.value = e.message;
         showErrorModal.value = true;
+        setTimeout(() => {
+                showErrorModal.value = false;
+            }, 2000);
     }
 
 }

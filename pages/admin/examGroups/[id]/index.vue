@@ -82,8 +82,11 @@
                                         <Icon name="eos-icons:bubble-loading" class="w-6 h-6 "></Icon>
                                     </div>
                                     <div v-else class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-
-                                        <table class="table table-report -mt-2">
+                                        <div v-if="searchTestTakers?.length == 0"
+                                                    class="w-full text-center text-lg mt-10 h-full">
+                                                    <p>No Test Takers found</p>
+                                                </div>
+                                        <table v-if="searchTestTakers?.length > 0" class="table table-report -mt-2">
                                             <thead>
                                                 <tr>
                                                     <th class="whitespace-nowrap"></th>
@@ -143,7 +146,7 @@
                       <div class="md:block  text-slate-500">
                    
                           </div>
-                        <div class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+                        <div v-if="searchTestTakers?.length > 0" class=" ml-auto intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
                             <nav class="w-full sm:w-auto sm:mr-auto">
                                 <ul class="pagination">
                                     
@@ -444,7 +447,7 @@ const isPractice = ref(false);
 const publishBtn = ref(false);
 if(practiceData.value === 'practice'){
     isPractice.value = true;
-}else if(practiceData.value === 'release'){
+}else if(practiceData.value === 'release' ){
     publishBtn.value = true;
 }else{
     isPractice.value = false;

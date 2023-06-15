@@ -45,7 +45,7 @@ export const testTakerRouter = router({
 
         return await ctx.prisma.testTakers.count({
           where: {
-            username: {
+            name: {
               contains: input.search,
             },
           },
@@ -69,7 +69,7 @@ export const testTakerRouter = router({
             createdAt: "desc",
           },
           where: {
-            username: {
+            name: {
               contains: input.search,
               mode: 'insensitive'
             },

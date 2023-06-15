@@ -55,7 +55,7 @@ const session = await getSession();
                             class="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5"
                             role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
 
-                            <div v-if="session?.role === 'testtaker' && !session?.isFirstTime">
+                            <div v-if="!(session?.role === 'testtaker' && session?.isFirstTime)">
                                 <a :href="role === 'admin' ? `/${role}/changePassword` : `/${role}/${id}/changePassword`"
                                     class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1"
                                     id="user-menu-item-0">Change Password</a>

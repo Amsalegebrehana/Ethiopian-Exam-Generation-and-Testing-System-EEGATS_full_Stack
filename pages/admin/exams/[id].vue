@@ -61,7 +61,7 @@
                                 <button v-if="publishBtn" class="btn btn-success shadow-md mt-5 mr-4 text-white"
                                     @click="publishExam">Publish</button>
                                 <button v-if="unpublishBtn" class="btn btn-success shadow-md mt-5 mr-4 text-white"
-                                    @click="unPublishExam">UnPublish</button>
+                                    @click="unPublishExam">Un Publish</button>
                             </div>
 
 
@@ -463,6 +463,7 @@ const route = useRoute();
 const id = route.params.id as string;
 
 // fetch exam by id
+
 const exam = await $client.exam.getExam.query({ id: id });
 const analytics = await $client.analytics.getExamAnalytics.query({ examId: id });
 
@@ -505,13 +506,13 @@ const publishExam = async () => {
     
     publishBtn.value = false;
     // if the exam is published and the testing date is in the future then unpublishing exam is possible
-    if (updatedExam && updatedExam.status === 'published' && updatedExam.testingDate > new Date()) {
+    if (updatedExam && updatedExam.status === 'published' ) {
         unpublishBtn.value = true;
     }
     else {
         unpublishBtn.value = false;
     }
-
+    window.location.reload();
 
 };
 
@@ -521,13 +522,13 @@ const unPublishExam = async () => {
     const updatedExam = await $client.exam.unPublishExam.mutate({ id: id });
     unpublishBtn.value = false;
     // if the exam is generated and the testing date is in the future then publishing exam after unpublishing it is possible
-    if (updatedExam.status === 'generated' && updatedExam.testingDate > new Date()) {
+    if (updatedExam.status === 'generated') {
         publishBtn.value = true;
     }
     else {
         publishBtn.value = false;
     }
-
+    window.location.reload();
 };
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement)

@@ -136,9 +136,9 @@ const handleInviteContributor = async () => {
         showInv.value = false;
         isEmailInvalid.value = false;
         isInviteDup.value = false;
-        isInviteSuccess.value = false;
+        isInviteSuccess.value = true;
     } catch (e: any) {
-
+        showInv.value = false;
         if (e.message == "Invalid Email!") {
             isEmailInvalid.value = true;
             contributorEmail.value = "";
@@ -147,10 +147,16 @@ const handleInviteContributor = async () => {
             isInviteDup.value = true;
             contributorEmail.value = '';
         }
+        if(e.message == "Already assigned"){
+            isAssignedtoAnotherPool.value = true;
+            contributorEmail.value = "";
+        }
         if (e.message === true) {
-            isInviteSuccess.value = true;
+            isInviteSuccess.value = false;
             contributorEmail.value = '';
         }
+        isLoading.value = false;
+        
     }
 }
 const showErrorModal = ref(false);
@@ -201,7 +207,7 @@ const toggleAddModal = () => {
     showAddModal.value = !showAddModal.value;
 }
 const handleAddCategory = async () => {
-    isLoading.value = true;
+    isLoadingCat.value = true;
     try {
         const category = await $client.category.addCategory.mutate({ name: catInfo.value.name, numOfQuestions: catInfo.value.numberofQuestions, poolId: poolId });
         if (category) {
@@ -214,7 +220,7 @@ const handleAddCategory = async () => {
             isReloadingCat.value = false;
         }
     } catch (e: any) {
-        isLoading.value = false;
+        isLoadingCat.value = false;
         errorText.value = "Failed. Please check your internet and try again later.";
         showErrorModal.value = true;
     }
@@ -235,7 +241,8 @@ const EditModal = async (catId: string, catName: string) => {
 
 }
 const handleEditPool = async () => {
-    isLoading.value = true;
+  
+    isLoadingCat.value = true;
     try {
         const category = await $client.category.updateCategory.mutate(catInfo.value);
         if (category) {
@@ -243,13 +250,13 @@ const handleEditPool = async () => {
             isLoadingCat.value = false;
             showEditModal.value = false;
             catInfo.value.id = '';
-            catInfo.value.name = '';
             await fetchCategories();
             await fetchCountCat();
+            catInfo.value.name = '';
             isReloadingCat.value = false;
         }
     } catch (e: any) {
-        isLoading.value = false;
+        isLoadingCat.value = false;
         errorText.value = "Failed. Please check your internet and try again later.";
         showErrorModal.value = true;
     }
@@ -288,12 +295,15 @@ const DeleteCatModal = async (catId: string, catName: string) => {
 }
 
 const handleDeleteCategory = async () => {
-    isLoading.value = true;
+    isLoadingCat.value = true;
     try {
         const res = await $client.category.deleteCategory.mutate({ id: catInfo.value.id });
         if (res === 'Can\'t delete category.') {
             errorText.value = "You can't delete a category with active questions!";
             showErrorModal.value = true;
+            setTimeout(() => {
+                showErrorModal.value = false;
+            }, 2000);
         }
         isReloadingCat.value = true;
         isLoadingCat.value = false;
@@ -304,9 +314,12 @@ const handleDeleteCategory = async () => {
         await fetchCountCat();
         isReloadingCat.value = false;
     } catch (e: any) {
-        isLoading.value = false;
+        isLoadingCat.value = false;
         errorText.value = "Failed. Please check your internet and try again later.";
         showErrorModal.value = true;
+        setTimeout(() => {
+            showErrorModal.value = false;
+        }, 2000);
     }
 
 }
@@ -992,24 +1005,23 @@ const handleDisableContributor = async () => {
                     <div v-if="isInviteDup && !showInv">
                         <div class="flex flex-row items-center space-x-4 mx-auto">
                             <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
-                            <p class=" font-bold text-lg text-center">Already a member of this pool!</p>
+                            <p class=" font-bold text-lg text-center">Already a member of this pool! Please try again with another email.</p>
                         </div>
                     </div>
 
                     <div v-else-if="isEmailInvalid && !showInv">
                         <div class="flex flex-row items-center space-x-4 mx-auto">
                             <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
-                            <p class=" font-bold text-lg text-center">Invalid Email!</p>
+                            <p class=" font-bold text-lg text-center">Invalid Email! Please try again.</p>
                         </div>
                     </div>
 
-                    <div v-if="!isInviteSuccess && !showInv">
+                    <div v-else-if="isAssignedtoAnotherPool && !showInv">
                         <div class="flex flex-row items-center space-x-4 mx-auto">
-                            <!-- <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon> -->
-                            <p class=" font-bold text-lg text-center">Failed to send invite, please try again</p>
+                            <Icon name="ph:warning" class="w-20 h-20 text-red-600"></Icon>
+                            <p class=" font-bold text-lg text-center">Already a member of another pool!</p>
                         </div>
                     </div>
-
                     <!--body-->
                     <div class="relative p-6 flex-auto">
                         <div v-if="showInv">
@@ -1091,8 +1103,8 @@ const handleDisableContributor = async () => {
 
                         <button @click="handleAddCategory()"
                             class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
-                            :disabled="isLoading || catInfo.name.length < 2">
-                            <div v-if="isLoading || pending">
+                            :disabled="isLoadingCat || catInfo.name.length < 2">
+                            <div v-if="isLoadingCat || pending">
                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                             </div>
                             <div v-else>
@@ -1141,8 +1153,8 @@ const handleDisableContributor = async () => {
 
                         <button @click="handleEditPool()"
                             class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center"
-                            :disabled="isLoading || catInfo.name.length < 2">
-                            <div v-if="isLoading || pending">
+                            :disabled="isLoadingCat || catInfo.name.length < 2">
+                            <div v-if="isLoadingCat || pending">
                                 <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                             </div>
                             <div v-else>
@@ -1192,8 +1204,8 @@ const handleDisableContributor = async () => {
                     </button>
 
                     <button @click="handleDeleteCategory()"
-                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoading">
-                        <div v-if="isLoading || pending">
+                        class="bg-primary rounded-xl w-5/12 text-white py-3 px-4 text-center" :disabled="isLoadingCat">
+                        <div v-if="isLoadingCat || pending">
                             <Icon name="eos-icons:bubble-loading" class="w-6 h-6"></Icon>
                         </div>
                         <div v-else>

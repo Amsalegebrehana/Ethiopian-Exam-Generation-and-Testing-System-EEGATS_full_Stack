@@ -418,7 +418,7 @@ export const examGroupRouter = router({
             } else {
 
                 var allReleased = true;
-
+                
                 for (const exam of examGroup.Exam) {
                     if (exam.status !== 'gradeReleased') {
                         allReleased = false;
@@ -426,7 +426,7 @@ export const examGroupRouter = router({
                     }
                 }
 
-                return allReleased ? "release" : "cantRelease";
+                return allReleased && examGroup.Exam.length > 0 ? "release" : "cantRelease";
             }
 
         }),

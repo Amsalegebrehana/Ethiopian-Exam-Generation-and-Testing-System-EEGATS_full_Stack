@@ -118,8 +118,7 @@ const copy = () => {
                     </div>
                     <div class="w-full mt-10">
 
-                        <div v-if="searchText != ''">
-
+                        <div v-if="searchText !== ''">
                             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible w-full">
                                 <div v-if="searchTestTakers?.length == 0" class="w-full text-center text-lg mt-10 h-full">
                                     <p>No test takers found</p>

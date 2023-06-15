@@ -135,13 +135,23 @@ const DeleteModal = async (poolId: string, poolName: string) => {
     showDeleteModal.value = !showDeleteModal.value;
 
 }
+// watch changes in showErrorModal and close modal after 3 seconds call toggleErrorModal
+watch(showErrorModal, (value) => {
+    if (value) {
+        setTimeout(() => {
+            toggleErrorModal();
+        }, 2000);
+    }
+});
+
+
 const handleDeletePool = async () => {
 
     isLoading.value = true;
     try {
         const res = await $client.pool.deletePool.mutate({ id: poolInfo.value.id });
         if (res === 'Can\'t delete pool.') {
-            errorText.value = "You can't delete with a pool active questions or contributors!";
+            errorText.value = "You can't delete a pool with active questions or contributors!";
             showErrorModal.value = true;
         }
         isReloading.value = true;
@@ -156,6 +166,7 @@ const handleDeletePool = async () => {
         isLoading.value = false;
         errorText.value = "Failed. Please check your internet and try again later.";
         showErrorModal.value = true;
+        showDeleteModal.value = false;
     }
 
 }
@@ -713,12 +724,12 @@ const handleDeletePool = async () => {
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                        <Modal type="success" :show="showSuccessModal"
+                                                                        <!-- <Modal type="success" :show="showSuccessModal"
                                                                             :toggle="toggleSuccessModal"
                                                                             message="Success!" />
                                                                         <Modal type="error" :show="showErrorModal"
                                                                             :toggle="toggleErrorModal"
-                                                                            :message="errorText" />
+                                                                            :message="errorText" /> -->
                                                                     </div>
                                                                 </div>
                                                                 <!--footer-->
@@ -727,10 +738,10 @@ const handleDeletePool = async () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <Modal type="success" :show="showSuccessModal" :toggle="toggleSuccessModal"
+                                                <!-- <Modal type="success" :show="showSuccessModal" :toggle="toggleSuccessModal"
                                                     message="Success!" />
                                                 <Modal type="error" :show="showErrorModal" :toggle="toggleErrorModal"
-                                                    :message="errorText" />
+                                                    :message="errorText" /> -->
                                                 <ul class="pagination">
 
                                                     <li class="page-item">

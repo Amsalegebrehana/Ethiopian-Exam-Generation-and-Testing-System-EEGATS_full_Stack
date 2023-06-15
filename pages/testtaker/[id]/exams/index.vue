@@ -60,7 +60,7 @@ const resetSearch = () => {
 <template>
     <div>
         <TopBar role="testtaker" :id="testTakerId" />
-        <div class="flex">
+        <div class="flex" :class="{'fixed w-full' : showGradeModal}">
 
             <div class="w-full mx-20 mt-24">
 
@@ -383,47 +383,48 @@ const resetSearch = () => {
                 </div>
                 <div>
 
-<div v-if="showGradeModal"
-    class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
-    <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
-        <!--content-->
-        <div
-            class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-            <!--header-->
-            <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
-                <!-- <h3 class="text-3xl font-semibold">
-                    Modal Title
-                </h3> -->
-                <button
-                    class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                    type="button" v-on:click="toggleViewGradeModal()">
-                    <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
-                </button>
-            </div>
-            <!--body-->
-            <div class="relative p-6 flex-auto">
-            
-                    <p v-if="gradeInfo.score > gradeInfo.passGrade" class="text-center text-xl text-success">
-                        Passed!
-                    </p>
-                    <p v-else class="text-center text-xl text-danger">
-                        Failed!
-                    </p>
-                    
-                    <p class="align-middle my-auto font-bold text-lg text-center pb-20 pt-5">You have scored {{ gradeInfo.score }} / {{ gradeInfo.numberOfQuestions }} for {{ gradeInfo.name }} Exam</p>
-                 
-              
-            </div>
-            <!--footer-->
-         
-        </div>
-    </div>
-</div>
-<div v-if="showGradeModal" class="opacity-25 fixed inset-0 z-40 bg-black"></div>
-</div>
-              
-                  
                 </div>
+                
+                
+            </div>
+            <div v-if="showGradeModal" class="fixed z-[100] inset-0 px-[1em] bg-[#00000076] py-36 h-[100%]">
+            <div v-if="showGradeModal"
+                class="overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center flex">
+                <div class="relative w-2/6 my-6 mx-auto max-w-10xl">
+                    <!--content-->
+                    <div
+                        class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                        <!--header-->
+                        <div class="flex items-start justify-between p-5 border-solid border-slate-200 rounded-t">
+                            <!-- <h3 class="text-3xl font-semibold">
+                                Modal Title
+                            </h3> -->
+                            <button
+                                class="ml-auto text-gray-500 hover:text-black bg-transparent font-bold uppercase text-sm py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                                type="button" v-on:click="toggleViewGradeModal()">
+                                <Icon name="iconoir:cancel" class="w-6 h-6"></Icon>
+                            </button>
+                        </div>
+                        <!--body-->
+                        <div class="relative p-6 flex-auto">
+                        
+                                <p v-if="gradeInfo.score > gradeInfo.passGrade" class="text-center text-xl text-success">
+                                    Passed!
+                                </p>
+                                <p v-else class="text-center text-xl text-danger">
+                                    Failed!
+                                </p>
+                                
+                                <p class="align-middle my-auto font-bold text-lg text-center pb-20 pt-5">You have scored {{ gradeInfo.score }} / {{ gradeInfo.numberOfQuestions }} for {{ gradeInfo.name }} Exam</p>
+                             
+                          
+                        </div>
+                        <!--footer-->
+                     
+                    </div>
+                </div>
+            </div>
+            </div>
               
             
     

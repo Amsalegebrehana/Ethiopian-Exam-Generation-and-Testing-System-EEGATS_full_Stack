@@ -4,7 +4,8 @@
         <div class="flex">
 
             <AdminSideBar pageName="testtakers" />
-            <div class="w-full mx-6 mt-24">
+            <div class="w-full mx-6 content middle mt-20 ">
+
                 <div class="flex flex-row  align-middle mt-10">
                     <NuxtLink :to="`/admin/testtakers`">
                         <Icon name="mdi:chevron-left" class="h-6 w-6 mr-2 "></Icon>
@@ -12,11 +13,11 @@
                     <h2 class="intro-y text-lg font-bold mb-4">Test Taker Results</h2>
                 </div>
                 <div class="container mx-auto py-8">
-                    <div v-if="testTakerResults">
+                            <h1 v-if="testTakerResults" class="text-4xl text-primary font-semibold mb-4 mx-10 "> {{
+                                testTakerResults.username }}</h1>
+                    <div v-if="testTakerResults && testTakerResults.totalNumOfQuestions > 0">
                         <div class="space-y-4 mb-2 sticky p-5 rounded-md mx-10 ">
 
-                            <h1 class="text-4xl text-primary font-semibold mb-4 "> {{
-                                testTakerResults.username }}</h1>
                                 <h4 class="font-bold text-lg">
                                     Total : {{ testTakerResults.totalMarks}} / {{ testTakerResults.totalNumOfQuestions}}
                                 </h4>
@@ -106,3 +107,12 @@ const { data: testTakerResults } = await useAsyncData(() => $client.analytics.ge
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement)
 
 </script>
+
+<style scoped>
+.middle {
+    margin-left: 13vmax;
+}
+.w-full.overflow-y-auto {
+  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+}
+</style>

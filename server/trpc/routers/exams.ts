@@ -605,12 +605,7 @@ export const examRouter = router({
                             message: `Exam with id ${input.id} not found`
                         });
                     }
-                    if (exam.testingDate <= new Date()) {
-                        throw new  TRPCError({
-                            code: "BAD_REQUEST",
-                            message: 'Testing date has already passed'
-                        });
-                    }
+                   
                     // change status if testing date is greater than today
                     return await ctx.prisma.exam.update({
                         where: {
@@ -647,12 +642,7 @@ export const examRouter = router({
                             message: `Exam with id ${input.id} not found`
                         });
                     }
-                    if (exam.testingDate <= new Date()) {
-                        throw new  TRPCError({
-                            code: "FORBIDDEN",
-                            message: 'Testing date has already passed.'
-                        });
-                    }
+                  
                     // change status if testing date is greater than today
                     return await ctx.prisma.exam.update({
                         where: {

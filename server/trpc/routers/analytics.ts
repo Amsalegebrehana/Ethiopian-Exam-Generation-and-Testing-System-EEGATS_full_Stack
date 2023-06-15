@@ -82,6 +82,7 @@ export const analyticsRouter = router({
               select: {
                 testTakers: {
                   select: {
+                    name: true,
                     username: true,
                     id: true
                   }
@@ -115,7 +116,7 @@ export const analyticsRouter = router({
         }).then((data) => {
           if (data) {
             const result: ResultItem[] = [];
-            const username = testTaker?.username;
+            const username = testTaker?.name;
             const grades: number[] = [];
             data.forEach(async (item) => {
               const unansweredCategoryName = "Incorrect";
@@ -208,6 +209,7 @@ export const analyticsRouter = router({
               highestGrade,
               lowestGrade,
               username,
+
             };
 
           }
@@ -1085,8 +1087,8 @@ export const analyticsRouter = router({
 
           const topTestTakers = testTakerStats.slice(0, 10);
 
-          const topScore = Math.max(...totalScores);
-          const leastScore = Math.min(...totalScores);
+          const topScore = testTakers.length >  0 ? Math.max(...totalScores) : 0;
+          const leastScore = testTakers.length > 0 ? Math.max(...totalScores) : 0;
           
           return {
             topScore,
