@@ -6,5 +6,6 @@ export default {
     transform: {
       "^.+\\.mjs$": "ts-jest",
     },
-    extensionsToTreatAsEsm: ['.ts']
+    extensionsToTreatAsEsm: ['.ts'],
+    verbose: true,
   };
