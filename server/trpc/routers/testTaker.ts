@@ -611,9 +611,8 @@ export const testTakerRouter = router({
             const grade = testSession ? testSession.grade : 0;
             const totalQuestions = exam.numberOfQuestions;
       
-            totalNumQuestions +=totalQuestions;
             if(exam.status === 'gradeReleased'){
-
+              totalNumQuestions +=totalQuestions;
               totalScore +=grade;
             }
           }

@@ -174,7 +174,7 @@ const getSrc = (filepath: string) => {
                                         </client-only>
                                     </div>
 
-                                    <UploadImagewidget v-model:path="questionInfo.titleImage" class="px-2" />
+                                    <UploadImagewidget v-model:path="questionInfo.titleImage" class="px-2 hidden" />
                                     <div class="py-2 ml-auto w-1/12 mr-40">
 
                                         <button @click="nextStep" class="btn btn-primary"
@@ -194,7 +194,7 @@ const getSrc = (filepath: string) => {
                                         <Tiptap v-model="questionInfo.choiceOne" class="w-screen " />
                                     </client-only>
                                 </div>
-                                <UploadImagewidget v-model:path="questionInfo.choiceOneImage" class="px-2" />
+                                <UploadImagewidget v-model:path="questionInfo.choiceOneImage" class="px-2 hidden" />
                             </div>
 
                             <div class="flex flex-row mt-5 w-10/12">
@@ -215,7 +215,7 @@ const getSrc = (filepath: string) => {
                                         <Tiptap v-model="questionInfo.choiceTwo" class="w-screen " />
                                     </client-only>
                                 </div>
-                                <UploadImagewidget v-model:path="questionInfo.choiceTwoImage" class="px-2" />
+                                <UploadImagewidget v-model:path="questionInfo.choiceTwoImage" class="px-2 hidden" />
                             </div>
 
                             <div class="flex flex-row mt-5 w-10/12">
@@ -236,7 +236,7 @@ const getSrc = (filepath: string) => {
                                         <Tiptap v-model="questionInfo.choiceThree" class="w-screen" />
                                     </client-only>
                                 </div>
-                                <UploadImagewidget v-model:path="questionInfo.choiceThreeImage" class="px-2" />
+                                <UploadImagewidget v-model:path="questionInfo.choiceThreeImage" class="px-2 hidden" />
                             </div>
 
                             <div class="flex flex-row mt-5 w-10/12">
@@ -257,7 +257,7 @@ const getSrc = (filepath: string) => {
                                         <Tiptap v-model="questionInfo.choiceFour" class="w-screen" />
                                     </client-only>
                                 </div>
-                                <UploadImagewidget v-model:path="questionInfo.choiceFourImage" class="px-2" />
+                                <UploadImagewidget v-model:path="questionInfo.choiceFourImage" class="px-2 hidden" />
                             </div>
                             <div class="flex flex-row mt-5 w-10/12">
 

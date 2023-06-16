@@ -61,7 +61,7 @@
                                 <button v-if="publishBtn" class="btn btn-success shadow-md mt-5 mr-4 text-white"
                                     @click="publishExam">Publish</button>
                                 <button v-if="unpublishBtn" class="btn btn-success shadow-md mt-5 mr-4 text-white"
-                                    @click="unPublishExam">Un Publish</button>
+                                    @click="unPublishExam">Unpublish</button>
                             </div>
 
 
@@ -375,7 +375,7 @@
                                                     <div>
 
                                                         <button @click="setQ(question)">
-                                                            <div v-html="question.title" class="" />
+                                                            <div v-html="question.displayTitle" class="" />
                                                         </button>
                                                     </div>
 

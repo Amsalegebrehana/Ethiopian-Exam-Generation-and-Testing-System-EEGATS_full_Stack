@@ -482,7 +482,7 @@ export const analyticsRouter = router({
           const lowestGrade = Math.min(...exam.TestSession.map((session) => session.grade));
 
           // Analyze question performance
-          const questionPerformance: { id: string; title: string; percentageCorrect: number, image: string, correctAnswer: string, choices: any }[] = [];
+          const questionPerformance: { id: string; displayTitle: string; title: string; percentageCorrect: number, image: string, correctAnswer: string, choices: any }[] = [];
 
           exam.Questions.forEach((question) => {
             const totalTestTakers = question.TestTakerResponse.length;
@@ -497,7 +497,8 @@ export const analyticsRouter = router({
 
             const percentageCorrect = (correctCount / totalTestTakers) * 100;
             questionPerformance.push({
-              title: filter(question.title, 40),
+              displayTitle: filter(question.title, 40),
+              title: question.title,
               image: question.image || "",
               id: question.id,
               choices: question.choices,
@@ -1028,19 +1029,20 @@ export const analyticsRouter = router({
     .query(async ({ ctx, input }) => {
       if (ctx.session.role === 'admin') {
         try {
-          const {totalNumOfQuestions, totalPassPoint, totalExams} = await ctx.prisma.exam.findMany({
+          const { totalNumOfQuestions, totalPassPoint, totalExams } = await ctx.prisma.exam.findMany({
             where: {
               examGroupId: input.examGroupId
             },
-            select : {
-              numberOfQuestions: true, 
-              gradePassPoint : true
+            select: {
+              numberOfQuestions: true,
+              gradePassPoint: true
             }
           }).then((data) => {
             const totalNumOfQuestions = data.reduce((sum, exam) => sum + exam.numberOfQuestions, 0)
             const totalPassPoint = data.reduce((sum, exam) => sum + exam.gradePassPoint, 0)
             const totalExams = data.length;
-            return {totalNumOfQuestions, totalPassPoint, totalExams}}
+            return { totalNumOfQuestions, totalPassPoint, totalExams }
+          }
           );
           const testTakers = await ctx.prisma.testTakers.findMany({
             where: { examGroupId: input.examGroupId },
@@ -1055,13 +1057,13 @@ export const analyticsRouter = router({
               createdAt: "asc",
             },
           });
-          
+
           let totalScores: number[] = [];
           let numPassed = 0;
           const testTakerStats = testTakers.map((testTaker) => {
             const aggregatedScore = testTaker.TestSession.reduce((sum, session) => sum + session.grade, 0);
             totalScores.push(aggregatedScore);
-            if(aggregatedScore > totalPassPoint){
+            if (aggregatedScore > totalPassPoint) {
               numPassed++;
             }
 
@@ -1072,10 +1074,10 @@ export const analyticsRouter = router({
                 examId: session.exam.id,
                 examName: session.exam.name,
                 score: session.grade,
-                color : generateRandomColors(1, false)[0], 
-                totQuestions : session.exam.numberOfQuestions,
+                color: generateRandomColors(1, false)[0],
+                totQuestions: session.exam.numberOfQuestions,
               })),
-              totalScore : aggregatedScore,
+              totalScore: aggregatedScore,
             };
           });
 
@@ -1087,9 +1089,9 @@ export const analyticsRouter = router({
 
           const topTestTakers = testTakerStats.slice(0, 10);
 
-          const topScore = testTakers.length >  0 ? Math.max(...totalScores) : 0;
-          const leastScore = testTakers.length > 0 ? Math.max(...totalScores) : 0;
-          
+          const topScore = testTakers.length > 0 ? Math.max(...totalScores) : 0;
+          const leastScore = testTakers.length > 0 ? Math.min(...totalScores) : 0;
+
           return {
             topScore,
             leastScore,
@@ -1097,8 +1099,8 @@ export const analyticsRouter = router({
             totalNumOfQuestions,
             totalPassPoint,
             totalTestTakers: testTakers.length,
-            totalExams ,
-            percentagePassed : (numPassed / testTakers.length) * 100,
+            totalExams,
+            percentagePassed: (numPassed / testTakers.length) * 100,
           };
         } catch (error) {
           throw new TRPCError({

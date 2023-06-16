@@ -95,7 +95,7 @@ async function onSubmit() {
         isSubmitLoading.value = !isSubmitLoading.value;
         toggleSubmitWarning();
         window.location.reload()
-    } catch(error){
+    } catch (error) {
         isSubmitLoading.value = !isSubmitLoading.value;
         toggleSubmitWarning();
         toggleSubmitFailed();
@@ -108,6 +108,12 @@ async function onViewMore() {
 
 const toggleSubmitFailed = () => {
     showSubmitFailed.value = !showSubmitFailed.value;
+}
+
+const addQuestionBtn = () => {
+
+    return navigateTo(`/contributor/${contrId}/create-question`, { external: true })
+
 }
 </script>
 
@@ -130,7 +136,8 @@ const toggleSubmitFailed = () => {
                         <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
                             Question submission failed!
                         </DialogTitle>
-                        <p class="py-3 text-sm text-gray-500"> Attempt to submit question did not go through. You do not have any more assignments left 
+                        <p class="py-3 text-sm text-gray-500"> Attempt to submit question did not go through. You do not
+                            have any more assignments left
                             under this category. </p>
                         <div class="flex justify-center items-center">
                         </div>
@@ -236,8 +243,8 @@ const toggleSubmitFailed = () => {
                 <ul v-if="categories" class="w-[96%] h-[83%] p-4 divide-y overflow-auto">
                     <li v-for="category in categories" class="pb-3 sm:pb-4">
                         <div class="flex justify-between items-center space-x-4 py-4">
-                            <div class="w-20">
-                                <p class="text-lg font-medium text-gray-900 truncate">
+                            <div class="">
+                                <p class="text-lg font-medium text-gray-900">
                                     {{ category!.name }}
                                 </p>
                             </div>
@@ -253,7 +260,8 @@ const toggleSubmitFailed = () => {
     </div>
     <div>
         <TopBar role="contributor" :id="contrId" />
-       <div class="flex" :class="{'fixed w-full' : modalVisible || deleteWarningVisible || submitWarningVisible || showCatagoriesVisible}">
+        <div class="flex"
+            :class="{ 'fixed w-full': modalVisible || deleteWarningVisible || submitWarningVisible || showCatagoriesVisible }">
             <ContributorSideBar pageName="questions" :contrId="contrId" />
             <div class="w-full mx-6 content middle mt-20 ">
                 <Loading v-if="isLoadingQ" />
@@ -270,12 +278,12 @@ const toggleSubmitFailed = () => {
                                     </span>
                                 </div>
                             </button>
-                            <NuxtLink :to="`/contributor/${contrId}/create-question`">
-                                <button class="btn btn-primary shadow-md mr-2" :disable="!isAssigned || !canAddQuestion!">
-                                    Add question
-                                    <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
-                                </button>
-                            </NuxtLink>
+
+                            <button class="btn btn-primary shadow-md " :disabled="!isAssigned || !canAddQuestion!"
+                                @click="addQuestionBtn()">
+                                Add question
+                                <Icon name="material-symbols:add-box-rounded" class="w-6 h-6 ml-2 text-white"></Icon>
+                            </button>
                         </div>
                         <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                             <div class="w-56 relative text-slate-500">
@@ -451,12 +459,15 @@ const toggleSubmitFailed = () => {
 
             </div>
         </div>
-</div></template>
+    </div>
+</template>
 <style scoped>
 .middle {
     margin-left: 13vmax;
 }
+
 .w-full.overflow-y-auto {
-  height: calc(100vh - 4rem - 3.5rem); /* Adjust the height according to your needs */
+    height: calc(100vh - 4rem - 3.5rem);
+    /* Adjust the height according to your needs */
 }
 </style>

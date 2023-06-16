@@ -111,14 +111,18 @@
                             </div>
                         </div>
                     </div>
+
+                    <h2 class="text-center text-4xl font-bold my-10">
+                        Top Test Takers
+                    </h2>
               
-                    <div class="flex grid grid-cols-3 mt-10">
+                    <div class="flex grid grid-cols-3 mt-5">
 
                         <div v-for="testTaker in analytics.topTestTakers">
                             <div v-if="testTaker.exams.length > 0">
 
                                 <NuxtLink :to="`/admin/testTakers/${testTaker.testTakerId}`">
-                                    <div class="box rounded-md p-3 m-3 relative zoom-in h-48">
+                                    <div class="box rounded-md pb-4 p-6 m-3 relative zoom-in h-56">
 
                                         <div class="mt-3 justify-between">
 
@@ -129,7 +133,7 @@
                                                 }}
                                             </p>
                                         </div>
-                                        <div class="w-52 sm:w-auto mx-auto mt-8 h-full">
+                                        <div class="w-52 sm:w-auto mx-auto my-8 h-full">
                                             <div v-for="exam in testTaker.exams">
 
 

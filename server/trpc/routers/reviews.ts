@@ -5,9 +5,11 @@ import { TRPCError } from "@trpc/server";
 
 
 
-export const filter = (text: string, length=100) => {
+export const filter = (text: string, length = 100) => {
+    if (text[0] == "<") {
+        text = text.slice(3, -4);
+    }
     const clamp = '...';
-    text = text.slice(3, -4);
     var new_content = text.length > length ? text.slice(0, length) + clamp : text;
     new_content = '<p>' + new_content + '</p>';
     return new_content;
